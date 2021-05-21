@@ -109,6 +109,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
     num_gears = length(gr);             % highest gear
     gearbox = setup.gearbox;
     
+    % Sets gearratio to a constant 1 if no gearbox is present
     if ~gearbox
         gr(1) = 1;
     end
