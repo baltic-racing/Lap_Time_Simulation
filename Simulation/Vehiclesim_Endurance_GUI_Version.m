@@ -91,11 +91,16 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
 %     P_Mmax = max(P);                      % [W] Determination of the Maximum Power 
     n_Mmax = setup.n_max;                   % [1/min] Maximum RPM of the motor 
     drivetrain_eff = setup.drivetrain_eff;  % [-] Overall efficiency of powertrain
-    max_power = setup.p_max * 1000;         % [W] Power Limit in endurance
-    eta_inv = setup.invertor_eff;           % [-] Inverter efficiency
+    max_power = setup.p_max * 1000;         % [W] Power Limit in endurance 
     trq_multiplier = setup.trq_multiplier;
     
     ptype = setup.ptype;                    % variable for powertrain type : 1 = Electric and 0 = Combustion
+    
+    if ptype
+        eta_inv = setup.invertor_eff;           % [-] Inverter efficiency
+    else
+        eta_inv = 1;
+    end
     
     gearbox = setup.gearbox;
     
@@ -531,10 +536,10 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
             for i = 1:length(Track)-1
                 
                 if gearbox
-                    if ni(i) < n_downshift && gear > 1                          % Shift down
+                    if i > 1 && ni(i-1) < n_downshift && gear > 1                          % Shift down
                         gear = gear - 1;
                         ni(i) = vV(i) * 30 / pi * gr(gear) * i_G / Rdyn_rl(i);  % [1/min] Drehzahl nach Gangwechsel ermitteln   
-                    elseif ni(i) >= n_shift && gear < num_gears                 % Shift one gear up when shifting rpm is reached
+                    elseif i > 1 && ni(i-1) >= n_shift && gear < num_gears                 % Shift one gear up when shifting rpm is reached
                         gear = gear + 1;
                         t_x = t(i)-t(i-1);                                      % step size of the time variable       
                     end
@@ -563,9 +568,9 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
                     torquepointer = round(Mi(i));               % Pointer for efficiency table (Pointer für effizienztabelle)
                 end
 
-                % Motor power & limitation to 80 kW from FS-Rules (Motorleistung & Begrenzung auf 80 kW aus FS-Rules)
+                % Motor power & limitation to 80 kW from FS-Rules (for electric cars) (Motorleistung & Begrenzung auf 80 kW aus FS-Rules)
                 P_M(i) = num_motors * Mi(i) * ni(i) / 60 * 2 * pi;% [W] Total motor power (Gesamt-Motorleistung)
-                if P_M(i) > max_power
+                if ptype && P_M(i) > max_power
                     P_M(i) = max_power;                           % [W] Limited power (Begrenzte Leistung)
                     Mi(i) = P_M(i)*60/ni(i)/2/pi;                 % [Nm] Limiting the torque (Begrenzen des Moments)
                 end
@@ -577,7 +582,11 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
                 end
 
                 % Motor efficiency at given speed and torque (Motor Effizienz bei Drehzahl und Moment)
-                motor_eff(i) = M_eff_inter(rpmpointer,torquepointer);
+                if ptype
+                    motor_eff(i) = M_eff_inter(rpmpointer,torquepointer);
+                else
+                    motor_eff(i) = 1;
+                end
 
                 P_Mloss(i) = P_M(i)*(1-(motor_eff(i)*drivetrain_eff*eta_inv)); % Calculation of power loss (berechnung der Verlustleistung)
 
@@ -752,10 +761,10 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
                 gearSelection(i) = gear;
                 
                 if gearbox
-                    if ni(i) < n_downshift && gear > 1                          % Shift down
+                    if i > 1 && ni(i-1) < n_downshift && gear > 1                          % Shift down
                         gear = gear - 1;
                         ni(i) = vV(i) * 30 / pi * gr(gear) * i_G / Rdyn_rl(i);  % [1/min] Drehzahl nach Gangwechsel ermitteln   
-                    elseif ni(i) >= n_shift && gear < num_gears                 % Shift one gear up when shifting rpm is reached
+                    elseif i > 1 && ni(i-1) >= n_shift && gear < num_gears                 % Shift one gear up when shifting rpm is reached
                         gear = gear + 1;
                         t_x = t(i)-t(i-1);                                      % step size of the time variable       
                     end
@@ -809,7 +818,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
 
                     P_M(i) = num_motors * Mi(i) * ni(i) / 60 * 2 * pi; % [W] Total motor power (P_el!)
 
-                    if P_M(i) > max_power
+                    if ptype && P_M(i) > max_power
                         P_M(i) = max_power;                           % [W] Limited power (P_el!)
                         %Mi(i) = P_M(i)*60/ni(i)/2/pi;                 % [Nm] Limiting the torque (Total Motor Torque!)
                     end
@@ -823,7 +832,11 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
                     end
 
                     % Motor efficiency at given speed and torque (Motor Effizienz bei Drehzahl und Moment)
-                    motor_eff(i) = M_eff_inter(rpmpointer,torquepointer);
+                    if ptype
+                        motor_eff(i) = M_eff_inter(rpmpointer,torquepointer);
+                    else
+                        motor_eff(i) = 1;
+                    end
 
                     P_Mloss(i) = P_M(i)*(1-(motor_eff(i)*drivetrain_eff*eta_inv)); % Calculation of power loss (berechnung der Verlustleistung)
 

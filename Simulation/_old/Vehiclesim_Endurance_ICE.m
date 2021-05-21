@@ -286,13 +286,13 @@ for i = 1:length(Track)-1
     if ni(i) >= n_shift % Gang erhöhen, wenn Schaltdrehzahl erreicht
         Gang = Gang + 1;
         t_x = t(i)-t(i-1); % Schrittweite der Hilfsgröße festlegen
-            if Gang >= Gang_max  % Begrenzen der höchsten Gangzahl
-                Gang = Gang_max;
-            end 
+        if Gang >= Gang_max  % Begrenzen der höchsten Gangzahl
+            Gang = Gang_max;
+        end 
         ni(i)= vV(i)*30/pi*ig(Gang)/Rdyn_hl(i); % [1/min] Drehzahl nach Gangwechsel ermitteln      
-            if ni(i)>= n_Mmax % Drehzahlbegrenzer
-                ni(i) = n_Mmax;
-            end      
+        if ni(i)>= n_Mmax % Drehzahlbegrenzer
+            ni(i) = n_Mmax;
+        end      
     end
     
     % Bestimmen von Aero-Kräften und Motormoment
