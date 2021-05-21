@@ -102,13 +102,16 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
         eta_inv = 1;
     end
     
-    gearbox = setup.gearbox;
-    
     n_shift = setup.n_shift;            % engine rpm when shifting gears [1/min]
     n_downshift = setup.n_downshift;
     t_shift = setup.t_shift;            % time needed to shift gears [s]
     gr = setup.i_param(:);            % Gear ratio for each gear
     num_gears = length(gr);             % highest gear
+    gearbox = setup.gearbox;
+    
+    if ~gearbox
+        gr(1) = 1;
+    end
     
     % Gearbox Data (Getriebedaten)
     z_chaindrive = setup.z_chaindrive;      % [-] Number of teeth on sprocket
@@ -538,7 +541,6 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
                 if gearbox
                     if i > 1 && ni(i-1) < n_downshift && gear > 1                          % Shift down
                         gear = gear - 1;
-                        ni(i) = vV(i) * 30 / pi * gr(gear) * i_G / Rdyn_rl(i);  % [1/min] Drehzahl nach Gangwechsel ermitteln   
                     elseif i > 1 && ni(i-1) >= n_shift && gear < num_gears                 % Shift one gear up when shifting rpm is reached
                         gear = gear + 1;
                         t_x = t(i)-t(i-1);                                      % step size of the time variable       
@@ -595,12 +597,12 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
 
                 % Calculation of tractive forces (Berechnen der Zugkraft)
                 if num_motors == 4
-                    FVX_fl(i) = Mi(i)/num_motors*i_G/Rdyn_fl(i);                   % [N] Tractive Force on front left wheel (AWD) 
-                    FVX_fr(i) = Mi(i)/num_motors*i_G/Rdyn_fr(i);                   % [N] Tractive Force on front right wheel (AWD) 
+                    FVX_fl(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_fl(i);                   % [N] Tractive Force on front left wheel (AWD) 
+                    FVX_fr(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_fr(i);                   % [N] Tractive Force on front right wheel (AWD) 
                     FVX_f(i) = FVX_fl(i) + FVX_fr(i);                     % [N] Traction on rear axle (Zugkraft an der Hinterachse)
 
-                    FVX_rl(i) = Mi(i)/num_motors*i_G/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
-                    FVX_rr(i) = Mi(i)/num_motors*i_G/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
+                    FVX_rl(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
+                    FVX_rr(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
                     FVX(i) = FVX_rl(i) + FVX_rr(i);      % [N] Traction on rear axle (Zugkraft an der Hinterachse)
 
                     if FVX_f(i) > FWXmax_f(i)     % Limiting the tractive force to the traction limit front axle
@@ -608,14 +610,14 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
                         TC_front(i) = 1;              % Traction control "on" (Traktionskontrolle "an")
                     end
                 elseif num_motors == 2
-                    FVX_rl(i) = Mi(i)/num_motors*i_G/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
-                    FVX_rr(i) = Mi(i)/num_motors*i_G/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
+                    FVX_rl(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
+                    FVX_rr(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
                     FVX(i) = FVX_rl(i) + FVX_rr(i);                     % [N] Traction on rear axle (Zugkraft an der Hinterachse)
 
                     FVX_f(i) = 0;
                 else
-                    FVX_rl(i) = Mi(i)/2*i_G/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
-                    FVX_rr(i) = Mi(i)/2*i_G/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
+                    FVX_rl(i) = Mi(i)/2*i_G*gr(gear)/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
+                    FVX_rr(i) = Mi(i)/2*i_G*gr(gear)/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
                     FVX(i) = FVX_rl(i) + FVX_rr(i);                     % [N] Traction on rear axle (Zugkraft an der Hinterachse)
 
                     FVX_f(i) = 0;
@@ -850,12 +852,12 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
 
                     % Calculation of tractive forces (Berechnen der Zugkraft)
                     if num_motors == 4
-                        FVX_fl(i) = Mi(i)/num_motors*i_G/Rdyn_fl(i);                   % [N] Tractive Force on front left wheel (AWD) 
-                        FVX_fr(i) = Mi(i)/num_motors*i_G/Rdyn_fr(i);                   % [N] Tractive Force on front right wheel (AWD) 
+                        FVX_fl(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_fl(i);                   % [N] Tractive Force on front left wheel (AWD) 
+                        FVX_fr(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_fr(i);                   % [N] Tractive Force on front right wheel (AWD) 
                         FVX_f(i) = FVX_fl(i) + FVX_fr(i);                     % [N] Traction on rear axle (Zugkraft an der Hinterachse)
 
-                        FVX_rl(i) = Mi(i)/num_motors*i_G/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
-                        FVX_rr(i) = Mi(i)/num_motors*i_G/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
+                        FVX_rl(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
+                        FVX_rr(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
                         FVX(i) = FVX_rl(i) + FVX_rr(i);                     % [N] Traction on rear axle (Zugkraft an der Hinterachse)
 
                         if FVX_f(i) > FWXmax_f(i)     % Limiting the tractive force to the traction limit front axle
@@ -863,14 +865,14 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
                             TC_front(i) = 1;              % front Traction control "on" 
                         end
                     elseif num_motors == 2
-                        FVX_rl(i) = Mi(i)/num_motors*i_G/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
-                        FVX_rr(i) = Mi(i)/num_motors*i_G/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
+                        FVX_rl(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
+                        FVX_rr(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
                         FVX(i) = FVX_rl(i) + FVX_rr(i);                     % [N] Traction on rear axle (Zugkraft an der Hinterachse)
 
                         FVX_f(i) = 0;
                     else
-                        FVX_rl(i) = Mi(i)/2*i_G/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
-                        FVX_rr(i) = Mi(i)/2*i_G/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
+                        FVX_rl(i) = Mi(i)/2*i_G*gr(gear)/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
+                        FVX_rr(i) = Mi(i)/2*i_G*gr(gear)/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
                         FVX(i) = FVX_rl(i) + FVX_rr(i);                     % [N] Traction on rear axle (Zugkraft an der Hinterachse)
 
                         FVX_f(i) = 0;
@@ -881,7 +883,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
                         TC(i) = 1;              % Traction control "on" (Traktionskontrolle "an")
                     end       
 
-                    M_tractive(i) = (FVX(i)+FVX_f(i))/(i_G/Rdyn_rr(i));            % [Nm] Torque including tractive force
+                    M_tractive(i) = (FVX(i)+FVX_f(i))/(i_G*gr(gear)/Rdyn_rr(i));            % [Nm] Torque including tractive force
                     P_tractive(i) = M_tractive(i)/(60/ni(i)/2/pi);      % [kW] Motor power required for traction 
                     P_el(i) = (P_tractive(i)/(drivetrain_eff * motor_eff(i) * eta_inv));     % [kW] Motor power including efficiencies
                 end
