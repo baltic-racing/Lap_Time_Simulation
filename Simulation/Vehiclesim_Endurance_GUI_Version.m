@@ -215,10 +215,26 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
     slipY_r = zeros(1,length(Track));
     t = zeros(1,length(Track)-1);
     
+    l_contact_patch_fl = zeros(1,length(Track));
+    l_contact_patch_fr = zeros(1,length(Track));
+    l_contact_patch_rl = zeros(1,length(Track));
+    l_contact_patch_rr = zeros(1,length(Track));
+    
+    kappa_rl = zeros(1,length(Track));
+    kappa_rr = zeros(1,length(Track));
+    kappa_fl = zeros(1,length(Track));
+    kappa_fr = zeros(1,length(Track));
+                
+    delta = zeros(1,length(Track));
+    beta = zeros(1,length(Track));
+    psi1 = zeros(1,length(Track));
+    alpha_f = zeros(1,length(Track));
+    alpha_r = zeros(1,length(Track));
+    
     TC = zeros(1,length(Track));
     TC_front = zeros(1,length(Track));
-    DRS_status = zeros(1,length(Track));
-    gearSelection = zeros(1,length(Track));
+    DRS_status = zeros(1,length(Track)-1);
+    gearSelection = zeros(1,length(Track)-1);
     
     Tirelimit = zeros(1,length(Track));
     vAPEXmax = zeros(1,length(ApexIndexes));
@@ -909,6 +925,33 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
                 else
                     E_Accu_Recu(i+1) = E_Accu_Recu(i) + (t(i+1)-t(i)) * P_Bh(i); % [J]
                 end
+                
+                % Latschlängen für Längsschlupfberechnung nach Carter
+                FT(i) = FVX(i)/2-k_R*FWZ_rl(i+1)-FB(i)/4;   % [N] Umfangskräfte an einem Hinterrad
+                l_contact_patch_fl(i) = FWZ_fl(i)/(p_infl*bW);   % [m] Latschlänge vorne links
+                l_contact_patch_fr(i) = FWZ_fr(i)/(p_infl*bW);   % [m] Latschlänge vorne rechts
+                l_contact_patch_rl(i) = FWZ_rl(i)/(p_infl*bW);   % [m] Latschlänge hinten links
+                l_contact_patch_rr(i) = FWZ_rr(i)/(p_infl*bW);   % [m] Latschlänge hinten rechts
+
+                % Längsschlupf nach Carter
+                my0 = 2;    % [-] Haftreibungsbeiwert   
+                kappa_rl(i) = l_contact_patch_rl(i)/(2*Rdyn_rl(i))*my0*(wheelbase-sqrt(1-FT(i)/(my0*FWZ_rl(i))));
+                kappa_rr(i) = l_contact_patch_rr(i)/(2*Rdyn_rr(i))*my0*(wheelbase-sqrt(1-FT(i)/(my0*FWZ_rr(i))));
+                kappa_fl(i) = l_contact_patch_fl(i)/(2*Rdyn_fl(i))*my0*(wheelbase-sqrt(1-FT(i)/(my0*FWZ_fl(i))));
+                kappa_fr(i) = l_contact_patch_fr(i)/(2*Rdyn_fr(i))*my0*(wheelbase-sqrt(1-FT(i)/(my0*FWZ_fr(i))));
+                
+                % Lenkwinkel, Schwimmwinkel, Gierrate, Schräglaufwinkel
+                if R(i) > 0
+                    f = -1;     % [-] Hilfsgröße für Richtung der Winkel
+                else
+                    f = 1;
+                end
+
+                delta(i) = f*atan((wheelbase/1000)/sqrt(R(i)^2-(lr/1000)^2));   % [rad] Lenkwinkel
+                beta(i) = f*atan((lr/1000)/sqrt(R(i)^2-(lr/1000)^2));  % [rad] Schwimmwinkel
+                psi1(i) = vV(i)/R(i);                                 % [rad/s] Gierrate
+                alpha_f(i) = 180/pi*(delta(i)-(lf/1000)/vV(i)*psi1(i)-beta(i));  % [°] Schräglaufwinkel vorne
+                alpha_r(i) = 180/pi*((lr/1000)/vV(i)*psi1(i)-beta(i));           % [°] Schräglaufwinkel hinten
 
 
                 E_Accu(i+1) = E_Accu(i) + (t(i+1)-t(i)) * P_el(i); % [J] 
@@ -1180,6 +1223,19 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
             result.i_param(:,steps) = gr(:);
             result.n_shift(:,steps) = n_shift(:);
             result.n_downshift(:,steps) = n_downshift(:);
+            result.l_contact_patch_fl(:,steps) = l_contact_patch_fl(:);
+            result.l_contact_patch_fr(:,steps) = l_contact_patch_fr(:);
+            result.l_contact_patch_rl(:,steps) = l_contact_patch_rl(:);
+            result.l_contact_patch_rr(:,steps) = l_contact_patch_rr(:);
+            result.kappa_rl(:,steps) = kappa_rl(:);
+            result.kappa_rr(:,steps) = kappa_rr(:);
+            result.kappa_fl(:,steps) = kappa_fl(:);
+            result.kappa_fr(:,steps) = kappa_fr(:);
+            result.delta(:,steps) = delta(:);
+            result.beta(:,steps) = beta(:);
+            result.psi1(:,steps) = psi1(:);
+            result.alpha_f(:,steps) = alpha_f(:);
+            result.alpha_r(:,steps) = alpha_r(:);
 
             % sets button progress (progressbar)
             if sensitivityID2 ~= 0 
@@ -1187,6 +1243,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
             else
                 currentProg = min(round((size(wbar,2)-2)*(steps/numSteps)),size(wbar,2)-2); 
             end
+            
             processDataButtonHandle.Icon(2:end-1, 2:currentProg+1, 1) = 0.25391; % (royalblue)
             processDataButtonHandle.Icon(2:end-1, 2:currentProg+1, 2) = 0.41016;
             processDataButtonHandle.Icon(2:end-1, 2:currentProg+1, 3) = 0.87891;

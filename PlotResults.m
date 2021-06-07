@@ -866,6 +866,38 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                     ylabel('Gang [-]','FontSize',10)
                     grid on
                     box on
+                    
+                case 40
+                    % Steering Angle front
+                    figure(saveID*10000 + runID*100 + 40)
+                    plot(s(1:end),result1.delta(:,runID)*180/pi)
+                    title('Steering Angle front')
+                    xlabel('Track Length [m]','FontSize',10)
+                    ylabel('Steering Angle','FontSize',10)
+                    grid on 
+                    grid minor
+                    
+                case 41
+                    % Sideslip angle Plot
+                    figure(saveID*10000 + runID*100 + 41)
+                    plot(s(1:end),result1.beta(:,runID)*180/pi)
+                    title('Sideslip angle')
+                    xlabel('Track Length [m]','FontSize',10)
+                    ylabel('Sideslip Angle','FontSize',10)
+                    grid on 
+                    grid minor
+                    
+                case 42
+                    % Slip angle
+                    figure(saveID*10000 + runID*100 + 42)
+                    plot(s(1:end),result1.alpha_f(:,runID),s(1:end),result1.alpha_r(:,runID))
+                    legend('Vorne','Hinten')
+                    title('Slip Angle')
+                    xlabel('Track Length [m]','FontSize',10)
+                    ylabel('Slip Angle','FontSize',10)
+                    grid on 
+                    grid minor
+                    
                 otherwise
                     return
             end

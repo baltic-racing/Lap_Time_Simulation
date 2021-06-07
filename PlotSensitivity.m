@@ -110,6 +110,9 @@ function PlotSensitivity(resultFile, xparam, yparam, dots, zparam, resx, resy)
         case 34
             x_axis = result1.i_G;
             xlabelText = 'Gear Ratio [-]';
+        case 35
+            x_axis = result1.c_l./result1.c_w;
+            xlabelText = 'Aero Efficiency c_l/c_w [-]';
     end
     
     switch yparam  
@@ -215,6 +218,9 @@ function PlotSensitivity(resultFile, xparam, yparam, dots, zparam, resx, resy)
         case 34
             y_axis = result1.i_G;
             ylabelText = 'Gear Ratio [-]';
+        case 35
+            y_axis = sort(result1.c_l./result1.c_w);
+            ylabelText = 'Aero Efficiency c_l/c_w [-]';
     end
     
     if nargin == 7
@@ -321,6 +327,9 @@ function PlotSensitivity(resultFile, xparam, yparam, dots, zparam, resx, resy)
             case 34
                 z_axis = result1.i_G;
                 zlabelText = 'Gear Ratio [-]';
+            case 35
+                z_axis = sort(result1.c_l./result1.c_w);
+                zlabelText = 'Aero Efficiency c_l/c_w [-]';
         end
         
         if dots
