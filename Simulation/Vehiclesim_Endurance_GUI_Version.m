@@ -752,7 +752,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
             %% Start values for simulation WITH BRAKES
 
             if (trackID == 1 || trackID == 2) 
-                vV(1) = 15;    % [m/s] Speed
+                vV(1) = 7.8;    % [m/s] Speed
             else
                 vV(1) = 0.001;    % [m/s] Speed
             end
@@ -801,6 +801,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
 
                 % Checking if braking is required (Prüfen, ob gebremst werden muss)
                 if ismember(i,BrakeIndexes)                       % Initiaion of braking process (Einleiten des Bremsvorgangs)     
+                    % Braking 
                     Mi(i) = 0;                                    % [Nm] Motor torque (Motormoment)
                     BPPsignal(i) = 1;                             % [-] Brake signal (Bremssignal)
                     P_Bh(i) = FWZr(i)/FWZtot(i)*FB(i)*vV(i);      % [W] Rear braking power for recuperation (Bremsleistung hinten für Rekuperation)
@@ -822,6 +823,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
                     FVX_rr(i) = 0;                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
                     FVX(i) = 0;                     % [N] Traction on rear axle (Zugkraft an der Hinterachse)
                 else
+                    % Accelerating 
                     Mi(i) = interp1(n,M,ni(i),'linear','extrap'); % [Nm] Motor torque (single motor!)
                     FB(i) = 0;                                    % [N] Braking force
                     P_Bh(i) = 0;                                  % [W] Rear braking power (Bremsleistung hinten)
