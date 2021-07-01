@@ -408,12 +408,17 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                     box on
                     
                 case 12
-                    % Verlauf der übertragbaren Querkräfte (Conti-Plot)
+                    % Verlauf der übertragbaren Querkräfte (Conti-Plot)   
+                    
+                    TIRparam = loadTIR('C19_CONTINENTAL_FORMULASTUDENT_205_470_R13_65kPa.tir');
+                    
                     figure(saveID*10000 + runID*100 + 12)
+                    
                     for f = 2000:-200:0
-                    plot([-12:0.01:12],MF52_Fy_ps([-12:0.01:12],result1.f,result1.GAMMA,0,result1.TIRparam))
+                    plot([-12:0.01:12],MF52_Fy_ps([-12:0.01:12],f,result1.GAMMA,0,TIRparam))
                     hold on
                     end
+                    
                     legend('2000 N','1800 N','1600 N','1400 N','1200 N','1000 N','800 N','600 N','400 N','200 N','0 N','FontSize',15)
                     grid on
                     box on
@@ -790,7 +795,7 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                     xlabel('X-Coordinate [m]','FontSize',10)
                     ylabel('Y-Coordinate [m]','FontSize',10)
                     colormap(jet)
-                    caxis([0 2000]) % Sets the minimum and maximum value for the colorbar 
+                    caxis([0 4.5]) % Sets the minimum and maximum value for the colorbar 
                     c = colorbar;
                     ylabel(c,'Corner Radius') %%Velocity        
                     
@@ -846,7 +851,7 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                 case 38
                     % Gear selection on track
                     figure(saveID*10000 + runID*100 + 38)
-                    scatter(result1.Track(1:end,1),result1.Track(1:end,2),40,result1.gear(:,runID),'filled')
+                    scatter(result1.Track(1:end-1,1),result1.Track(1:end-1,2),40,result1.gear(:,runID),'filled')
                     title('Gearselection','FontSize',12) 
                     xlabel('X-Coordinate [m]','FontSize',10)
                     ylabel('Y-Coordinate [m]','FontSize',10)

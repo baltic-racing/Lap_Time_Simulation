@@ -233,6 +233,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
     
     TC = zeros(1,length(Track));
     TC_front = zeros(1,length(Track));
+    ABS = zeros(1,length(Track));
     DRS_status = zeros(1,length(Track)-1);
     gearSelection = zeros(1,length(Track)-1);
     
@@ -538,7 +539,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
             %% Start/Initial values for first simulation run WITHOUT BRAKES (Startwerte für ersten Simulationslauf OHNE BREMSEN)
 
             if (trackID == 1 || trackID == 2) 
-                vV(1) = 15;    % [m/s] Speed (Geschwindigkeit)
+                vV(1) = 7.8;    % [m/s] Speed (Geschwindigkeit)
             else
                 vV(1) = 0.001;    % [m/s] Speed (Geschwindigkeit)
             end
@@ -726,10 +727,10 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
 
                 while vRev(j-1) < vV(j-1)
 
-                    Faero(j-1) = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vRev(j-1)); % [N] Aerodynamic force
-                    FR(j-1) = k_R*(FG+Faero(j-1));
-                    FL(j-1) = rho_L*vRev(j-1)^2/2*c_w*A_S;
-                    Fdr(j-1) = FR(j-1)+FL(j-1);
+                    Faero(j-1) = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vRev(j-1));   % [N] Aerodynamic force
+                    FR(j-1) = k_R*(FG+Faero(j-1));                                              % [N] Rolling Resistance
+                    FL(j-1) = rho_L*vRev(j-1)^2/2*c_w*A_S;                                      % [N] Air resistance
+                    Fdr(j-1) = FR(j-1)+FL(j-1);                                                 % [N] Overall Resistance 
                     aRev(j-1) = (-Fdr(j-1)-FB(j-1))/m_tot;
                     vRev(j-2) = sqrt(vRev(j-1)^2-2*aRev(j-1)*(s(j-1)-s(j-2)));
                     j = j - 1;
@@ -817,11 +818,21 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
 
                     FVX_fl(i) = 0;                   % [N] Tractive Force on front left wheel (AWD) 
                     FVX_fr(i) = 0;                   % [N] Tractive Force on front right wheel (AWD) 
-                    FVX_f(i) = 0;                     % [N] Traction on rear axle (Zugkraft an der Hinterachse)
+                    FVX_f(i) = -FB(i)/2;              % [N] Traction on rear axle (Zugkraft an der Hinterachse)
 
                     FVX_rl(i) = 0;                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
                     FVX_rr(i) = 0;                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
-                    FVX(i) = 0;                     % [N] Traction on rear axle (Zugkraft an der Hinterachse)
+                    FVX(i) = -FB(i)/2;                % [N] Traction on rear axle (Zugkraft an der Hinterachse)
+                    
+                    if abs(FVX_f(i)) > FWXmax_f(i)     % Limiting the tractive force to the traction limit rear axle
+                        FB(i) = -FWXmax_f(i);
+                        ABS(i) = 1;              % Traction control "on" (Traktionskontrolle "an")
+                    end     
+                    
+                    if abs(FVX(i)) > FWXmax_r(i)     % Limiting the tractive force to the traction limit rear axle
+                        FB(i) = -FWXmax_r(i);
+                        ABS(i) = 1;              % Traction control "on" (Traktionskontrolle "an")
+                    end     
                 else
                     % Accelerating 
                     Mi(i) = interp1(n,M,ni(i),'linear','extrap'); % [Nm] Motor torque (single motor!)
@@ -949,11 +960,11 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
                     f = 1;
                 end
 
-                delta(i) = f*atan((wheelbase/1000)/sqrt(R(i)^2-(lr/1000)^2));   % [rad] Lenkwinkel
-                beta(i) = f*atan((lr/1000)/sqrt(R(i)^2-(lr/1000)^2));  % [rad] Schwimmwinkel
-                psi1(i) = vV(i)/R(i);                                 % [rad/s] Gierrate
-                alpha_f(i) = 180/pi*(delta(i)-(lf/1000)/vV(i)*psi1(i)-beta(i));  % [°] Schräglaufwinkel vorne
-                alpha_r(i) = 180/pi*((lr/1000)/vV(i)*psi1(i)-beta(i));           % [°] Schräglaufwinkel hinten
+                delta(i) = f*atan((wheelbase/1000)/sqrt(R(i)^2-(lr/1000)^2));       % [rad] Lenkwinkel
+                beta(i) = f*atan((lr/1000)/sqrt(R(i)^2-(lr/1000)^2));               % [rad] Schwimmwinkel
+                psi1(i) = vV(i)/R(i);                                               % [rad/s] Gierrate
+                alpha_f(i) = 180/pi*(delta(i)-(lf/1000)/vV(i)*psi1(i)-beta(i));     % [°] Schräglaufwinkel vorne
+                alpha_r(i) = 180/pi*((lr/1000)/vV(i)*psi1(i)-beta(i));              % [°] Schräglaufwinkel hinten
 
 
                 E_Accu(i+1) = E_Accu(i) + (t(i+1)-t(i)) * P_el(i); % [J] 
@@ -1322,7 +1333,7 @@ function [FR, FL, Fdr, FVY, aVX, aVY, DRS_status] = vehicle_resistances_forces(k
         Fdr = FR + FL;                  % [N] Total resistance (Gesamtwiderstand)
         FVY = m_tot*vV^2/R;             % [N] Centrifugal force (Zentrifugalkraft)
         
-        aVX = ((FVX+FVX_f)-Fdr-FB)/m_tot;       % [m/s²] Longitudinal acceleration (Längsbeschleunigung)
+        aVX = ((FVX+FVX_f)-Fdr)/m_tot;       % [m/s²] Longitudinal acceleration (Längsbeschleunigung)
         aVY = vV^2/R;                   % [m/s²] Lateral acceleration (Querbeschleunigung)
 end
 
@@ -1366,7 +1377,7 @@ function [FWYmax_fl, FWYmax_fr, FWYmax_rl, FWYmax_rr, FWYmax_f, FWYmax_r] = lat_
 end
 
 
-function [FWXmax_fl, FWXmax_fr, FWXmax_rl, FWXmax_rr, FWXmax_v, FWXmax_h] = longi_tireforces(FWZ_vl, FWZ_vr,FWZ_hl, FWZ_hr, GAMMA, TIRparam)
+function [FWXmax_fl, FWXmax_fr, FWXmax_rl, FWXmax_rr, FWXmax_f, FWXmax_r] = longi_tireforces(FWZ_vl, FWZ_vr,FWZ_hl, FWZ_hr, GAMMA, TIRparam)
 %% Maximum transmissible tire forces in longitudinal direction
     
         FWXmax_fl = max(abs(MF52_Fx_cs(0,FWZ_vl,GAMMA,0:0.01:0.2,TIRparam))); % [N] Maximum transmissible front left wheel force (Maximal übertragbare Radkraft)
@@ -1374,8 +1385,8 @@ function [FWXmax_fl, FWXmax_fr, FWXmax_rl, FWXmax_rr, FWXmax_v, FWXmax_h] = long
         FWXmax_rl = max(abs(MF52_Fx_cs(0,FWZ_hl,GAMMA,0:0.01:0.2,TIRparam))); % [N] Maximum transmissible rear left wheel force (Maximal übertragbare Radkraft)
         FWXmax_rr = max(abs(MF52_Fx_cs(0,FWZ_hr,GAMMA,0:0.01:0.2,TIRparam))); % [N] Maximum transmissible rear right wheel force (Maximal übertragbare Radkraft)        
         
-        FWXmax_v = FWXmax_fl + FWXmax_fr;                                % [N] Maximum transmissible front axle force (Maximal übertragbare Achskraft)
-        FWXmax_h = FWXmax_rl + FWXmax_rr;                                % [N] Maximum transmissible rear axle force (Maximal übertragbare Achskraft)
+        FWXmax_f = FWXmax_fl + FWXmax_fr;                                % [N] Maximum transmissible front axle force (Maximal übertragbare Achskraft)
+        FWXmax_r = FWXmax_rl + FWXmax_rr;                                % [N] Maximum transmissible rear axle force (Maximal übertragbare Achskraft)
 end
 
 

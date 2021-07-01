@@ -1,2 +1,9 @@
 
 Simulation/import.csv
+
+*.prj
+*.pdf
+*.xlsx
+
+**/CarSetup*.mat
+ErrorLog.mat
