@@ -501,7 +501,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
 
                     FVY(i) = m_tot*vV(i)^2/R(ApexIndexes(i));    % [N] Centrifugal force (Zentrifugalkraft)
 
-                    aVY(i) = vV(i)^2/R(i);  % [m/s²] Lateral acceleration (Querbeschleunigung)
+                    aVY(i) = vV(i)^2/R(ApexIndexes(i));  % [m/s²] Lateral acceleration (Querbeschleunigung)
 
                     % Lateral forces to be applied on front and rear axle (Aufzubringende Querkräfte an Vorder- und Hinterachse)
                     FWYf(i) = lr/wheelbase*abs(FVY(i));   % [N] Lateral force to be applied to the front axle (Aufzubringende Querkraft der Vorderachse)
@@ -657,7 +657,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
                     z = z + 1;
                 end
 
-                vV(i+1) = sqrt(vV(i)^2+2*aVX(i)*(s(i+1)-s(i))); % [m/s] Total vehicle seed (Gesamt-Fahrzeuggeschwindigkeit)
+                vV(i+1) = sqrt(vV(i)^2+2*aVX(i)*(s(i+1)-s(i))); % [m/s] Total vehicle speed (Gesamt-Fahrzeuggeschwindigkeit)
                 t(i+1) = t(i)+(s(i+1)-s(i))/vV(i+1);            % [s] Time (Zeit)
 
                 % Lateral forces to be applied on front and rear axles (Aufzubringende Querkräfte an Vorder- und Hinterachse)
@@ -799,7 +799,8 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
                 end        
 
                [Faero(i)] = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vV(i)); % [N] Aerodynamic force
-
+                
+               %% Braking
                 % Checking if braking is required (Prüfen, ob gebremst werden muss)
                 if ismember(i,BrakeIndexes)                       % Initiaion of braking process (Einleiten des Bremsvorgangs)     
                     % Braking 
@@ -834,7 +835,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
                         ABS(i) = 1;              % Traction control "on" (Traktionskontrolle "an")
                     end     
                 else
-                    % Accelerating 
+                %% Accelerating 
                     Mi(i) = interp1(n,M,ni(i),'linear','extrap'); % [Nm] Motor torque (single motor!)
                     FB(i) = 0;                                    % [N] Braking force
                     P_Bh(i) = 0;                                  % [W] Rear braking power (Bremsleistung hinten)
@@ -1028,6 +1029,9 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
 
                 % Maximum transmissible tire forces in lateral direction (Maximal übertragbare Reifenkräfte in Querrichtung)      
                 [FWYmax_fl(i+1), FWYmax_fr(i+1), FWYmax_rl(i+1), FWYmax_rr(i+1), FWYmax_f(i+1), FWYmax_r(i+1)] = lat_tireforces(FWZ_fl(i), FWZ_fr(i),FWZ_rl(i), FWZ_rr(i), GAMMA, TIRparam);
+                
+                % Maximum cornering velocity 
+                vVYmax(i+1) = sqrt((FWYmax_f(i+1)+FWYmax_r(i+1))*R(i+1)/m_tot); % Calculating maximum possible lateral velocity with given Tire forces [m/s] (inaccuaracy because tire force is based on aero force)
 
                 %Akkuströme
                 V_i(i) = sum(Voltage_Cellpack(:,i));
@@ -1061,6 +1065,8 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
                 end
 
                 Voltage_Cellpack(1:131,i+1) = Voltage_inter(Current_Cellpack_Pointer_Voltage(1,i),SOC_Pointer(1:131,i+1));
+                
+             
             end
 
             if Debug
@@ -1068,10 +1074,10 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, trackID, disciplineID
             end
             
             % Conversion of battery energy capacity (Umrechnen der Energiemengen des Akkus)
-            E_Accu = E_Accu/(3.6e6);              % [kWh] Energy consumed by battery per lap (Verbrauchte Akku-Energie je Runde)
-            E_heat = E_heat/(3.6e6);          % [kWh] 3.6e6 Joule conversion (3.6e6 Umrechnung Joule)
-            E_Accu_Recu = E_Accu_Recu/(3.6e6);    % [kWh] Energy recuperated by batter per lap (Rekuperierte Akku-Energie je Runde)
-            E_res = E_Accu - E_Accu_Recu;         % [kWh] Resulting energy consumption per lap (Resultierender Verbrauch je Runde)
+            E_Accu = E_Accu/(3.6e6);                % [kWh] Energy consumed by battery per lap (Verbrauchte Akku-Energie je Runde)
+            E_heat = E_heat/(3.6e6);                % [kWh] 3.6e6 Joule conversion (3.6e6 Umrechnung Joule)
+            E_Accu_Recu = E_Accu_Recu/(3.6e6);      % [kWh] Energy recuperated by batter per lap (Rekuperierte Akku-Energie je Runde)
+            E_res = E_Accu - E_Accu_Recu;           % [kWh] Resulting energy consumption per lap (Resultierender Verbrauch je Runde)
 
             %%  Output of the values (Ausgabe der Werte)
             tEnd = toc;
