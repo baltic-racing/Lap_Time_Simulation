@@ -1445,7 +1445,19 @@ function [x_Track, y_Track, z_Track, s, R, Track, ApexIndexes] = loadTrack(track
             Track(:,3) = z_Track;           % [m] Z-Coordinate of the Track
             
             Track(:,4) = s;                 % [m] Track length in m
-            Track(:,5) = R;                 % [m] Radius of corners   
+            Track(:,5) = R;                 % [m] Radius of corners
+        case 5
+        case 6
+            load('FSA_EnduranceTrack.mat','Track');     % Track Data of Endurance Track (Streckendaten Endurance Track)
+            
+            x_Track = Track(:,1);           % [m] X-Coordinate of the Track
+            y_Track = Track(:,2);           % [m] Y-Coordinate of the Track
+            z_Track = Track(:,3);           % [m] Z-Coordinate of the Track
+            
+            s = Track(:,4);                 % [m] Track Pathway (Verlauf der Streckenlänge)
+            R = Track(:,5);                 % [m] Radius of curves (Kurvenradien)
+            
+           
     end
     
     % Calls the .m file 'Apexes' to calculate the Apexes of the given track
