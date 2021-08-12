@@ -111,6 +111,12 @@ function PlotSensitivity(resultFile, xparam, yparam, dots, zparam, resx, resy)
             x_axis = result1.i_G;
             xlabelText = 'Gear Ratio [-]';
         case 35
+            x_axis = result1.ConstantDownforce;
+            xlabelText = 'Constant Downforce [N]';
+        case 36
+            x_axis = result1.DRS_Radius;
+            xlabelText = 'DRS Radius [m]';
+        case 37
             x_axis = result1.c_l./result1.c_w;
             xlabelText = 'Aero Efficiency c_l/c_w [-]';
     end
@@ -219,6 +225,12 @@ function PlotSensitivity(resultFile, xparam, yparam, dots, zparam, resx, resy)
             y_axis = result1.i_G;
             ylabelText = 'Gear Ratio [-]';
         case 35
+            y_axis = result1.ConstantDownforce;
+            ylabelText = 'Constant Downforce [N]';
+        case 36
+            y_axis = result1.DRS_Radius;
+            ylabelText = 'DRS Radius [m]';
+        case 37
             y_axis = sort(result1.c_l./result1.c_w);
             ylabelText = 'Aero Efficiency c_l/c_w [-]';
     end
@@ -328,6 +340,12 @@ function PlotSensitivity(resultFile, xparam, yparam, dots, zparam, resx, resy)
                 z_axis = result1.i_G;
                 zlabelText = 'Gear Ratio [-]';
             case 35
+                z_axis = result1.ConstantDownforce;
+                zlabelText = 'Constant Downforce [N]';
+            case 36
+                z_axis = result1.DRS_Radius;
+                zlabelText = 'DRS Radius [m]';
+            case 37
                 z_axis = sort(result1.c_l./result1.c_w);
                 zlabelText = 'Aero Efficiency c_l/c_w [-]';
         end

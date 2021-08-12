@@ -7,3 +7,11 @@ Simulation/import.csv
 
 **/CarSetup*.mat
 ErrorLog.mat
+
+LaptimeSimulation/for_redistribution_files_only/
+
+LaptimeSimulation/for_testing/
+
+LaptimeSimulation/PackagingLog.html
+
+LaptimeSimulation/for_redistribution/
