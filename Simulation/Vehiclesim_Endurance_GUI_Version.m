@@ -74,21 +74,38 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
     A_S = setup.A;                                      % [m²] Front Surface Area (Stirnfläche)
     downforce_multiplier = setup.downforce_multiplier;  % [-] multiplier for car downforce
     c_d_DRS = setup.c_d_DRS;                            % [-] Drag coefficient with DRS
+                                
     DRS = setup.DRS;                                    % [-]   DRS on/off
     
+    
     try 
-        ConstantDownforce = setup.ConstantDownforce;        % [N] Constant Downforce for example from ground effect fans
+        ConstantDownforce = setup.ConstantDownforce;    % [N] Constant Downforce for example from ground effect fans
     catch
         ConstantDownforce = 0;
     end
     
+    %% Initalise DRS
     try
-        DRS_Radius = setup.DRS_Radius;
+        DRS_Radius = setup.DRS_Radius;                  % [m] DRS 
     catch
         DRS_Radius = 300;
     end
 
+    try
+        c_l_DRS = setup.c_l_DRS;                        % [-] Lift coefficient with DRS
+    catch
+        c_l_DRS = c_l;
+    end
     
+    for i = 1:length(R)
+        if R(i) > DRS_Radius && DRS
+            DRS_status(i) = 1;
+        else
+            DRS_status(i) = 0;
+        end
+    % For Debugging
+    % PercentDRS = sum(DRS_status)/i*100;
+    end      
     
     %% Environmental Conditions (Umgebungsbedingungen)
     t_L = setup.t_L;                        % [°C] Ambient air temperature (Umgebungslufttemperatur)
@@ -249,7 +266,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
     TC = zeros(1,length(Track));
     TC_front = zeros(1,length(Track));
     ABS = zeros(1,length(Track));
-    DRS_status = zeros(1,length(Track)-1);
+    %DRS_status = zeros(1,length(Track)-1);
     gearSelection = zeros(1,length(Track)-1);
     
     Tirelimit = zeros(1,length(Track));
@@ -519,8 +536,8 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 while  FWYf(i) < FWYmax_f(i) && FWYr(i) < FWYmax_r(i) && vV(i) < 30
 
                     vV(i) = vV(i) + 0.01;   % [m/s] Increaing vehicle speed (Erhöhen der Fahrzeuggeschwindigkeit)
-
-                    Faero(i) = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vV(i), ConstantDownforce); % [N] Aerodynamic force
+              
+                    Faero(i) = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vV(i), ConstantDownforce, c_l_DRS, DRS_status(i)); % [N] Aerodynamic force
 
                     FVY(i) = m_tot*vV(i)^2/R(ApexIndexes(i));    % [N] Centrifugal force (Zentrifugalkraft)
 
@@ -589,10 +606,10 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 
                 if ni(i) >= n_Mmax % Drehzahlbegrenzer
                     ni(i) = n_Mmax;
-                end      
+                end     
 
                 % Determination of aero forces and motor torque (Bestimmen von Aero-Kräften und Motormoment)      
-                Faero(i) = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vV(i), ConstantDownforce); % [N] Aerodynamic force
+                Faero(i) = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vV(i), ConstantDownforce, c_l_DRS, DRS_status(i)); % [N] Aerodynamic force
 
                 % [Nm] Interpolated motor torque (Motormoment interpoliert)
                 Mi(i) = interp1(n,M,ni(i),'linear','extrap'); 
@@ -666,7 +683,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
 
 
                 % Driving resistances (Fahrwiderstände) & Vehicle (Fahrzeug)        
-               [FR(i), FL(i), Fdr(i), FVY(i), aVX(i), aVY(i), DRS_status(i)] = vehicle_resistances_forces(k_R, FWZtot(i), rho_L, vV(i), c_w, A_S, m_tot, R(i), FVX(i), FVX_f(i), 0, c_d_DRS, DRS, DRS_Radius);
+               [FR(i), FL(i), Fdr(i), FVY(i), aVX(i), aVY(i)] = vehicle_resistances_forces(k_R, FWZtot(i), rho_L, vV(i), c_w, A_S, m_tot, R(i), FVX(i), FVX_f(i), 0, c_d_DRS, DRS_status(i));
 
                 if ismember(i,ApexIndexes)
                     if vV(i) > vAPEXmax(z)   % Limiting curve maximum speeds at apexes (Begrenzen auf maximale Kurvengeschwindigkeit in Apexes)
@@ -746,11 +763,14 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 j = ApexIndexes(k);
 
                 while vRev(j-1) < vV(j-1)
-
-                    Faero(j-1) = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vRev(j-1), ConstantDownforce);   % [N] Aerodynamic force
+                    
+                    [~, FL(j-1), Fdr(j-1), FVY(j-1), ~, ~] = vehicle_resistances_forces(k_R, FG, rho_L, vRev(j-1), c_w, A_S, m_tot, R(j-1), FVX(j-1), FVX_f(j-1), FB(j-1), c_d_DRS, DRS_status(j-1));
+                    
+                    Faero(j-1) = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vRev(j-1), ConstantDownforce, c_l_DRS, DRS_status(j-1));   % [N] Aerodynamic force
                     FR(j-1) = k_R*(FG+Faero(j-1));                                              % [N] Rolling Resistance
-                    FL(j-1) = rho_L*vRev(j-1)^2/2*c_w*A_S;                                      % [N] Air resistance
-                    Fdr(j-1) = FR(j-1)+FL(j-1);                                                 % [N] Overall Resistance 
+                    %FL(j-1) = rho_L*vRev(j-1)^2/2*c_w*A_S;                                      % [N] Air resistance
+                    %Fdr(j-1) = FR(j-1)+FL(j-1);                                                 % [N] Overall Resistance 
+                    
                     aRev(j-1) = (-Fdr(j-1)-FB(j-1))/m_tot;
                     vRev(j-2) = sqrt(vRev(j-1)^2-2*aRev(j-1)*(s(j-1)-s(j-2)));
                     j = j - 1;
@@ -811,9 +831,9 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 
                 if ni(i) >= n_Mmax % Drehzahlbegrenzer
                     ni(i) = n_Mmax;
-                end        
+                end     
 
-               [Faero(i)] = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vV(i), ConstantDownforce); % [N] Aerodynamic force
+               [Faero(i)] = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vV(i), ConstantDownforce, c_l_DRS, DRS_status(i)); % [N] Aerodynamic force
                 
                %% Braking
                 % Checking if braking is required (Prüfen, ob gebremst werden muss)
@@ -936,7 +956,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
 
 
                 % Driving resistances (Fahrwiderstände) & Vehicle (Fahrzeug)
-                [FR(i), FL(i), Fdr(i), FVY(i), aVX(i), aVY(i), DRS_status(i)] = vehicle_resistances_forces(k_R, FWZtot(i), rho_L, vV(i), c_w, A_S, m_tot, R(i), FVX(i), FVX_f(i), FB(i), c_d_DRS, DRS, DRS_Radius);
+                [FR(i), FL(i), Fdr(i), FVY(i), aVX(i), aVY(i)] = vehicle_resistances_forces(k_R, FWZtot(i), rho_L, vV(i), c_w, A_S, m_tot, R(i), FVX(i), FVX_f(i), FB(i), c_d_DRS, DRS_status(i));
 
                 % [m/s] Total vehicle speed (Gesamt-Fahrzeuggeschwindigkeit)
                 vV(i+1) = sqrt(vV(i)^2+2*aVX(i)*(s(i+1)-s(i)));     
@@ -1236,6 +1256,8 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             result.LMUY(:,steps) = TIRparam.LMUY(:);
             result.c_l(:,steps) = c_l(:);
             result.c_w(:,steps) = c_w(:);
+            result.c_l_DRS(:,steps) = c_l_DRS(:);
+            result.c_d_DRS(:,steps) = c_d_DRS(:);
             result.downforce_multiplier(:,steps) = downforce_multiplier(:);
             result.drivetrain_eff(:,steps) = drivetrain_eff(:);
             result.num_motors(:,steps) = num_motors(:);
@@ -1342,22 +1364,24 @@ function [dFWZfl_y, dFWZfr_y, dFWZrl_y, dFWZrr_y] = wheelload_latdisp(h_COG, B, 
         dFWZrr_y = h_COG/B*lv/l*FVY;    % [N] Dynamic wheel load transfer to rear right wheel (Dynamische Radlastverlagerung rechtes Hinterrad)
 end
 
-function Faero = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vV, ConstantDownforce)
+function Faero = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vV, ConstantDownforce, c_l_DRS, DRS_status)
 %% Aerodynamic force
-        Faero = downforce_multiplier * ((c_l * A_S * rho_L * (vV)^2 / 2) + ConstantDownforce);  
+        if (DRS_status == 1)
+            Faero = downforce_multiplier * ((c_l_DRS * A_S * rho_L * (vV)^2 / 2) + ConstantDownforce);  
+        else
+            Faero = downforce_multiplier * ((c_l * A_S * rho_L * (vV)^2 / 2) + ConstantDownforce);  
+        end
 end
 
-function [FR, FL, Fdr, FVY, aVX, aVY, DRS_status] = vehicle_resistances_forces(k_R, FWZges, rho_L, vV, c_w, A_S, m_tot, R, FVX, FVX_f, FB, c_d_DRS, DRS, DRS_Radius)
+function [FR, FL, Fdr, FVY, aVX, aVY] = vehicle_resistances_forces(k_R, FWZges, rho_L, vV, c_d, A_S, m_tot, R, FVX, FVX_f, FB, c_d_DRS, DRS_status)
 %% Driving resistances and vehicle
 
         FR = k_R*FWZges;                % [N] Rolling resistance (Rollwiderstand)
         
-        if DRS && R > DRS_Radius
-            DRS_status = 1;
-            FL = rho_L*vV^2/2*c_d_DRS*A_S;
+        if DRS_status == 1
+            FL = rho_L*(vV^2/2)*c_d_DRS*A_S;
         else
-            DRS_status = 0;
-            FL = rho_L*vV^2/2*c_w*A_S;      % [N] Air Resistance/Drag (Luftwiderstand)
+            FL = rho_L*(vV^2/2)*c_d*A_S;      % [N] Air Resistance/Drag (Luftwiderstand)
         end
 
         Fdr = FR + FL;                  % [N] Total resistance (Gesamtwiderstand)
@@ -1421,68 +1445,7 @@ end
 
 
 function [x_Track, y_Track, z_Track, s, R, Track, ApexIndexes] = loadTrack(TrackFileName)
-%% Loads the selected Track or creates a simple Accelearion Track and returns 
-%     switch TrackFileName
-%         case 1
-%             load('EnduranceTrack.mat','Track');     % Track Data of Endurance Track (Streckendaten Endurance Track)
-%             
-%             x_Track = Track(:,1);           % [m] X-Coordinate of the Track
-%             y_Track = Track(:,2);           % [m] Y-Coordinate of the Track
-%             z_Track = Track(:,3);           % [m] Z-Coordinate of the Track
-%             
-%             s = Track(:,4);                 % [m] Track Pathway (Verlauf der Streckenlänge)
-%             R = Track(:,5);                 % [m] Radius of curves (Kurvenradien)
-%             
-%         case 2
-%             load('AutoXTrack.mat','Track');         % Track Data of AutoX Track (Streckendaten AutoX Track)
-%             
-%             x_Track = Track(:,1);           % [m] X-Coordinate of the Track
-%             y_Track = Track(:,2);           % [m] Y-Coordinate of the Track
-%             z_Track = Track(:,3);           % [m] Z-Coordinate of the Track
-%             s = Track(:,4);                 % [m] Track Pathway (Verlauf der Streckenlänge)
-%             R = Track(:,5);                 % [m] Radius of curves (Kurvenradien)
-%             
-%         case 3
-%             load('Testtrack_Data.mat','Track');     % Track Data of Test Track (Streckendaten Test Track)
-%             
-%             x_Track = Track(:,1);           % [m] X-Coordinate der Strecke
-%             y_Track = Track(:,2);           % [m] Y-Coordinate der Strecke
-%             s = Track(:,3);                 % [m] Track Pathway (Verlauf der Streckenlänge)
-%             R = Track(:,4);                 % [m] Radius of curves (Kurvenradien)
-%             
-%         % Generates Acceleration Track
-%         case 4        
-%             s = zeros(1,301);
-%             x_Track = zeros(1,301);
-%             y_Track = zeros(1,301);
-%             z_Track = zeros(1,301);
-%             R = inf(1,301);
-%             
-%             for i = 2:301
-%                 s(i) = s(i-1) + 0.25;
-%                 x_Track(i) = s(i);
-%             end
-%             
-%             % Used to Save track to result file
-%             Track(:,1) = x_Track;           % [m] X-Coordinate of the Track
-%             Track(:,2) = y_Track;          % [m] Y-Coordinate of the Track
-%             Track(:,3) = z_Track;           % [m] Z-Coordinate of the Track
-%             
-%             Track(:,4) = s;                 % [m] Track length in m
-%             Track(:,5) = R;                 % [m] Radius of corners
-%         case 5
-%         case 6
-%             load('FSA_EnduranceTrack.mat','Track');     % Track Data of Endurance Track (Streckendaten Endurance Track)
-%             
-%             x_Track = Track(:,1);           % [m] X-Coordinate of the Track
-%             y_Track = Track(:,2);           % [m] Y-Coordinate of the Track
-%             z_Track = Track(:,3);           % [m] Z-Coordinate of the Track
-%             
-%             s = Track(:,4);                 % [m] Track Pathway (Verlauf der Streckenlänge)
-%             R = Track(:,5);                 % [m] Radius of curves (Kurvenradien)
-%             
-%            
-%     end
+    % Loads all the track variables from the Trackfile
     load(TrackFileName,'Track')
     x_Track = Track(:,1);           % [m] X-Coordinate of the Track
     y_Track = Track(:,2);           % [m] Y-Coordinate of the Track
