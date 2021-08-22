@@ -1,4 +1,4 @@
-function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, disciplineID, sensitivityID, minValue, stepSize, numSteps, processDataButtonHandle, textAreaHandle, sensitivityID2, minValue2, stepSize2, logCellData, Debug, StartingSpeed)
+function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, disciplineID, sensitivityID, minValue, stepSize, numSteps, processDataButtonHandle, textAreaHandle, sensitivityID2, minValue2, stepSize2, logCellData, Debug, StartingSpeed, numOfLaps)
     
     
      %% Laptime simulation
@@ -27,11 +27,9 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
     processDataButtonHandle.Icon = wbar;
     
     %% loads the selected track
-    [~, ~, ~, s, R, Track, ApexIndexes] = loadTrack(TrackFileName);
+    [~, ~, ~, s, R, Track, ApexIndexes, lapLength] = loadTrack(TrackFileName, disciplineID, numOfLaps);
     
-    if Debug
-        textAreaHandle.Value{end+1} = 'loaded Track!';
-    end
+    writeToLogfile('loaded Track!', Debug, textAreaHandle);
 
     %% Vehicle Data (Fahrzeugdaten)
     
@@ -76,7 +74,6 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
     c_d_DRS = setup.c_d_DRS;                            % [-] Drag coefficient with DRS
                                 
     DRS = setup.DRS;                                    % [-]   DRS on/off
-    
     
     try 
         ConstantDownforce = setup.ConstantDownforce;    % [N] Constant Downforce for example from ground effect fans
@@ -161,9 +158,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
     number_cells_in_a_row = setup.nZellen_Reihe;    % [-] Number of cells in one row
     capacity_accumulator = number_cells_in_a_row*ncells_parallel*capacity_singlecell; % [Wh] Capacity of total battery
     
-    if Debug
-        textAreaHandle.Value{end+1} = 'loaded Car Data!';
-    end
+    writeToLogfile('loaded Car Data!', Debug, textAreaHandle);
 
     %% Initialisation of all variables
     
@@ -572,9 +567,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 vAPEXmax(i) = vV(i);   % [m/s] Maximum speed for any apex (Maximalgeschwindigkeit für jede Apex)
             end
 
-            if Debug
-                textAreaHandle.Value{end+1} = 'caclculated Apex Speeds!';
-            end
+            writeToLogfile('caclculated Apex Speeds!', Debug, textAreaHandle);
             
             %% Start/Initial values for first simulation run WITHOUT BRAKES (Startwerte für ersten Simulationslauf OHNE BREMSEN)
             vV(1) = StartingSpeed + 0.001;
@@ -662,12 +655,6 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                         FVX_f(i) = FWXmax_f(i);
                         TC_front(i) = 1;              % Traction control "on" (Traktionskontrolle "an")
                     end
-                elseif num_motors == 2
-                    FVX_rl(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
-                    FVX_rr(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
-                    FVX(i) = FVX_rl(i) + FVX_rr(i);                     % [N] Traction on rear axle (Zugkraft an der Hinterachse)
-
-                    FVX_f(i) = 0;
                 else
                     FVX_rl(i) = Mi(i)/2*i_G*gr(gear)/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
                     FVX_rr(i) = Mi(i)/2*i_G*gr(gear)/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
@@ -745,9 +732,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
 
             end
 
-            if Debug
-                textAreaHandle.Value{end+1} = 'Simulated without brakes!';
-            end
+            writeToLogfile('Simulated without brakes!', Debug, textAreaHandle);
 
             %% BRAKING POINT CALCULATION (BREMSPUNKTBERECHNUNG)
             BrakeIndexes = [];
@@ -886,6 +871,8 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
 
                     P_M(i) = num_motors * Mi(i) * ni(i) / 60 * 2 * pi; % [W] Total motor power (P_el!)
 
+                    % Limiting the maximal power when using an electric
+                    % drivetrain
                     if ptype && P_M(i) > max_power
                         P_M(i) = max_power;                           % [W] Limited power (P_el!)
                         %Mi(i) = P_M(i)*60/ni(i)/2/pi;                 % [Nm] Limiting the torque (Total Motor Torque!)
@@ -1068,52 +1055,56 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 % Maximum cornering velocity 
                 vVYmax(i+1) = sqrt((FWYmax_f(i+1)+FWYmax_r(i+1))*R(i+1)/m_tot); % Calculating maximum possible lateral velocity with given Tire forces [m/s] (inaccuaracy because tire force is based on aero force)
 
-                %Akkuströme
-                V_i(i) = sum(Voltage_Cellpack(:,i));
-
-                % Battery Currents (Akkuströme)
-                A_accu_cell(i) = P_el(i) / V_i(i) / ncells_parallel;  
-
-                Current_Cellpack_Pointer(i) = P_M(i) / V_i(i) *10 ; %Strombelastung eines %er Parrallel Paketes in 0,1A parameter für die berechnung der korrigierten belastung mit höhren verlusten durch höhere zellströme
-                if Current_Cellpack_Pointer(i) <= 1
-                    Current_Cellpack_Pointer(i)=1;
-                end
-
-                if Current_Cellpack_Pointer(i) >= 1500 %begrenzen des max Zellstromes auf 30A pro Zelle im 5er parralelverbund also 150A
-                    Current_Cellpack_Pointer(i)=1500;
-                end
-
-                VirtualCurrent_Cellpack(i) = CorrectedDischargeInterpolated(1,round(Current_Cellpack_Pointer(i))); %Berechnung der Virtuell höheren zellströme basierend auf den höheren verlsuten durch höhere Ströme
-
-                Energy_Cellpack(i) = (VirtualCurrent_Cellpack(i)*(t(i+1)-t(i))) - ((P_Bh(i)/V_i(i))*(t(i+1)-t(i))) ; %Energieverbrauch in As für ein 5erpacket an akkuzellen -> Akkustrom zum zeitpunkt i mal Zeitdifferenz zwischen i und i+1
-                Energy_Cellpack_Total(i+1) = Energy_Cellpack_Total(i) + Energy_Cellpack(i); % Über Endurance Run Integrierte Energieverbrauch in As für ein 5erpacket an akkuzellen
-
-                Capacity_Cellpack(1:131,i+1) =  Capacity_Cellpack(1:131,i)- Energy_Cellpack(i); 
-
-                SOC_Cellpack(1:131,i+1) = Capacity_Cellpack(1:131,i)./Capacity_Cellpack(1:131,1); %Berechnung des SOC für den nächsten tick basierend auf der aktuellen cellcapacity und der im nächsten tick
-
-                SOC_Pointer(1:131,i+1) = round(SOC_Cellpack(1:131,i+1)*1000);
-                Current_Cellpack_Pointer_Voltage(1,i+1) = round(Current_Cellpack_Pointer(i)/5);
-
-                if Current_Cellpack_Pointer_Voltage(i) <= 3
-                    Current_Cellpack_Pointer_Voltage(i)=3;
-                end
+%                 %Akkuströme
+%                 V_i(i) = sum(Voltage_Cellpack(:,i));
+% 
+%                 % Battery Currents (Akkuströme)
+%                 A_accu_cell(i) = P_el(i) / V_i(i) / ncells_parallel;  
+% 
+%                 Current_Cellpack_Pointer(i) = P_M(i) / V_i(i) *10 ; %Strombelastung eines %er Parrallel Paketes in 0,1A parameter für die berechnung der korrigierten belastung mit höhren verlusten durch höhere zellströme
+%                 if Current_Cellpack_Pointer(i) <= 1
+%                     Current_Cellpack_Pointer(i)=1;
+%                 end
+% 
+%                 if Current_Cellpack_Pointer(i) >= 1500 %begrenzen des max Zellstromes auf 30A pro Zelle im 5er parralelverbund also 150A
+%                     Current_Cellpack_Pointer(i)=1500;
+%                 end
+% 
+%                 VirtualCurrent_Cellpack(i) = CorrectedDischargeInterpolated(1,round(Current_Cellpack_Pointer(i))); %Berechnung der Virtuell höheren zellströme basierend auf den höheren verlsuten durch höhere Ströme
+% 
+%                 Energy_Cellpack(i) = (VirtualCurrent_Cellpack(i)*(t(i+1)-t(i))) - ((P_Bh(i)/V_i(i))*(t(i+1)-t(i))) ; %Energieverbrauch in As für ein 5erpacket an akkuzellen -> Akkustrom zum zeitpunkt i mal Zeitdifferenz zwischen i und i+1
+%                 Energy_Cellpack_Total(i+1) = Energy_Cellpack_Total(i) + Energy_Cellpack(i); % Über Endurance Run Integrierte Energieverbrauch in As für ein 5erpacket an akkuzellen
+% 
+%                 Capacity_Cellpack(1:131,i+1) =  Capacity_Cellpack(1:131,i)- Energy_Cellpack(i); 
+% 
+%                 SOC_Cellpack(1:131,i+1) = Capacity_Cellpack(1:131,i)./Capacity_Cellpack(1:131,1); %Berechnung des SOC für den nächsten tick basierend auf der aktuellen cellcapacity und der im nächsten tick
+% 
+%                 SOC_Pointer(1:131,i+1) = round(SOC_Cellpack(1:131,i+1)*1000);
+%                 Current_Cellpack_Pointer_Voltage(1,i+1) = round(Current_Cellpack_Pointer(i)/5);
+% 
+%                 if Current_Cellpack_Pointer_Voltage(i) <= 3
+%                     Current_Cellpack_Pointer_Voltage(i)=3;
+%                 end
+%                 
+%                 if size(Track,1) < SOC_Pointer(1:131,i+1)
+%                     SOC_Pointer(1:131,i+1) = size(Track,1); 
+%                 end
+%                 
+%                 if size(Track,1) < Current_Cellpack_Pointer_Voltage(1,i)
+%                     Current_Cellpack_Pointer_Voltage(1,i) = size(Track,1);
+%                 end
+%                 
+%                 %% @Lukas bitte prüfen if, wegen sonst auftretender Fehler bei langen Strecken!
+%                 if (SOC_Pointer(1:131,i+1)>1001) 
+%                     Voltage_Cellpack(1:131,i+1) = Voltage_inter(Current_Cellpack_Pointer_Voltage(1,i),1001);    
+%                 else
+%                     Voltage_Cellpack(1:131,i+1) = Voltage_inter(Current_Cellpack_Pointer_Voltage(1,i),SOC_Pointer(1:131,i+1));
+%                 end
                 
-                if size(Track,1) < SOC_Pointer(1:131,i+1)
-                    SOC_Pointer(1:131,i+1) = size(Track,1); 
-                end
-                
-                if size(Track,1) < Current_Cellpack_Pointer_Voltage(1,i)
-                    Current_Cellpack_Pointer_Voltage(1,i) = size(Track,1);
-                end
-                
-                Voltage_Cellpack(1:131,i+1) = Voltage_inter(Current_Cellpack_Pointer_Voltage(1,i),SOC_Pointer(1:131,i+1));
              
             end
 
-            if Debug
-                textAreaHandle.Value{end+1} = 'Simulated with brakes!';
-            end
+            writeToLogfile('Simulated with brakes!', Debug, textAreaHandle);
             
             % Conversion of battery energy capacity (Umrechnen der Energiemengen des Akkus)
             E_Accu = E_Accu/(3.6e6);                % [kWh] Energy consumed by battery per lap (Verbrauchte Akku-Energie je Runde)
@@ -1125,7 +1116,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             tEnd = toc;
             
             if Debug
-                if (disciplineID == 1)
+                if (disciplineID == 2)
                     textAreaHandle.Value{end+1} = ['Endurance Time for ONE Lap: ' num2str(t(end)) ' s = ' num2str(t(end)/60) ' min'];
                     t_tot = t(end) *(22000/s(end));       % t(end) = Time for one lap ; 22000 [m] = length of Endurance ; s(end) length of the track.
                     textAreaHandle.Value{end+1} =  ['Endurance Total Time: ' num2str(t_tot(end)) ' s = ' num2str(t_tot(end)/60) ' min'];
@@ -1301,6 +1292,10 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             result.alpha_r(:,steps) = alpha_r(:);
             result.ConstantDownforce(:,steps) = ConstantDownforce(:);
             result.DRS_Radius(:,steps) = DRS_Radius(:);
+            result.disciplineID = disciplineID;
+            result.numOfLaps = numOfLaps;
+            result.lapLength = lapLength;
+            result.ptype(:,steps) = ptype(:);
 
             % sets button progress (progressbar)
             if sensitivityID2 ~= 0 
@@ -1324,9 +1319,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
 
         save(path+"/"+savefilename, '-struct','result');
         
-        if Debug
-            textAreaHandle.Value{end+1} = 'File succesfully written';     
-        end
+        writeToLogfile('File succesfully written', Debug, textAreaHandle);
 end
 
 %% Function calls
@@ -1444,16 +1437,51 @@ function [FWXmax_fl, FWXmax_fr, FWXmax_rl, FWXmax_rr, FWXmax_f, FWXmax_r] = long
 end
 
 
-function [x_Track, y_Track, z_Track, s, R, Track, ApexIndexes] = loadTrack(TrackFileName)
+function [x_Track, y_Track, z_Track, s, R, Track, ApexIndexes, lapLength] = loadTrack(TrackFileName, disciplineID, numOfLaps)
+%% Loads the track for the simulation    
+
     % Loads all the track variables from the Trackfile
     load(TrackFileName,'Track')
-    x_Track = Track(:,1);           % [m] X-Coordinate of the Track
-    y_Track = Track(:,2);           % [m] Y-Coordinate of the Track
-    z_Track = Track(:,3);           % [m] Z-Coordinate of the Track
-    s = Track(:,4);                 % [m] Track Pathway (Verlauf der Streckenlänge)
-    R = Track(:,5);                 % [m] Radius of curves (Kurvenradien)
     
-    
-    % Calls the .m file 'Apexes' to calculate the Apexes of the given track
-    ApexIndexes = Apexes(abs(R));   
+    % Length of the track before adding laps for endurance
+    lapLength = length(Track);
+
+    % Checks if AutoX or Endurance is selected (1==AutoX,2==Endurance)
+    if disciplineID == 1    % AutoX
+        
+        x_Track = Track(:,1);           % [m] X-Coordinate of the Track
+        y_Track = Track(:,2);           % [m] Y-Coordinate of the Track
+        z_Track = Track(:,3);           % [m] Z-Coordinate of the Track
+        s = Track(:,4);                 % [m] Track Pathway (Verlauf der Streckenlänge)
+        R = Track(:,5);                 % [m] Radius of curves (Kurvenradien)
+
+        % Calls the .m file 'Apexes' to calculate the Apexes of the given track
+        ApexIndexes = Apexes(abs(R));  
+        
+    elseif disciplineID == 2    % Endurance
+        x_Track = [];
+        y_Track = [];
+        z_Track = [];
+        s = [];
+        R = [];
+        
+        s_max = max(Track(:,4));
+        
+        % Expand Track to Endurance Distance
+        for i = 1:numOfLaps
+            x_Track = [x_Track; Track(:,1)];     % [m] X-Coordinate of the Track
+            y_Track = [y_Track; Track(:,2)];     % [m] Y-Coordinate of the Track
+            z_Track = [z_Track; Track(:,3)];     % [m] Z-Coordinate of the Track
+            s = [s; Track(:,4)+s_max*(i-1)];                 % [m] Track Pathway (Verlauf der Streckenlänge)
+            R = [R; Track(:,5)];                 % [m] Radius of curves (Kurvenradien)
+
+            % Calls the .m file 'Apexes' to calculate the Apexes of the given track
+            ApexIndexes = Apexes(abs(R));  
+        end
+        
+        % Complete Endurance Track (All Laps)
+        Track = [x_Track, y_Track, z_Track, s, R];
+    end
+
+     
 end

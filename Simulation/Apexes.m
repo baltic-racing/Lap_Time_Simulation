@@ -1,4 +1,5 @@
 function ApexIndizes = Apexes(R)
+% Function to calculate the apexes of a track
 
 k = 2;
 ApexIndizes = [];
