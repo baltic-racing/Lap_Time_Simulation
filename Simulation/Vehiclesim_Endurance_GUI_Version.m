@@ -802,13 +802,14 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 
                 if gearbox
                     if i > 1 && ni(i-1) < n_downshift && gear > 1                          % Shift down
-                        gear = gear - 1;
-                        ni(i) = vV(i) * 30 / pi * gr(gear) * i_G / Rdyn_rl(i);  % [1/min] Drehzahl nach Gangwechsel ermitteln   
+                        gear = gear - 1;  
                     elseif i > 1 && ni(i-1) >= n_shift && gear < num_gears                 % Shift one gear up when shifting rpm is reached
                         gear = gear + 1;
                         t_x = t(i)-t(i-1);                                      % step size of the time variable       
                     end
+                    
                     ni(i) = vV(i) * 30 / pi * gr(gear) * i_G / Rdyn_rl(i);     % [1/min] calculate rpm with gearbox
+                    n_wheel(i) = vV(i) * 60 / pi / Rdyn_rl(i);
                 else
                     % Determination of motor speed (no gearbox)
                     ni(i) = vV(i) * 30 / pi * i_G / Rdyn_rl(i); % [1/min] Determine current motor speed 
@@ -1324,6 +1325,22 @@ end
 
 %% Function calls
 
+function [BT_fl, BT_fr, BT_rl, BT_rr] = calculateBrakeTorque(vV, n_wheel, BrakePressure, boreFront, boreRear)
+    
+    R_m = (R_o + R_i) / 2;
+
+    friction_s = 0.35;
+    friciton_k = 0.35;
+    
+    if n_wheel(i) > 0 
+        BT_fl = (friciton_k * BrakePressure * pi * boreFront^2 * R_m * 2) / 4;
+        BT_fr = (friciton_k * BrakePressure * pi * boreFront^2 * R_m * 2) / 4;
+        BT_rl = (friciton_k * BrakePressure * pi * boreRear^2 * R_m * 2) / 4;
+        BT_rr = (friciton_k * BrakePressure * pi * boreRear^2 * R_m * 2) / 4;
+    else
+        BT_fl = (friciton_s)/4
+    end
+end
 
 function [dFWZrl_aero, dFWZrr_aero, dFWZfl_aero, dFWZfr_aero] = aeroforce_onwheels(Faero, aero_ph, aero_pv)
 %% Individual aerodynamic forces acting on each wheel
