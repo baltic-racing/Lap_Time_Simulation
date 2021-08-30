@@ -1,3 +1,9 @@
+%% plotAeroData.m
+% Plots Aero Data from the aerodyanmic setup screen.
+%
+% By Eric Dornieden, Baltic Racing
+% Copyright (C) 2021, Baltic Racing, all rights reserved.
+
 function plotAeroData(A_S,c_w, c_l, downforce_multiplier, aero_pv, t_L, p_L, R_L)
 %plotAeroData plots the aero data over velocity
 %   Detailed explanation goes here

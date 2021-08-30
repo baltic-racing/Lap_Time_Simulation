@@ -6,7 +6,10 @@ Simulation/import.csv
 *.xlsx
 
 **/CarSetup*.mat
-ErrorLog.mat
+
+ErrorLog.txt
+
+Settings.mat
 
 LaptimeSimulation/for_redistribution_files_only/
 

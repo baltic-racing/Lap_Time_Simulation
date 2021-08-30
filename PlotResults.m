@@ -1,3 +1,9 @@
+%% PlotResults.m
+% Plots Result file data with given plotID.
+%
+% By Eric Dornieden, Baltic Racing
+% Copyright (C) 2021, Baltic Racing, all rights reserved.
+
 function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
 %PlotResults 
 %   Plots the defined result graph with the result data in an extra plot
