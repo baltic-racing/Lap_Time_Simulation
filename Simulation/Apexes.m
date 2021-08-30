@@ -1,5 +1,10 @@
+%% Apexes.m
+% Function to calculate the apexes of a track.
+%
+% By Eric Dornieden, Baltic Racing
+% Copyright (C) 2021, Baltic Racing, all rights reserved.
+
 function ApexIndizes = Apexes(R)
-% Function to calculate the apexes of a track
 
 k = 2;
 ApexIndizes = [];

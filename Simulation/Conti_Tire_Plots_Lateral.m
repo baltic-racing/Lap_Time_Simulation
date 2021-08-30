@@ -12,7 +12,7 @@ while i <= 0.2
     KAPPA = i;            % [-] Reifenschlupf
     
     % Variable für Pfad des Tir-Files
-    FileNameLocation = ('C:\Users\Sven Weishaupt\Dropbox\MATLAB\_MATLAB_\C19_CONTINENTAL_FORMULASTUDENT_205_470_R13_65kPa.tir');
+    FileNameLocation = ('C19_CONTINENTAL_FORMULASTUDENT_205_470_R13_65kPa.tir');
 
     % Tir-File in Struktur laden
     TIRparam = loadTIR(FileNameLocation);

@@ -2,8 +2,10 @@ function updateColorScheme(app)
     %% Updates the Color Scheme of the Apps (Dark and White Mode)
     % Used for Dark Mode Design:
     % https://material.io/design/color/dark-theme.html#ui-application   
-    % By Eric Dornieden
-
+    %
+    % By Eric Dornieden, Baltic Racing
+    % Copyright (C) 2021, Baltic Racing, all rights reserved.
+    %
     % Checks if the setting "ColorScheme" in the app is set to 1 or if the
     % DarkMode Checkbox is checked -> Dark Mode, else White Mode
     if app.settings.ColorScheme || app.DarkModeCheckBox.Value
@@ -91,12 +93,26 @@ function updateColorScheme(app)
     end
     
     %% Customization App
+    if ~app.TrackManagerButton.Enable
+        app.TrackManagerApp.changeColorScheme();
+    end
+    
+    %% Accumulator App
+    if ~app.AccumulatorButton.Enable
+        app.AccumulatorApp.changeColorScheme();
+    end
+    
+    %% Drivetrain App
+    if ~app.DrivetrainButton.Enable
+        app.DrivetrainApp.changeColorScheme();
+    end
+
+    %% Track Manager App
+
+    %%% Laptime Simulation GUI
     if ~app.StyleSettingsButton.Enable
         app.CustomizationApp.changeColorScheme();
     end
-
-    %%% Laptime Simulation GUI
-
     app.LaptimeSimulationUIFigure.Color = app.BackgroundColor;           
 
     %% How-To Page
@@ -363,6 +379,12 @@ function updateColorScheme(app)
 
     app.ComputationtimeLabel.FontColor = app.OnBackgroundColor;
     app.ComputationtimeLabel_2.FontColor = app.OnBackgroundColor;
+    
+    app.SkidPadTimeLabel.FontColor = app.OnBackgroundColor;
+    app.SkidPadTimeLabel_2.FontColor = app.OnBackgroundColor;
+    
+    app.SkidPadSpeedLabel.FontColor = app.OnBackgroundColor;
+    app.SkidPadSpeedLabel_2.FontColor = app.OnBackgroundColor;
 
 
     if (app.LapDistanceLabel_3.Text == "Lap Distance =")
