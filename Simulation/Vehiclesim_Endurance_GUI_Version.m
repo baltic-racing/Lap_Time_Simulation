@@ -745,7 +745,65 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             
             % Reset FB
             FB = FB_1*ones(1,length(Track));
+            
+            
+            
+            TrackLength = length(Track);
+            
+            %AccelFlag = 1;
+            sectorStart = 1;
+            
+            for i = 1:TrackLength
+                % Accel
+                vAcc(i) = 
+                
+                if ismember(i,ApexIndexes) 
+                    sectorEnd = i;
+                    %AccelFlag = 0;
+                    
+                    % Brake
+                    vBrake(i) = 
+                    
+                    for j = sectorEnd:-1:sectorStart
+                        
+                    end
+                    
+                    a = sectorStart;
+                    b = sectorEnd;
+                    
+                    for i = 1:(sectorEnd-sectorStart)
+                        if (vAcc(i) > vDec(i) && i > 2)
+                            BrakePoint = sectorStart + i-1;
+                        end
+                    end
+                    
+%                     while (vAcc(b) > vBrake(a))
+%                         a = a+1;
+%                         b = b-1;
+%                     end
+%                     testAcc = floor(vAcc * 1000);
+%                     testBrake = floor(vBrake * 1000);
+%                     test = find(testAcc == testBrake);
+%                     
+%                     for x = sectorStart:1:sectorEnd
+%                         
+%                     end
+%                     
+%                     Acc = fit(x,vAcc,'poly2');
+%                     Dec = fit(x,vBrake,'poly2');
+                    
+                    
+                    BrakeIndexes = [BrakeIndexes index];
 
+                    vAcc = [];
+                    vBrake = [];
+                    
+                    sectorStart = sectorEnd;
+                end
+            end
+            
+            
+            
             while k >= 1
 
                 Counter = 0;
