@@ -36,6 +36,7 @@ function loadSetup(app, file)
         app.FB = setup.FB;
         app.camber = setup.camber;
         app.m_ph = setup.m_ph;
+        app.brakeBias = setup.brakeBias_setup;
 
         %% Drivetrain Parameters
         app.ptype = setup.ptype;

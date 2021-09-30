@@ -1,9 +1,11 @@
+%% Vehiclesim_Endurance_GUI_Version.m
+% Main function of the simulation. 
+%
+% By Eric Dornieden, Baltic Racing
+% Copyright (C) 2021, Baltic Racing, all rights reserved.
+
 function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, disciplineID, sensitivityID, minValue, stepSize, numSteps, processDataButtonHandle, textAreaHandle, sensitivityID2, minValue2, stepSize2, logCellData, Debug, StartingSpeed, numOfLaps)
-    
-    
-     %% Laptime simulation
-%     clear all; clc; close all;
-    
+
     % Adds search path of the setup file and then loads the setup.
     setup = load(path+"/"+setupFile, '-mat');
 
@@ -29,10 +31,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
     %% loads the selected track
     [~, ~, ~, s, R, Track, ApexIndexes, lapLength] = loadTrack(TrackFileName, disciplineID, numOfLaps);
     
-    writeToLogfile('loaded Track!', Debug, textAreaHandle);
-
-    %% Vehicle Data (Fahrzeugdaten)
-    
+    %% Vehicle Data (Fahrzeugdaten)   
     m_tot = setup.m_ges;    % [kg] Total mass of the vehicle including driver (Fahrzeuggesamtmasse inkl. Fahrer)
     g = setup.g;            % [m/s²] Acceleration due to Gravity (Erdbeschleunigung)
     FG = m_tot*g;           % [N] Force due to weight of the vehicle (Gewichtskraft des Fahrzeugs)
@@ -81,6 +80,12 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
         ConstantDownforce = 0;
     end
     
+    try
+        brakeBias_setup = setup.brakeBias_setup;
+    catch
+        brakeBias_setup = -1;
+    end
+    
     %% Initalise DRS
     try
         DRS_Radius = setup.DRS_Radius;                  % [m] DRS 
@@ -100,8 +105,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
         else
             DRS_status(i) = 0;
         end
-    % For Debugging
-    % PercentDRS = sum(DRS_status)/i*100;
+
     end      
     
     %% Environmental Conditions (Umgebungsbedingungen)
@@ -126,17 +130,18 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
     ptype = setup.ptype;                    % variable for powertrain type : 1 = Electric and 0 = Combustion
     
     if ptype
-        eta_inv = setup.invertor_eff;           % [-] Inverter efficiency
+        eta_inv = setup.invertor_eff;       % [-] Inverter efficiency
     else
         eta_inv = 1;
     end
     
-    n_shift = setup.n_shift;            % engine rpm when shifting gears [1/min]
+    n_shift = setup.n_shift;                % engine rpm when shifting gears [1/min]
     n_downshift = setup.n_downshift;
-    t_shift = setup.t_shift;            % time needed to shift gears [s]
-    gr = setup.i_param(:);            % Gear ratio for each gear
-    num_gears = length(gr);             % highest gear
+    t_shift = setup.t_shift;                % time needed to shift gears [s]
+    gr = setup.i_param(:);                  % Gear ratio for each gear
+    num_gears = length(gr);                 % highest gear
     gearbox = setup.gearbox;
+    t_x = 0;                                % Initialise the shift dead time
     
     % Sets gearratio to a constant 1 if no gearbox is present
     if ~gearbox
@@ -507,10 +512,10 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             FWZ_rl(1) = FWZr(1)/2;          % [N] Static rear left wheel load (Statische Radlast hinten links)
 
             % Interpolated vertical tire stiffness (Vertikale Reifensteifigkeiten interpoliert) 
-            [cZ_fl(1), cZ_fr(1), cZ_rl(1), cZ_rr(1)] = vtirestiff(Fz, cZ_tire, FWZ_fl(1), FWZ_fr(1), FWZ_rl(1), FWZ_rr(1));
+            [cZ_fl(1), cZ_fr(1), cZ_rl(1), cZ_rr(1)] = calculateVtirestiff(Fz, cZ_tire, FWZ_fl(1), FWZ_fr(1), FWZ_rl(1), FWZ_rr(1));
 
             % Dynamic tire radii (stationary = static) (Dynamische Reifenradien (im Stand = statisch))
-            [Rdyn_fl(1), Rdyn_fr(1), Rdyn_rl(1), Rdyn_rr(1)] = dyn_radii(R0, FWZ_fl(1), FWZ_fr(1), FWZ_rl(1), FWZ_rr(1), cZ_fl(1), cZ_fr(1), cZ_rr(1), cZ_rl(1));
+            [Rdyn_fl(1), Rdyn_fr(1), Rdyn_rl(1), Rdyn_rr(1)] = calculateDynRadii(R0, FWZ_fl(1), FWZ_fr(1), FWZ_rl(1), FWZ_rr(1), cZ_fl(1), cZ_fr(1), cZ_rr(1), cZ_rl(1));
 
             FWXmax_r(1) = Inf;
 
@@ -536,7 +541,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
 
                     vV(i) = vV(i) + 0.01;   % [m/s] Increaing vehicle speed (Erhöhen der Fahrzeuggeschwindigkeit)
               
-                    Faero(i) = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vV(i), ConstantDownforce, c_l_DRS, DRS_status(i)); % [N] Aerodynamic force
+                    Faero(i) = calculateAeroforce(downforce_multiplier, c_l, A_S, rho_L, vV(i), ConstantDownforce, c_l_DRS, DRS_status(i)); % [N] Aerodynamic force
 
                     FVY(i) = m_tot*vV(i)^2/R(ApexIndexes(i));    % [N] Centrifugal force (Zentrifugalkraft)
 
@@ -547,13 +552,13 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                     FWYr(i) = lf/wheelbase*abs(FVY(i));   % [N] Lateral force to be applied to the rear axle (Aufzubringende Querkraft der Hinterachse)
 
                     % Wheel load transfer due to drag forces (Radlastverlagerung in Folge von Aerokräften) 
-                    [dFWZrl_aero(i), dFWZrr_aero(i), dFWZfl_aero(i), dFWZfr_aero(i)] = aeroforce_onwheels(Faero(i), aero_ph, aero_pv);
+                    [dFWZrl_aero(i), dFWZrr_aero(i), dFWZfl_aero(i), dFWZfr_aero(i)] = calculateAeroforceOnWheels(Faero(i), aero_ph, aero_pv);
 
                     % Dynamic wheel load displacement in longitudinal direction (Dynamische Radlastverlagerung in Längsrichtung = 0 angenommen)
-                    [dFWZfl_x(i), dFWZfr_x(i), dFWZrl_x(i), dFWZrr_x(i)] = wheelload_longdisp(h_COG, 0, aVX(i), wheelbase); % Loads = 0 assumed
+                    [dFWZfl_x(i), dFWZfr_x(i), dFWZrl_x(i), dFWZrr_x(i)] = calculateWheelloadLongDisp(h_COG, 0, aVX(i), wheelbase); % Loads = 0 assumed
 
                     % Dynamic wheel load displacement in lateral direction (Dynamische Radlastverlagerung in Querrichtung)
-                    [dFWZfl_y(i), dFWZfr_y(i), dFWZrl_y(i), dFWZrr_y(i)] = wheelload_latdisp(h_COG, track, lr, lf, wheelbase, FVY(i));
+                    [dFWZfl_y(i), dFWZfr_y(i), dFWZrl_y(i), dFWZrr_y(i)] = calculateWheelloadLatDisp(h_COG, track, lr, lf, wheelbase, FVY(i));
 
                     % Wheel loads (Radlasten)
                     FWZ_fl(i) = FWZ_fl_stat + dFWZfl_aero(i) + dFWZfl_x(i) + dFWZfl_y(i); % [N] Front left wheel load (Radlast vorne links)
@@ -564,7 +569,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                     % Maximum transmissible tire forces in longitudinal direction = 0 assumed (because longitudinal wheel loads = 0 assumed) 
 
                     % Maximum transmissible tire forces in lateral direction (Maximal übertragbare Reifenkräfte in Querrichtung)    
-                    [FWYmax_f(i), FWYmax_r(i)] = lat_tireforces(FWZ_fl(i), FWZ_fr(i),FWZ_rl(i), FWZ_rr(i), GAMMA, TIRparam);
+                    [FWYmax_f(i), FWYmax_r(i)] = calculateLatTireforces(FWZ_fl(i), FWZ_fr(i),FWZ_rl(i), FWZ_rr(i), GAMMA, TIRparam);
 
                 end
 
@@ -589,24 +594,30 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             for i = 1:length(Track)-1
                 
                 if gearbox
-                    if i > 1 && ni(i-1) < n_downshift && gear > 1                          % Shift down
-                        gear = gear - 1;
-                    elseif i > 1 && ni(i-1) >= n_shift && gear < num_gears                 % Shift one gear up when shifting rpm is reached
+                    if i > 1 && ni(i-1) < n_downshift && gear > 1               % Shift down
+                        gear = gear - 1;                    
+                        t_x = t(i)-t(i-1);                                      % Dead time for shift time
+                    elseif i > 1 && ni(i-1) >= n_shift && gear < num_gears      % Shift one gear up when shifting rpm is reached
                         gear = gear + 1;
                         t_x = t(i)-t(i-1);                                      % step size of the time variable       
                     end
-                    ni(i) = vV(i) * 30 / pi * gr(gear) * i_G / Rdyn_rl(i);      % [1/min] calculate rpm with gearbox
+                    
+                    if t_x > 0 && i > 1
+                        t_x = t_x+t(i)-t(i-1);                                  % Reduce shift dead time with past time
+                    end
+                    
+                    ni(i) = vV(i) * 30 / pi * gr(gear) * i_G / Rdyn_rl(i);      % [1/min] calculate rpm with gearbox    
                 else
                     % Determination of motor speed (no gearbox)
                     ni(i) = vV(i) * 30 / pi * i_G / Rdyn_rl(i);                 % [1/min] Determine current motor speed 
                 end
                 
-                if ni(i) >= n_Mmax % Drehzahlbegrenzer
-                    ni(i) = n_Mmax;
+                if ni(i) >= n_Mmax                                              % RPM-Limiter
+                    ni(i) = n_Mmax;                                             % if RPM is above limiter rpm set to RPM to limiter RPM
                 end     
 
                 % Determination of aero forces and motor torque (Bestimmen von Aero-Kräften und Motormoment)      
-                Faero(i) = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vV(i), ConstantDownforce, c_l_DRS, DRS_status(i)); % [N] Aerodynamic force
+                Faero(i) = calculateAeroforce(downforce_multiplier, c_l, A_S, rho_L, vV(i), ConstantDownforce, c_l_DRS, DRS_status(i)); % [N] Aerodynamic force
 
                 % [Nm] Interpolated motor torque (Motormoment interpoliert)
                 Mi(i) = interp1(n,M,ni(i),'linear','extrap'); 
@@ -624,7 +635,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 P_M(i) = num_motors * Mi(i) * ni(i) / 60 * 2 * pi;% [W] Total motor power (Gesamt-Motorleistung)
                 if ptype && P_M(i) > max_power
                     P_M(i) = max_power;                           % [W] Limited power (Begrenzte Leistung)
-                    Mi(i) = P_M(i)*60/ni(i)/2/pi;                 % [Nm] Limiting the torque (Begrenzen des Moments)
+                    %Mi(i) = P_M(i)*60/ni(i)/2/pi;                 % [Nm] Limiting the torque (Begrenzen des Moments)
                 end
 
                 if(rpmpointer > n_Mmax)
@@ -642,42 +653,19 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
 
                 P_Mloss(i) = P_M(i)*(1-(motor_eff(i)*drivetrain_eff*eta_inv)); % Calculation of power loss (berechnung der Verlustleistung)
 
-                P_M(i) = P_M(i) * drivetrain_eff * motor_eff(i) * eta_inv;  % Calculation of motor power after deduction of efficiency of the inverter
-                Mi(i) = P_M(i)*(60/ni(i)/2/pi);                       
-
-                % Calculation of tractive forces (Berechnen der Zugkraft)
-                if num_motors == 4
-                    FVX_fl(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_fl(i);                   % [N] Tractive Force on front left wheel (AWD) 
-                    FVX_fr(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_fr(i);                   % [N] Tractive Force on front right wheel (AWD) 
-                    FVX_f(i) = FVX_fl(i) + FVX_fr(i);                     % [N] Traction on rear axle (Zugkraft an der Hinterachse)
-
-                    FVX_rl(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
-                    FVX_rr(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
-                    FVX(i) = FVX_rl(i) + FVX_rr(i);      % [N] Traction on rear axle (Zugkraft an der Hinterachse)
-
-                    if FVX_f(i) > FWXmax_f(i)     % Limiting the tractive force to the traction limit front axle
-                        FVX_f(i) = FWXmax_f(i);
-                        TC_front(i) = 1;              % Traction control "on" (Traktionskontrolle "an")
-                    end
-                else
-                    FVX_rl(i) = Mi(i)/2*i_G*gr(gear)/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
-                    FVX_rr(i) = Mi(i)/2*i_G*gr(gear)/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
-                    FVX(i) = FVX_rl(i) + FVX_rr(i);                     % [N] Traction on rear axle (Zugkraft an der Hinterachse)
-
-                    FVX_f(i) = 0;
-                end
-
-                if FVX(i) > FWXmax_r(i)     % Limiting the tractive force to the traction limit rear axle
-                    FVX(i) = FWXmax_r(i);
-                    TC(i) = 1;              % Traction control "on" (Traktionskontrolle "an")
-                end
-
+                P_M(i) = P_M(i) - P_Mloss(i);  % Calculation of motor power after deduction of efficiency of the inverter
+                
+                % Calculation Overall Torque with real power
+                Mi(i) = P_M(i)*(60/ni(i)/2/pi);  
+                
+                % Calculate the tractive forces on the wheels
+                [FVX_fl(i), FVX_fr(i), FVX_rl(i), FVX_rr(i), FVX(i), FVX_f(i), TC_front(i), TC(i)] = calculateTractiveForces(Mi(i), num_motors, i_G, gr, Rdyn_fl(i), Rdyn_fr(i), Rdyn_rl(i), Rdyn_rr(i), t_x, gear, FWXmax_f(i), FWXmax_r(i), t_shift);
 
                 % Driving resistances (Fahrwiderstände) & Vehicle (Fahrzeug)        
-               [FR(i), FL(i), Fdr(i), FVY(i), aVX(i), aVY(i)] = vehicle_resistances_forces(k_R, FWZtot(i), rho_L, vV(i), c_w, A_S, m_tot, R(i), FVX(i), FVX_f(i), 0, c_d_DRS, DRS_status(i));
+                [FR(i), FL(i), Fdr(i), FVY(i), aVX(i), aVY(i)] = calculateVehicleResistancesForces(k_R, FWZtot(i), rho_L, vV(i), c_w, A_S, m_tot, R(i), FVX(i), FVX_f(i), c_d_DRS, DRS_status(i), rpmpointer, n_Mmax, 0, 0, 0, 0);
 
                 if ismember(i,ApexIndexes)
-                    if vV(i) > vAPEXmax(z)   % Limiting curve maximum speeds at apexes (Begrenzen auf maximale Kurvengeschwindigkeit in Apexes)
+                    if vV(i) > vAPEXmax(z)   % Limiting maximum speeds at apexes (Begrenzen auf maximale Kurvengeschwindigkeit in Apexes)
                         vV(i) = vAPEXmax(z);
                     end
                     z = z + 1;
@@ -691,13 +679,13 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 FWYr(i) = lf/wheelbase*FVY(i);   % [N] Lateral force to be applied on rear axle (Aufzubringende Querkraft der Hinterachse)
 
                 % Wheel load transfer due to aerodynamic forces (Radlastverlagerung in Folge von Aerokräften)  
-                [dFWZrl_aero(i), dFWZrr_aero(i), dFWZfl_aero(i), dFWZfr_aero(i)] = aeroforce_onwheels(Faero(i), aero_ph, aero_pv);
+                [dFWZrl_aero(i), dFWZrr_aero(i), dFWZfl_aero(i), dFWZfr_aero(i)] = calculateAeroforceOnWheels(Faero(i), aero_ph, aero_pv);
 
                 % Dynamic wheel load displacement in longitudinal direction (Dynamische Radlastverlagerungen in Längsrichtung)
-                [dFWZfl_x(i), dFWZfr_x(i), dFWZrl_x(i), dFWZrr_x(i)] = wheelload_longdisp(h_COG, m_tot, aVX(i), wheelbase);
+                [dFWZfl_x(i), dFWZfr_x(i), dFWZrl_x(i), dFWZrr_x(i)] = calculateWheelloadLongDisp(h_COG, m_tot, aVX(i), wheelbase);
 
                 % Dynamic wheel load displacement in lateral direction (Dynamische Radlastverlagerung in Querrichtung)
-                [dFWZfl_y(i), dFWZfr_y(i), dFWZrl_y(i), dFWZrr_y(i)] = wheelload_latdisp(h_COG, track, lr, lf, wheelbase, FVY(i));
+                [dFWZfl_y(i), dFWZfr_y(i), dFWZrl_y(i), dFWZrr_y(i)] = calculateWheelloadLatDisp(h_COG, track, lr, lf, wheelbase, FVY(i));
 
                 % Wheel loads (Radlasten)
                 FWZ_fl(i+1) = FWZ_fl(1) + dFWZfl_aero(i) + dFWZfl_x(i) + dFWZfl_y(i); % [N] Front left wheel load (Radlast vorne links)
@@ -720,19 +708,19 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 end
 
                 % Axle loads - for dynamic radii (Achslasten)
-                [FWZr(i+1), FWZf(i+1), FWZtot(i+1)] = axleloads(FWZ_rl(i+1), FWZ_rr(i+1), FWZ_fl(i+1), FWZ_fr(i+1));
+                [FWZr(i+1), FWZf(i+1), FWZtot(i+1)] = calculateAxleloads(FWZ_rl(i+1), FWZ_rr(i+1), FWZ_fl(i+1), FWZ_fr(i+1));
 
                 % Vertical tire stiffnesses - for dynamic radii (Vertikale Reifensteifigkeiten)  
-                [cZ_fl(i+1), cZ_fr(i+1), cZ_rl(i+1), cZ_rr(i+1)] = vtirestiff(Fz, cZ_tire, FWZ_fl(i+1), FWZ_fr(i+1), FWZ_rl(i+1), FWZ_rr(i+1));
+                [cZ_fl(i+1), cZ_fr(i+1), cZ_rl(i+1), cZ_rr(i+1)] = calculateVtirestiff(Fz, cZ_tire, FWZ_fl(i+1), FWZ_fr(i+1), FWZ_rl(i+1), FWZ_rr(i+1));
 
                 % Dynamic tire radii (Dynamische Reifenradien)
-                [Rdyn_fl(i+1), Rdyn_fr(i+1), Rdyn_rl(i+1), Rdyn_rr(i+1)] = dyn_radii(R0, FWZ_fl(i+1), FWZ_fr(i+1), FWZ_rl(i+1), FWZ_rr(i+1), cZ_fl(i+1), cZ_fr(i+1), cZ_rr(i+1), cZ_rl(i+1));
+                [Rdyn_fl(i+1), Rdyn_fr(i+1), Rdyn_rl(i+1), Rdyn_rr(i+1)] = calculateDynRadii(R0, FWZ_fl(i+1), FWZ_fr(i+1), FWZ_rl(i+1), FWZ_rr(i+1), cZ_fl(i+1), cZ_fr(i+1), cZ_rr(i+1), cZ_rl(i+1));
 
                 % Maximum transmissible tire forces in longitudinal direction (Maximal übertragbare Reifenkräfte in Längsrichtung)
-                [FWXmax_fl(i+1), FWXmax_fr(i+1), FWXmax_rl(i+1), FWXmax_rr(i+1), FWXmax_f(i+1), FWXmax_r(i+1)] = longi_tireforces(FWZ_fl(i+1), FWZ_fr(i+1),FWZ_rl(i+1), FWZ_rr(i+1), GAMMA, TIRparam);
+                [FWXmax_fl(i+1), FWXmax_fr(i+1), FWXmax_rl(i+1), FWXmax_rr(i+1), FWXmax_f(i+1), FWXmax_r(i+1)] = calculateLongiTireforces(FWZ_fl(i+1), FWZ_fr(i+1),FWZ_rl(i+1), FWZ_rr(i+1), GAMMA, TIRparam);
 
                 % Maximum transmissible tire forces in lateral direction (Maximal übertragbare Reifenkräfte in Querrichtung)
-                [FWYmax_fl(i+1), FWYmax_fr(i+1), FWYmax_rl(i+1), FWYmax_rr(i+1), FWYmax_f(i+1), FWYmax_r(i+1)] = lat_tireforces(FWZ_fl(i+1), FWZ_fr(i+1),FWZ_rl(i+1), FWZ_rr(i+1), GAMMA, TIRparam);
+                [FWYmax_fl(i+1), FWYmax_fr(i+1), FWYmax_rl(i+1), FWYmax_rr(i+1), FWYmax_f(i+1), FWYmax_r(i+1)] = calculateLatTireforces(FWZ_fl(i+1), FWZ_fr(i+1),FWZ_rl(i+1), FWZ_rr(i+1), GAMMA, TIRparam);
 
             end
 
@@ -809,23 +797,60 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 Counter = 0;
                 j = ApexIndexes(k);
 
-                while vRev(j-1) < vV(j-1)
-                    
-                    [~, FL(j-1), Fdr(j-1), FVY(j-1), ~, ~] = vehicle_resistances_forces(k_R, FG, rho_L, vRev(j-1), c_w, A_S, m_tot, R(j-1), FVX(j-1), FVX_f(j-1), FB(j-1), c_d_DRS, DRS_status(j-1));
-                    
-                    Faero(j-1) = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vRev(j-1), ConstantDownforce, c_l_DRS, DRS_status(j-1));   % [N] Aerodynamic force
-                    FR(j-1) = k_R*(FG+Faero(j-1));                                              % [N] Rolling Resistance
-                    %FL(j-1) = rho_L*vRev(j-1)^2/2*c_w*A_S;                                      % [N] Air resistance
-                    %Fdr(j-1) = FR(j-1)+FL(j-1);                                                 % [N] Overall Resistance 
-                    
-                    aRev(j-1) = (-Fdr(j-1)-FB(j-1))/m_tot;
-                    vRev(j-2) = sqrt(vRev(j-1)^2-2*aRev(j-1)*(s(j-1)-s(j-2)));
-                    j = j - 1;
-                    Counter = Counter + 1;
-                end
+                if vV(j-1)>vAPEXmax(k)
+                    while vRev(j-1) < vV(j-1) 
+                        
+                        if vRev(j) == 0
+                            vRev(j) = vV(j);
+                        end
+                        
+                        %[~, FL(j-1), Fdr(j-1), FVY(j-1), ~, ~] = calculateVehicleResistancesForces(k_R, FG, rho_L, vRev(j), c_w, A_S, m_tot, R(j), FVX(j), FVX_f(j), c_d_DRS, DRS_status(j-1), rpmpointer, n_Mmax, FB_fl(i), FB_fr(i), FB_rl(i), FB_rr(i));
 
+                        Faero(j-1) = calculateAeroforce(downforce_multiplier, c_l, A_S, rho_L, vRev(j), ConstantDownforce, c_l_DRS, DRS_status(j-1));   % [N] Aerodynamic force
+                        FR(j-1) = k_R*(FG+Faero(j-1));                                              % [N] Rolling Resistance
+                        FL(j-1) = rho_L*vRev(j)^2/2*c_w*A_S;                                      % [N] Air resistance
+                        Fdr(j-1) = FR(j-1)+FL(j-1);                                                 % [N] Overall Resistance 
+
+                        % Wheel load transfer due to drag forces (Radlastverlagerung in Folge von Aerokräften) 
+                        [dFWZrl_aero(j-1), dFWZrr_aero(j-1), dFWZfl_aero(j-1), dFWZfr_aero(j-1)] = calculateAeroforceOnWheels(Faero(j-1), aero_ph, aero_pv);
+                        
+                        % First aproxmiated acceleration for further
+                        % calculations
+                        aVX(j-1) = (-Fdr(j-1)-FB(j-1))/m_tot;
+                        
+                        % Dynamic wheel load displacement in longitudinal direction (Dynamische Radlastverlagerung in Längsrichtung = 0 angenommen)
+                        [dFWZfl_x(j-1), dFWZfr_x(j-1), dFWZrl_x(j-1), dFWZrr_x(j-1)] = calculateWheelloadLongDisp(h_COG, 0, aVX(j-1), wheelbase); % Loads = 0 assumed
+                        
+                        FVY(j-1) = m_tot*vRev(j)^2/R(j-1);    % [N] Centrifugal force (Zentrifugalkraft)
+                        
+                        % Dynamic wheel load displacement in lateral direction (Dynamische Radlastverlagerung in Querrichtung)
+                        [dFWZfl_y(j-1), dFWZfr_y(j-1), dFWZrl_y(j-1), dFWZrr_y(j-1)] = calculateWheelloadLatDisp(h_COG, track, lr, lf, wheelbase, FVY(j-1));
+                        
+                        % Wheel loads (Radlasten)
+                        FWZ_fl(j-1) = FWZ_fl_stat + dFWZfl_aero(j-1) + dFWZfl_x(j-1) + dFWZfl_y(j-1); % [N] Front left wheel load (Radlast vorne links)
+                        FWZ_fr(j-1) = FWZ_fr_stat + dFWZfr_aero(j-1) + dFWZfr_x(j-1) + dFWZfr_y(j-1); % [N] Front right wheel load (Radlast vorne rechts)
+                        FWZ_rl(j-1) = FWZ_rl_stat + dFWZrl_aero(j-1) + dFWZrl_x(j-1) + dFWZrl_y(j-1); % [N] Rear left wheel load (Radlast hinten links)
+                        FWZ_rr(j-1) = FWZ_rr_stat + dFWZrr_aero(j-1) + dFWZrr_x(j-1) + dFWZrr_y(j-1); % [N] Rear right wheel load (Radlast hinten rechts)   
+                        
+                        % Maximum transmissible tire forces in lateral direction (Maximal übertragbare Reifenkräfte in Querrichtung)    
+                        [FWYmax_f(j-1), FWYmax_r(j-1)] = calculateLatTireforces(FWZ_fl(j-1), FWZ_fr(j-1),FWZ_rl(j-1), FWZ_rr(j-1), GAMMA, TIRparam);
+                        
+                        [~, ~, ~, ~, aRev(j-1), ~, ~] = calculateDeceleration(FB(j-1), m_tot, Fdr(j-1), FWXmax_fl(j-1), FWXmax_fr(j-1), FWXmax_rl(j-1), FWXmax_rr(j-1), brakeBias_setup);
+                        
+                        if vRev(j-1) == 0
+                            vRev(j-1) = vRev(j);
+                        end
+                        
+                        vRev(j-2) = sqrt(vRev(j-1)^2-2*aRev(j-1)*(s(j-1)-s(j-2)));
+
+                        j = j - 1;
+                        Counter = Counter + 1;
+                    end
+                    
+                end
+                
                 if Counter > 0
-                    BrakeIndexes = [BrakeIndexes j-1:ApexIndexes(k)-1];
+                    BrakeIndexes = [BrakeIndexes j:ApexIndexes(k)-1];
                 end
 
                 if k > 1 && j < ApexIndexes(k-1)
@@ -834,6 +859,8 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 end
 
                 k = k - 1;
+                
+                vWoBrake = vV;
 
             end
 
@@ -863,29 +890,34 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 gearSelection(i) = gear;
                 
                 if gearbox
-                    if i > 1 && ni(i-1) < n_downshift && gear > 1                          % Shift down
+                    if i > 1 && ni(i-1) < n_downshift && gear > 1               % Shift down
                         gear = gear - 1;  
-                    elseif i > 1 && ni(i-1) >= n_shift && gear < num_gears                 % Shift one gear up when shifting rpm is reached
+                        t_x = t(i)-t(i-1);                                      % Dead time for shift time
+                    elseif i > 1 && ni(i-1) >= n_shift && gear < num_gears      % Shift one gear up when shifting rpm is reached
                         gear = gear + 1;
-                        t_x = t(i)-t(i-1);                                      % step size of the time variable       
+                        t_x = t(i)-t(i-1);                                      % Dead time for shift time                               
                     end
                     
-                    ni(i) = vV(i) * 30 / pi * gr(gear) * i_G / Rdyn_rl(i);     % [1/min] calculate rpm with gearbox
+                    if t_x > 0 && i > 1
+                        t_x = t_x+t(i)-t(i-1);                                  % Reduce shift dead time with past time
+                    end
+                    
+                    ni(i) = vV(i) * 30 / pi * gr(gear) * i_G / Rdyn_rl(i);      % [1/min] calculate rpm with gearbox
                     n_wheel(i) = vV(i) * 60 / pi / Rdyn_rl(i);
                 else
                     % Determination of motor speed (no gearbox)
-                    ni(i) = vV(i) * 30 / pi * i_G / Rdyn_rl(i); % [1/min] Determine current motor speed 
+                    ni(i) = vV(i) * 30 / pi * i_G / Rdyn_rl(i);                 % [1/min] Determine current motor speed 
                 end
                 
                 if ni(i) >= n_Mmax % Drehzahlbegrenzer
                     ni(i) = n_Mmax;
                 end     
 
-               [Faero(i)] = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vV(i), ConstantDownforce, c_l_DRS, DRS_status(i)); % [N] Aerodynamic force
+               [Faero(i)] = calculateAeroforce(downforce_multiplier, c_l, A_S, rho_L, vV(i), ConstantDownforce, c_l_DRS, DRS_status(i)); % [N] Aerodynamic force
                 
                %% Braking
                 % Checking if braking is required (Prüfen, ob gebremst werden muss)
-                if ismember(i,BrakeIndexes)                       % Initiaion of braking process (Einleiten des Bremsvorgangs)     
+                if ismember(i,BrakeIndexes) && not(ismember(z,NonBrakeApexes))                      % Initiaion of braking process (Einleiten des Bremsvorgangs)     
                     % Braking 
                     Mi(i) = 0;                                    % [Nm] Motor torque (Motormoment)
                     BPPsignal(i) = 1;                             % [-] Brake signal (Bremssignal)
@@ -902,26 +934,23 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
 
                     FVX_fl(i) = 0;                   % [N] Tractive Force on front left wheel (AWD) 
                     FVX_fr(i) = 0;                   % [N] Tractive Force on front right wheel (AWD) 
-                    FVX_f(i) = -FB(i)/2;              % [N] Traction on rear axle (Zugkraft an der Hinterachse)
+                    FVX_f(i) = 0;              % [N] Traction on rear axle (Zugkraft an der Hinterachse)
 
                     FVX_rl(i) = 0;                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
                     FVX_rr(i) = 0;                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
-                    FVX(i) = -FB(i)/2;                % [N] Traction on rear axle (Zugkraft an der Hinterachse)
+                    FVX(i) = 0;                % [N] Traction on rear axle (Zugkraft an der Hinterachse)
+                     
                     
-                    if abs(FVX_f(i)) > FWXmax_f(i)     % Limiting the tractive force to the traction limit rear axle
-                        FB(i) = -FWXmax_f(i);
-                        ABS(i) = 1;              % Traction control "on" (Traktionskontrolle "an")
-                    end     
-                    
-                    if abs(FVX(i)) > FWXmax_r(i)     % Limiting the tractive force to the traction limit rear axle
-                        FB(i) = -FWXmax_r(i);
-                        ABS(i) = 1;              % Traction control "on" (Traktionskontrolle "an")
-                    end     
+                    [FB_fl(i), FB_fr(i), FB_rl(i), FB_rr(i), ~, BrakeBias(i), ABS(i)] = calculateDeceleration(FB(i), m_tot, Fdr(i), FWXmax_fl(i), FWXmax_fr(i), FWXmax_rl(i), FWXmax_rr(i), brakeBias_setup);
                 else
                 %% Accelerating 
                     Mi(i) = interp1(n,M,ni(i),'linear','extrap'); % [Nm] Motor torque (single motor!)
                     FB(i) = 0;                                    % [N] Braking force
                     P_Bh(i) = 0;                                  % [W] Rear braking power (Bremsleistung hinten)
+                    FB_fl(i) = 0;    
+                    FB_fr(i) = 0;    
+                    FB_rl(i) = 0;    
+                    FB_rr(i) = 0;    
 
                     % Motor power & limitation to 80 kW from FS-Rules (Motorleistung & Begrenzung auf 80 kW aus FS-Rules)
                     rpmpointer = round(ni(i));                   % Pointer for efficiency table (Pointer für effizienztabelle)
@@ -966,38 +995,8 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                     % Calculation Overall Torque with real power
                     Mi(i) = P_M(i)*(60/ni(i)/2/pi);    
 
-                    % Calculation of tractive forces (Berechnen der Zugkraft)
-                    if num_motors == 4
-                        FVX_fl(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_fl(i);                   % [N] Tractive Force on front left wheel (AWD) 
-                        FVX_fr(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_fr(i);                   % [N] Tractive Force on front right wheel (AWD) 
-                        FVX_f(i) = FVX_fl(i) + FVX_fr(i);                     % [N] Traction on rear axle (Zugkraft an der Hinterachse)
-
-                        FVX_rl(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
-                        FVX_rr(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
-                        FVX(i) = FVX_rl(i) + FVX_rr(i);                     % [N] Traction on rear axle (Zugkraft an der Hinterachse)
-
-                        if FVX_f(i) > FWXmax_f(i)     % Limiting the tractive force to the traction limit front axle
-                            FVX_f(i) = FWXmax_f(i);
-                            TC_front(i) = 1;              % front Traction control "on" 
-                        end
-                    elseif num_motors == 2
-                        FVX_rl(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
-                        FVX_rr(i) = Mi(i)/num_motors*i_G*gr(gear)/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
-                        FVX(i) = FVX_rl(i) + FVX_rr(i);                     % [N] Traction on rear axle (Zugkraft an der Hinterachse)
-
-                        FVX_f(i) = 0;
-                    else
-                        FVX_rl(i) = Mi(i)/2*i_G*gr(gear)/Rdyn_rl(i);                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
-                        FVX_rr(i) = Mi(i)/2*i_G*gr(gear)/Rdyn_rr(i);                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
-                        FVX(i) = FVX_rl(i) + FVX_rr(i);                     % [N] Traction on rear axle (Zugkraft an der Hinterachse)
-
-                        FVX_f(i) = 0;
-                    end
-
-                    if FVX(i) > FWXmax_r(i)     % Limiting the tractive force to the traction limit rear axle
-                        FVX(i) = FWXmax_r(i);
-                        TC(i) = 1;              % Traction control "on" (Traktionskontrolle "an")
-                    end       
+                    % Calculate the tractive forces on the wheels
+                    [FVX_fl(i), FVX_fr(i), FVX_rl(i), FVX_rr(i), FVX(i), FVX_f(i), TC_front(i), TC(i)] = calculateTractiveForces(Mi(i), num_motors, i_G, gr, Rdyn_fl(i), Rdyn_fr(i), Rdyn_rl(i), Rdyn_rr(i), t_x, gear, FWXmax_f(i), FWXmax_r(i), t_shift);
 
                     M_tractive(i) = (FVX(i)+FVX_f(i))/(i_G*gr(gear)/Rdyn_rr(i));            % [Nm] Torque including tractive force
                     P_tractive(i) = M_tractive(i)/(60/ni(i)/2/pi);      % [kW] Motor power required for traction 
@@ -1006,12 +1005,14 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
 
 
                 % Driving resistances (Fahrwiderstände) & Vehicle (Fahrzeug)
-                [FR(i), FL(i), Fdr(i), FVY(i), aVX(i), aVY(i)] = vehicle_resistances_forces(k_R, FWZtot(i), rho_L, vV(i), c_w, A_S, m_tot, R(i), FVX(i), FVX_f(i), FB(i), c_d_DRS, DRS_status(i));
+                [FR(i), FL(i), Fdr(i), FVY(i), aVX(i), aVY(i)] = calculateVehicleResistancesForces(k_R, FWZtot(i), rho_L, vV(i), c_w, A_S, m_tot, R(i), FVX(i), FVX_f(i), c_d_DRS, DRS_status(i), rpmpointer, n_Mmax, FB_fl(i), FB_fr(i), FB_rl(i), FB_rr(i));
 
                 % [m/s] Total vehicle speed (Gesamt-Fahrzeuggeschwindigkeit)
                 vV(i+1) = sqrt(vV(i)^2+2*aVX(i)*(s(i+1)-s(i)));     
 
-                % ToDo Check vehicle speed before applying brakes (ToDo Vor Beginn des Bremsens Geschwindigkeit prüfen)
+                % ToDo Check vehicle speed before applying brakes 
+                % Limit Braking before Apex if car is allready slower than
+                % needed
                 if ismember(i,BrakeIndexes) && vV(i+1) < vAPEXmax(z) && not(ismember(z,NonBrakeApexes))  % Begrenzen der Geschwindigkeit auf ApexGeschwindigkeit (Bremst solange bis Geschwindigkeiten gleich)
                      vV(i+1) = vAPEXmax(z);                         % [m/s] Total vehicle speed 
                 end
@@ -1071,13 +1072,13 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 end
 
                  % Wheel load transfer due to aerodynamic forces (Radlastverlagerung in Folge von Aerokräften)        
-                 [dFWZrl_aero(i), dFWZrr_aero(i), dFWZfl_aero(i), dFWZfr_aero(i)] = aeroforce_onwheels(Faero(i), aero_ph, aero_pv);
+                 [dFWZrl_aero(i), dFWZrr_aero(i), dFWZfl_aero(i), dFWZfr_aero(i)] = calculateAeroforceOnWheels(Faero(i), aero_ph, aero_pv);
 
                  % Dynamic wheel load displacements in longitudinal direction (Dynamische Radlastverlagerungen in Längsrichtung)       
-                 [dFWZfl_x(i), dFWZfr_x(i), dFWZrl_x(i), dFWZrr_x(i)] = wheelload_longdisp(h_COG, m_tot, aVX(i), wheelbase);
+                 [dFWZfl_x(i), dFWZfr_x(i), dFWZrl_x(i), dFWZrr_x(i)] = calculateWheelloadLongDisp(h_COG, m_tot, aVX(i), wheelbase);
 
                  % Dynamic wheel load displacements in lateral direction (Dynamische Radlastverlagerung in Querrichtung)  
-                 [dFWZfl_y(i), dFWZfr_y(i), dFWZrl_y(i), dFWZrr_y(i)] = wheelload_latdisp(h_COG, track, lr, lf, wheelbase, FVY(i));
+                 [dFWZfl_y(i), dFWZfr_y(i), dFWZrl_y(i), dFWZrr_y(i)] = calculateWheelloadLatDisp(h_COG, track, lr, lf, wheelbase, FVY(i));
 
                  % Wheel Loads (Radlasten)
                  FWZ_fl(i+1) = FWZ_fl(1) + dFWZfl_aero(i) + dFWZfl_x(i) + dFWZfl_y(i); % [N] Front left wheel load (Radlast vorne links)
@@ -1100,20 +1101,19 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                  end
 
                 % Axle loads - for dynamic radii (Achslasten)      
-                [FWZr(i+1), FWZf(i+1), FWZtot(i+1)] = axleloads(FWZ_rl(i+1), FWZ_rr(i+1), FWZ_fl(i+1), FWZ_fr(i+1)); 
-
+                [FWZr(i+1), FWZf(i+1), FWZtot(i+1)] = calculateAxleloads(FWZ_rl(i+1), FWZ_rr(i+1), FWZ_fl(i+1), FWZ_fr(i+1)); 
 
                 % Vertical tire stiffness - for dynamic radii (Vertikale Reifensteifigkeiten)  
-                [cZ_fl(i+1), cZ_fr(i+1), cZ_rl(i+1), cZ_rr(i+1)] = vtirestiff(Fz, cZ_tire, FWZ_fl(i+1), FWZ_fr(i+1), FWZ_rl(i+1), FWZ_rr(i+1));
+                [cZ_fl(i+1), cZ_fr(i+1), cZ_rl(i+1), cZ_rr(i+1)] = calculateVtirestiff(Fz, cZ_tire, FWZ_fl(i+1), FWZ_fr(i+1), FWZ_rl(i+1), FWZ_rr(i+1));
 
                 % Dynamic tire radii (Dynamische Reifenradien)   
-                [Rdyn_fl(i+1), Rdyn_fr(i+1), Rdyn_rl(i+1), Rdyn_rr(i+1)] = dyn_radii(R0, FWZ_fl(i+1), FWZ_fr(i+1), FWZ_rl(i+1), FWZ_rr(i+1), cZ_fl(i+1), cZ_fr(i+1), cZ_rr(i+1), cZ_rl(i+1));
+                [Rdyn_fl(i+1), Rdyn_fr(i+1), Rdyn_rl(i+1), Rdyn_rr(i+1)] = calculateDynRadii(R0, FWZ_fl(i+1), FWZ_fr(i+1), FWZ_rl(i+1), FWZ_rr(i+1), cZ_fl(i+1), cZ_fr(i+1), cZ_rr(i+1), cZ_rl(i+1));
 
                 % Maximum transmissible tire forces in longitudinal direction (Maximal übertragbare Reifenkräfte in Längsrichtung)       
-                [FWXmax_fl(i+1), FWXmax_fr(i+1), FWXmax_rl(i+1), FWXmax_rr(i+1),FWXmax_f(i+1), FWXmax_r(i+1)] = longi_tireforces(FWZ_fl(i+1), FWZ_fr(i+1),FWZ_rl(i+1), FWZ_rr(i+1), GAMMA, TIRparam);
+                [FWXmax_fl(i+1), FWXmax_fr(i+1), FWXmax_rl(i+1), FWXmax_rr(i+1),FWXmax_f(i+1), FWXmax_r(i+1)] = calculateLongiTireforces(FWZ_fl(i+1), FWZ_fr(i+1),FWZ_rl(i+1), FWZ_rr(i+1), GAMMA, TIRparam);
 
                 % Maximum transmissible tire forces in lateral direction (Maximal übertragbare Reifenkräfte in Querrichtung)      
-                [FWYmax_fl(i+1), FWYmax_fr(i+1), FWYmax_rl(i+1), FWYmax_rr(i+1), FWYmax_f(i+1), FWYmax_r(i+1)] = lat_tireforces(FWZ_fl(i), FWZ_fr(i),FWZ_rl(i), FWZ_rr(i), GAMMA, TIRparam);
+                [FWYmax_fl(i+1), FWYmax_fr(i+1), FWYmax_rl(i+1), FWYmax_rr(i+1), FWYmax_f(i+1), FWYmax_r(i+1)] = calculateLatTireforces(FWZ_fl(i), FWZ_fr(i),FWZ_rl(i), FWZ_rr(i), GAMMA, TIRparam);
                 
                 % Maximum cornering velocity 
                 vVYmax(i+1) = sqrt((FWYmax_f(i+1)+FWYmax_r(i+1))*R(i+1)/m_tot); % Calculating maximum possible lateral velocity with given Tire forces [m/s] (inaccuaracy because tire force is based on aero force)
@@ -1166,7 +1166,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 
              
             end
-
+            
             writeToLogfile('Simulated with brakes!', Debug, textAreaHandle);
             
             % Conversion of battery energy capacity (Umrechnen der Energiemengen des Akkus)
@@ -1302,7 +1302,8 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             result.aero_ph(:,steps) = aero_ph(:);
             result.aero_pv(:,steps) = aero_pv(:);
 
-            % Car Parameters needed to draw result plots
+            % Car Parameters needed to draw result plots and for setup
+            % viewer.
             result.P_max(:,steps) = max_power(:);
             result.GAMMA(:,steps) = GAMMA(:); 
             result.m_tot(:,steps) = m_tot(:);
@@ -1385,233 +1386,4 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
         save(path+"/"+savefilename, '-struct','result');
         
         writeToLogfile('File succesfully written', Debug, textAreaHandle);
-end
-
-%% Function calls
-
-function [BT_fl, BT_fr, BT_rl, BT_rr] = calculateBrakeTorque(vV, n_wheel, BrakePressure, boreFront, boreRear)
-    
-    R_m = (R_o + R_i) / 2;
-
-    friction_s = 0.35;
-    friciton_k = 0.35;
-    
-    if n_wheel(i) > 0 
-        BT_fl = (friciton_k * BrakePressure * pi * boreFront^2 * R_m * 2) / 4;
-        BT_fr = (friciton_k * BrakePressure * pi * boreFront^2 * R_m * 2) / 4;
-        BT_rl = (friciton_k * BrakePressure * pi * boreRear^2 * R_m * 2) / 4;
-        BT_rr = (friciton_k * BrakePressure * pi * boreRear^2 * R_m * 2) / 4;
-    else
-        BT_fl = (friciton_s)/4
-    end
-end
-
-function [dFWZrl_aero, dFWZrr_aero, dFWZfl_aero, dFWZfr_aero] = aeroforce_onwheels(Faero, aero_ph, aero_pv)
-%% Individual aerodynamic forces acting on each wheel
-%   For calculation of wheel load transfer
-
-        dFWZrl_aero = Faero/2*aero_ph;   % [N] Aerodynamic force on rear left wheel (Aerokraft auf linkes Hinterrad)
-        dFWZrr_aero = Faero/2*aero_ph;   % [N] Aerodynamic force on rear right wheel (Aerokraft auf rechtes Hinterrad)
-        dFWZfl_aero = Faero/2*aero_pv;   % [N] Aerodynamic force on front left wheel (Aerokraft auf linkes Vorderrad)
-        dFWZfr_aero = Faero/2*aero_pv;   % [N] Aerodynamic force on front right wheel (Aerokraft auf rechtes Vorderrad)
-            
-end
-
-function [dFWZfl_x, dFWZrr_x, dFWZrl_x, dFWZfr_x] = wheelload_longdisp(h_COG, m_ges, aVX, l)
-%% Dynamic wheel load displacement in longitudinal direction
-%   For calculation of wheel load transfer
-
-        dFWZfl_x = -m_ges*aVX*h_COG/l/2;  % [N] Dynamic wheel load transfer to front left wheel (Dynamische Radlastverlagerung linkes Vorderrad)
-        dFWZfr_x = -m_ges*aVX*h_COG/l/2;  % [N] Dynamic wheel load transfer to front right wheel (Dynamische Radlastverlagerung rechtes Vorderrad)
-        dFWZrl_x = m_ges*aVX*h_COG/l/2;   % [N] Dynamic wheel load transfer to rear left wheel (Dynamische Radlastverlagerung linkes Hinterrad)
-        dFWZrr_x = m_ges*aVX*h_COG/l/2;   % [N] Dynamic wheel load transfer to rear right wheel (Dynamische Radlastverlagerung rechtes Hinterrad)
-        
-end
-
-function [dFWZfl_y, dFWZfr_y, dFWZrl_y, dFWZrr_y] = wheelload_latdisp(h_COG, B, lh, lv, l, FVY) 
-%% Dynamic wheel load displacement in lateral direction
-%   For calculation of wheel load transfer
-
-        dFWZfl_y = -h_COG/B*lh/l*FVY;   % [N] Dynamic wheel load transfer to front left wheel (Dynamische Radlastverlagerung linkes Vorderrad)
-        dFWZfr_y = h_COG/B*lh/l*FVY;    % [N] Dynamic wheel load transfer to front right wheel (Dynamische Radlastverlagerung rechtes Vorderrad)
-        dFWZrl_y = -h_COG/B*lv/l*FVY;   % [N] Dynamic wheel load transfer to rear left wheel (Dynamische Radlastverlagerung linkes Hinterrad)
-        dFWZrr_y = h_COG/B*lv/l*FVY;    % [N] Dynamic wheel load transfer to rear right wheel (Dynamische Radlastverlagerung rechtes Hinterrad)
-end
-
-function Faero = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vV, ConstantDownforce, c_l_DRS, DRS_status)
-%% Aerodynamic force
-        if (DRS_status == 1)
-            Faero = downforce_multiplier * ((c_l_DRS * A_S * rho_L * (vV)^2 / 2) + ConstantDownforce);  
-        else
-            Faero = downforce_multiplier * ((c_l * A_S * rho_L * (vV)^2 / 2) + ConstantDownforce);  
-        end
-end
-
-function [FR, FL, Fdr, FVY, aVX, aVY] = vehicle_resistances_forces(k_R, FWZges, rho_L, vV, c_d, A_S, m_tot, R, FVX, FVX_f, FB, c_d_DRS, DRS_status)
-%% Driving resistances and vehicle
-
-        FR = k_R*FWZges;                % [N] Rolling resistance (Rollwiderstand)
-        
-        if DRS_status == 1
-            FL = rho_L*(vV^2/2)*c_d_DRS*A_S;
-        else
-            FL = rho_L*(vV^2/2)*c_d*A_S;      % [N] Air Resistance/Drag (Luftwiderstand)
-        end
-
-        Fdr = FR + FL;                  % [N] Total resistance (Gesamtwiderstand)
-        FVY = m_tot*vV^2/R;             % [N] Centrifugal force (Zentrifugalkraft)
-        
-        aVX = ((FVX+FVX_f)-Fdr)/m_tot;       % [m/s²] Longitudinal acceleration (Längsbeschleunigung)
-        aVY = vV^2/R;                   % [m/s²] Lateral acceleration (Querbeschleunigung)
-end
-
-function [FWZr, FWZf, FWZges] = axleloads(FWZ_rl, FWZ_rr, FWZ_fl, FWZ_fr)
-%% Axle loads calculation
-        FWZr = FWZ_rl + FWZ_rr;  % [N] Rear axle load (Achslast hinten)
-        FWZf = FWZ_fl + FWZ_fr;  % [N] Front axle load (Achslast vorne)
-        FWZges = FWZr + FWZf;    % [N] Total axle and wheel load (Gesamtachs- und Radlast)
-        
-end
-
-function [Rdyn_fl, Rdyn_fr, Rdyn_rl, Rdyn_rr] = dyn_radii(R0, FWZ_vl, FWZ_vr, FWZ_hl, FWZ_hr, cZ_vl, cZ_vr, cZ_hr, cZ_hl)
-%% Dynamic tire radii calculation
-
-        Rdyn_fl = R0 - FWZ_vl/cZ_vl;    % [m] Dynamic front left tire radius (Dynamischer Reifenradius)
-        Rdyn_fr = R0 - FWZ_vr/cZ_vr;    % [m] Dynamic front right tire radius (Dynamischer Reifenradius)
-        Rdyn_rl = R0 - FWZ_hl/cZ_hl;    % [m] Dynamic rear left tire radius (Dynamischer Reifenradius)
-        Rdyn_rr = R0 - FWZ_hr/cZ_hr;    % [m] Dynamic rear right tire radius (Dynamischer Reifenradius)        
-end
-
-function [cZ_fl, cZ_fr, cZ_rl, cZ_rr] = vtirestiff(Fz, cZ_tire, FWZ_vl, FWZ_vr, FWZ_hl, FWZ_hr)
-%% Vertical tire stiffness
-
-        cZ_fl = interp1(Fz,cZ_tire,FWZ_vl,'linear','extrap'); % [N/m] Interpolated tire stiffness (Reifensteifigkeit interpoliert)
-        cZ_fr = interp1(Fz,cZ_tire,FWZ_vr,'linear','extrap'); % [N/m] Interpolated tire stiffness (Reifensteifigkeit interpoliert)
-        cZ_rl = interp1(Fz,cZ_tire,FWZ_hl,'linear','extrap'); % [N/m] Interpolated tire stiffness (Reifensteifigkeit interpoliert)
-        cZ_rr = interp1(Fz,cZ_tire,FWZ_hr,'linear','extrap'); % [N/m] Interpolated tire stiffness (Reifensteifigkeit interpoliert)       
-end
-
-
-function [FWYmax_fl, FWYmax_fr, FWYmax_rl, FWYmax_rr, FWYmax_f, FWYmax_r] = lat_tireforces(FWZ_vl, FWZ_vr,FWZ_hl, FWZ_hr, GAMMA, TIRparam)
-%% Maximum transmissible tire forces in lateral direction
-
-            FWYmax_fl = max(abs(MF52_Fy_cs(0:0.1:12,FWZ_vl,GAMMA,0,TIRparam))); % [N] Maximum transmissible front left wheel force (Maximal übertragbare Radkraft)
-            FWYmax_fr = max(abs(MF52_Fy_cs(0:0.1:12,FWZ_vr,GAMMA,0,TIRparam))); % [N] Maximum transmissible front right wheel force (Maximal übertragbare Radkraft)
-            FWYmax_rl = max(abs(MF52_Fy_cs(0:0.1:12,FWZ_hl,GAMMA,0,TIRparam))); % [N] Maximum transmissible rear left wheel force (Maximal übertragbare Radkraft)
-            FWYmax_rr = max(abs(MF52_Fy_cs(0:0.1:12,FWZ_hr,GAMMA,0,TIRparam))); % [N] Maximum transmissible rear right wheel force (Maximal übertragbare Radkraft)
-           
-            FWYmax_f = FWYmax_fl + FWYmax_fr;    % [N] Maximum transmissible front axle force (Maximal übertragbare Achskraft)
-            FWYmax_r = FWYmax_rl + FWYmax_rr;    % [N] Maximum transmissible rear axle force (Maximal übertragbare Achskraft)
-end
-
-
-function [FWXmax_fl, FWXmax_fr, FWXmax_rl, FWXmax_rr, FWXmax_f, FWXmax_r] = longi_tireforces(FWZ_vl, FWZ_vr,FWZ_hl, FWZ_hr, GAMMA, TIRparam)
-%% Maximum transmissible tire forces in longitudinal direction
-    
-        FWXmax_fl = max(abs(MF52_Fx_cs(0,FWZ_vl,GAMMA,0:0.01:0.2,TIRparam))); % [N] Maximum transmissible front left wheel force (Maximal übertragbare Radkraft)
-        FWXmax_fr = max(abs(MF52_Fx_cs(0,FWZ_vr,GAMMA,0:0.01:0.2,TIRparam))); % [N] Maximum transmissible front right wheel force (Maximal übertragbare Radkraft)
-        FWXmax_rl = max(abs(MF52_Fx_cs(0,FWZ_hl,GAMMA,0:0.01:0.2,TIRparam))); % [N] Maximum transmissible rear left wheel force (Maximal übertragbare Radkraft)
-        FWXmax_rr = max(abs(MF52_Fx_cs(0,FWZ_hr,GAMMA,0:0.01:0.2,TIRparam))); % [N] Maximum transmissible rear right wheel force (Maximal übertragbare Radkraft)        
-        
-        FWXmax_f = FWXmax_fl + FWXmax_fr;                                % [N] Maximum transmissible front axle force (Maximal übertragbare Achskraft)
-        FWXmax_r = FWXmax_rl + FWXmax_rr;                                % [N] Maximum transmissible rear axle force (Maximal übertragbare Achskraft)
-end
-
-
-function [x_Track, y_Track, z_Track, s, R, Track, ApexIndexes, lapLength] = loadTrack(TrackFileName, disciplineID, numOfLaps)
-%% Loads the track for the simulation    
-
-    % Loads all the track variables from the Trackfile
-    load(TrackFileName,'Track')
-    
-    % Length of the track before adding laps for endurance
-    lapLength = length(Track);
-
-    % Checks if AutoX or Endurance is selected (1==AutoX,2==Endurance)
-    if disciplineID == 1    % AutoX
-        
-        x_Track = Track(:,1);           % [m] X-Coordinate of the Track
-        y_Track = Track(:,2);           % [m] Y-Coordinate of the Track
-        z_Track = Track(:,3);           % [m] Z-Coordinate of the Track
-        s = Track(:,4);                 % [m] Track Pathway (Verlauf der Streckenlänge)
-        R = Track(:,5);                 % [m] Radius of curves (Kurvenradien)
-
-        % Calls the .m file 'Apexes' to calculate the Apexes of the given track
-        ApexIndexes = Apexes(abs(R));  
-        
-    elseif disciplineID == 2    % Endurance
-        x_Track = [];
-        y_Track = [];
-        z_Track = [];
-        s = [];
-        R = [];
-        
-        s_max = max(Track(:,4));
-        
-        % Expand Track to Endurance Distance
-        for i = 1:numOfLaps
-            x_Track = [x_Track; Track(:,1)];     % [m] X-Coordinate of the Track
-            y_Track = [y_Track; Track(:,2)];     % [m] Y-Coordinate of the Track
-            z_Track = [z_Track; Track(:,3)];     % [m] Z-Coordinate of the Track
-            s = [s; Track(:,4)+s_max*(i-1)];                 % [m] Track Pathway (Verlauf der Streckenlänge)
-            R = [R; Track(:,5)];                 % [m] Radius of curves (Kurvenradien)
-
-            % Calls the .m file 'Apexes' to calculate the Apexes of the given track
-            ApexIndexes = Apexes(abs(R));  
-        end
-        
-        % Complete Endurance Track (All Laps)
-        Track = [x_Track, y_Track, z_Track, s, R];
-    end   
-end
-
-function [t_skidpad, vV_skidpad] = calculateSkidPad(downforce_multiplier, c_l, A_S, rho_L, ConstantDownforce, c_l_DRS, DRS_status, m_tot, lr, lf, wheelbase, track, aero_ph, aero_pv, h_COG, GAMMA, TIRparam, FWZ_fl_stat, FWZ_fr_stat, FWZ_rl_stat, FWZ_rr_stat)
-    FWYf = 0;            % [N] Start/Initial value of front axle lateral force (Startwert Querkraft Vorderachse)
-    FWYr = 0;            % [N] Start/Initial value of rear axle lateral force (Startwert Querkraft Hinterachse)
-    FWYmax_f = 0.1;      % [N] Start/Initial value of maximum transmissible front axle lateral force (Startwert maximal übertragbare Querkraft Vorderachse)
-    FWYmax_r = 0.1;      % [N] Start/Initial value of maximum transmissible rear axle lateral force (Startwert maximal übertragbare Querkraft Hinterachse)
-    vV = 0;              % [m/s] Start/Initial value of vehicle speed (Startwert Fahrzeuggeschwindigkeit)
-    
-    R = 8; % Skidpad
-    aVX = 0; % Skidpad
-
-    while  FWYf < FWYmax_f && FWYr < FWYmax_r && vV < 30
-
-        vV = vV + 0.01;   % [m/s] Increaing vehicle speed (Erhöhen der Fahrzeuggeschwindigkeit)
-
-        Faero = aeroforce(downforce_multiplier, c_l, A_S, rho_L, vV, ConstantDownforce, c_l_DRS, DRS_status); % [N] Aerodynamic force
-
-        FVY = m_tot*vV^2/R;    % [N] Centrifugal force (Zentrifugalkraft)
-
-        aVY = vV^2/R;  % [m/s²] Lateral acceleration (Querbeschleunigung)
-
-        % Lateral forces to be applied on front and rear axle (Aufzubringende Querkräfte an Vorder- und Hinterachse)
-        FWYf = lr/wheelbase*abs(FVY);   % [N] Lateral force to be applied to the front axle (Aufzubringende Querkraft der Vorderachse)
-        FWYr = lf/wheelbase*abs(FVY);   % [N] Lateral force to be applied to the rear axle (Aufzubringende Querkraft der Hinterachse)
-
-        % Wheel load transfer due to drag forces (Radlastverlagerung in Folge von Aerokräften) 
-        [dFWZrl_aero, dFWZrr_aero, dFWZfl_aero, dFWZfr_aero] = aeroforce_onwheels(Faero, aero_ph, aero_pv);
-
-        % Dynamic wheel load displacement in longitudinal direction (Dynamische Radlastverlagerung in Längsrichtung = 0 angenommen)
-        [dFWZfl_x, dFWZfr_x, dFWZrl_x, dFWZrr_x] = wheelload_longdisp(h_COG, 0, aVX, wheelbase); % Loads = 0 assumed
-
-        % Dynamic wheel load displacement in lateral direction (Dynamische Radlastverlagerung in Querrichtung)
-        [dFWZfl_y, dFWZfr_y, dFWZrl_y, dFWZrr_y] = wheelload_latdisp(h_COG, track, lr, lf, wheelbase, FVY);
-
-        % Wheel loads (Radlasten)
-        FWZ_fl = FWZ_fl_stat + dFWZfl_aero + dFWZfl_x + dFWZfl_y; % [N] Front left wheel load (Radlast vorne links)
-        FWZ_fr = FWZ_fr_stat + dFWZfr_aero + dFWZfr_x + dFWZfr_y; % [N] Front right wheel load (Radlast vorne rechts)
-        FWZ_rl = FWZ_rl_stat + dFWZrl_aero + dFWZrl_x + dFWZrl_y; % [N] Rear left wheel load (Radlast hinten links)
-        FWZ_rr = FWZ_rr_stat + dFWZrr_aero + dFWZrr_x + dFWZrr_y; % [N] Rear right wheel load (Radlast hinten rechts)   
-
-        % Maximum transmissible tire forces in longitudinal direction = 0 assumed (because longitudinal wheel loads = 0 assumed) 
-
-        % Maximum transmissible tire forces in lateral direction (Maximal übertragbare Reifenkräfte in Querrichtung)    
-        [FWYmax_f, FWYmax_r] = lat_tireforces(FWZ_fl, FWZ_fr,FWZ_rl, FWZ_rr, GAMMA, TIRparam);
-
-    end
-
-    vV_skidpad = vV;   % [m/s] Maximum speed for any apex (Maximalgeschwindigkeit für jede Apex)
-    
-    t_skidpad = pi * 8 / vV;
 end

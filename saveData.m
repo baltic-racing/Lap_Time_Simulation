@@ -34,6 +34,7 @@ function saveData(app)
         setup.FB = app.FB;
         setup.camber = app.camber;
         setup.m_ph = app.m_ph;
+        setup.brakeBias_setup = app.brakeBias;
 
         %% Drivetrain Parameters
         setup.ptype = app.ptype;
