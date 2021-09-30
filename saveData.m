@@ -61,6 +61,8 @@ function saveData(app)
             setup.n_downshift = [];
             setup.t_shift = [];
         end
+        
+        setup.idleRPM = app.idleRPM;
 
         %% Aerodynamic Parameters
         setup.c_w = app.c_w;

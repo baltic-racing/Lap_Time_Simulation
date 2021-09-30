@@ -142,6 +142,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
     num_gears = length(gr);                 % highest gear
     gearbox = setup.gearbox;
     t_x = 0;                                % Initialise the shift dead time
+    idleRPM = setup.idleRPM;
     
     % Sets gearratio to a constant 1 if no gearbox is present
     if ~gearbox
@@ -579,7 +580,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             writeToLogfile('caclculated Apex Speeds!', Debug, textAreaHandle);
             
             %% Start/Initial values for first simulation run WITHOUT BRAKES (Startwerte für ersten Simulationslauf OHNE BREMSEN)
-            vV(1) = StartingSpeed + 0.001;
+            vV(1) = StartingSpeed + 0.005;
             
             gear = 1;
 
@@ -614,7 +615,9 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 
                 if ni(i) >= n_Mmax                                              % RPM-Limiter
                     ni(i) = n_Mmax;                                             % if RPM is above limiter rpm set to RPM to limiter RPM
-                end     
+                elseif ni(i) < idleRPM
+                    ni(i) = idleRPM;
+                end         
 
                 % Determination of aero forces and motor torque (Bestimmen von Aero-Kräften und Motormoment)      
                 Faero(i) = calculateAeroforce(downforce_multiplier, c_l, A_S, rho_L, vV(i), ConstantDownforce, c_l_DRS, DRS_status(i)); % [N] Aerodynamic force
@@ -732,65 +735,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             k = length(ApexIndexes);
             
             % Reset FB
-            FB = FB_1*ones(1,length(Track));
-            
-            
-            
-            TrackLength = length(Track);
-            
-            %AccelFlag = 1;
-            sectorStart = 1;
-            
-            for i = 1:TrackLength
-                % Accel
-                vAcc(i) = 
-                
-                if ismember(i,ApexIndexes) 
-                    sectorEnd = i;
-                    %AccelFlag = 0;
-                    
-                    % Brake
-                    vBrake(i) = 
-                    
-                    for j = sectorEnd:-1:sectorStart
-                        
-                    end
-                    
-                    a = sectorStart;
-                    b = sectorEnd;
-                    
-                    for i = 1:(sectorEnd-sectorStart)
-                        if (vAcc(i) > vDec(i) && i > 2)
-                            BrakePoint = sectorStart + i-1;
-                        end
-                    end
-                    
-%                     while (vAcc(b) > vBrake(a))
-%                         a = a+1;
-%                         b = b-1;
-%                     end
-%                     testAcc = floor(vAcc * 1000);
-%                     testBrake = floor(vBrake * 1000);
-%                     test = find(testAcc == testBrake);
-%                     
-%                     for x = sectorStart:1:sectorEnd
-%                         
-%                     end
-%                     
-%                     Acc = fit(x,vAcc,'poly2');
-%                     Dec = fit(x,vBrake,'poly2');
-                    
-                    
-                    BrakeIndexes = [BrakeIndexes index];
-
-                    vAcc = [];
-                    vBrake = [];
-                    
-                    sectorStart = sectorEnd;
-                end
-            end
-            
-            
+            FB = FB_1*ones(1,length(Track));            
             
             while k >= 1
 
@@ -865,7 +810,9 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             end
 
             %% Start values for simulation WITH BRAKES
-            vV(1) = StartingSpeed + 0.001;
+            vV(1) = StartingSpeed + 0.005;
+            
+            t_x = 0;        % Reset Shift time
             
             gear = 1;
             
@@ -911,6 +858,8 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 
                 if ni(i) >= n_Mmax % Drehzahlbegrenzer
                     ni(i) = n_Mmax;
+                elseif ni(i) < idleRPM
+                    ni(i) = idleRPM;
                 end     
 
                [Faero(i)] = calculateAeroforce(downforce_multiplier, c_l, A_S, rho_L, vV(i), ConstantDownforce, c_l_DRS, DRS_status(i)); % [N] Aerodynamic force
@@ -944,6 +893,10 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                     [FB_fl(i), FB_fr(i), FB_rl(i), FB_rr(i), ~, BrakeBias(i), ABS(i)] = calculateDeceleration(FB(i), m_tot, Fdr(i), FWXmax_fl(i), FWXmax_fr(i), FWXmax_rl(i), FWXmax_rr(i), brakeBias_setup);
                 else
                 %% Accelerating 
+                    if (~isreal(ni(i)))
+                        x = ni(i);
+                    end
+                
                     Mi(i) = interp1(n,M,ni(i),'linear','extrap'); % [Nm] Motor torque (single motor!)
                     FB(i) = 0;                                    % [N] Braking force
                     P_Bh(i) = 0;                                  % [W] Rear braking power (Bremsleistung hinten)

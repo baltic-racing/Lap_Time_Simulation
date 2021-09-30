@@ -67,6 +67,7 @@ function loadSetup(app, file)
         app.i_param = setup.i_param;
         app.n_shift = setup.n_shift;
         app.t_shift = setup.t_shift;
+        app.idleRPM = setup.idleRPM;
 
         %% Aerodynamic Parameters
         app.c_w = setup.c_w;
