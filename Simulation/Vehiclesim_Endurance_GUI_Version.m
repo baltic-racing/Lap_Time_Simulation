@@ -1235,6 +1235,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             result.TC(:,steps) = TC(:);
             result.Tirelimit(:,steps) = Tirelimit(:);
             result.vAPEXmax(:,steps) = vAPEXmax(:);
+            result.vWoBrake(:,steps) = vWoBrake(:);
             result.vV(:,steps) = vV(:);
             result.vRev(:,steps) = vRev(:);
             result.vVYmax(:,steps) = vVYmax(:);
