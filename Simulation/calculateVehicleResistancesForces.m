@@ -1,3 +1,9 @@
+%% calculateVehicleResistancesForces.m
+% Calculates all resistance forces of the race car.
+%
+% By Eric Dornieden, Baltic Racing
+% Copyright (C) 2021, Baltic Racing, all rights reserved.
+
 function [FR, FL, Fdr, FVY, aVX, aVY] = calculateVehicleResistancesForces(k_R, FWZges, rho_L, vV, c_d, A_S, m_tot, R, FVX, FVX_f, c_d_DRS, DRS_status, rpm, n_Mmax, FB_fl, FB_fr, FB_rl, FB_rr)
 %% Driving resistances and vehicle
 

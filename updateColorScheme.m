@@ -301,6 +301,8 @@ function updateColorScheme(app)
     app.UIAxes2.YColor = app.OnPrimaryColor;
     app.UIAxes2.Color = app.SurfaceColor;
     app.LengthLabel.FontColor = app.OnPrimaryColor;
+    
+    app.UseoldbrakesystemCheckBox.FontColor = app.OnPrimaryColor;
 
     %% Simulation Results
     app.SimulationResultsTab.BackgroundColor = app.BackgroundColor;
