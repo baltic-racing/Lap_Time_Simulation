@@ -117,6 +117,12 @@ function PlotSensitivity(resultFile, xparam, yparam, dots, zparam, resx, resy)
             x_axis = result1.DRS_Radius;
             xlabelText = 'DRS Radius [m]';
         case 37
+            x_axis = result1.vV_skidpad;
+            xlabelText = 'vV_skidpad [m/s]';
+        case 38
+            x_axis = result1.t_skidpad;
+            xlabelText = 't_skidpad [m/s]';   
+        case 39
             x_axis = result1.c_l./result1.c_w;
             xlabelText = 'Aero Efficiency c_l/c_w [-]';
     end
@@ -231,6 +237,12 @@ function PlotSensitivity(resultFile, xparam, yparam, dots, zparam, resx, resy)
             y_axis = result1.DRS_Radius;
             ylabelText = 'DRS Radius [m]';
         case 37
+            y_axis = result1.vV_skidpad;
+            ylabelText = 'vV_skidpad [m/s]';
+        case 38
+            y_axis = result1.t_skidpad;
+            ylabelText = 't_skidpad [m/s]';   
+        case 39
             y_axis = sort(result1.c_l./result1.c_w);
             ylabelText = 'Aero Efficiency c_l/c_w [-]';
     end
@@ -346,6 +358,12 @@ function PlotSensitivity(resultFile, xparam, yparam, dots, zparam, resx, resy)
                 z_axis = result1.DRS_Radius;
                 zlabelText = 'DRS Radius [m]';
             case 37
+                z_axis = result1.vV_skidpad;
+                zlabelText = 'vV_skidpad [m/s]';
+            case 38
+                z_axis = result1.t_skidpad;
+                zlabelText = 't_skidpad [m/s]';   
+            case 39
                 z_axis = sort(result1.c_l./result1.c_w);
                 zlabelText = 'Aero Efficiency c_l/c_w [-]';
         end

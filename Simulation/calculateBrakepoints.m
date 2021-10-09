@@ -123,8 +123,9 @@ function [BrakeIndexes, NonBrakeApexes, vRev] = calculateBrakepoints(FB_in, Trac
 %             end
 % 
 %         end
-        for k = 1:length(ApexIndexes)
-
+        %for k = 1:length(ApexIndexes)
+        while k >= 1
+            
                 Counter = 0;
                 j = ApexIndexes(k);
                 %vRev(j-1) = vAPEXmax(k);

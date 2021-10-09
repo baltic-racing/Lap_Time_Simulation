@@ -909,6 +909,39 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                     grid on 
                     grid minor
                     
+                case 43
+                    % vV vs vWoBrake
+                    figure(saveID*10000 + runID*100 + 43)
+                    
+                    vVlength = length(result1.vV);
+                    Counter = 0;
+                    
+                    for i=1:vVlength
+                        Diff = result1.vV(i)-result1.vWoBrake(i)
+ 
+                        if Diff > 0
+                            vDiff(i) = Diff;
+                            Counter = Counter + 1;
+                        else
+                            vDiff(i) = 0;
+                        end
+                    end
+                    
+                    BrakeError = sum(vDiff) / vVlength;
+                    ErrorPoints = Counter / vVlength * 100;
+                    
+                    plot(s(1:end),result1.vV(:,runID),s(1:end),result1.vWoBrake(:,runID),s(1:end),vDiff)
+                    legend('vV','vWoBrake','vError')
+                    title('Braking Velocity')
+                    xlabel('Track Length [m]','FontSize',10)
+                    ylabel('Velocity [m/s]','FontSize',10)
+                    grid on 
+                    grid minor
+                                   
+                    annotation('textbox', [0.2, 0.8, 0.1, 0.1],...
+                        'String', {['Brake Error = ' num2str(BrakeError) ' m/s (' num2str(BrakeError * 3.6) ' km/h)'],...
+                        ['Error Points = ' num2str(ErrorPoints) ' %']})
+                    
                 otherwise
                     return
             end
