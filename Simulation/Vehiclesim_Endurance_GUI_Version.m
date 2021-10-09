@@ -502,6 +502,12 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             %% Simulation WITHOUT BRAKES (Simulation OHNE BREMSEN)
             for i = 1:length(Track)-1
                 
+                if R(i) > 0
+                    f = -1;
+                else
+                    f = 1;
+                end
+                
                 if i > 1    % if i > 1 use real rpm instead of idle rpm
                     [ni(i), gear, t_x] = calculateGearbox(gearbox, idleRPM, n_shift, n_downshift, vV(i), gr, gear, Rdyn_rl(i), Rdyn_rr(i), i_G, n_Mmax, t_x, ni(i-1), t(i), t(i-1));      % Calculates Gearbox data and rpm
                 else
@@ -651,6 +657,12 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 % Checking at which apex the vehicle is (Überprüfen, vor welcher Apex das Auto ist)
                 if ismember(i,ApexIndexes)  
                     z = z + 1;
+                end
+                
+                if R(i) > 0
+                    f = -1;
+                else
+                    f = 1;
                 end
                 
                 % Saving the current gear for the result file
