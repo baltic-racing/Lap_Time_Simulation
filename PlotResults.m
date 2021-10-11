@@ -307,8 +307,8 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                 case 4
                     % RPM Plot
                     figure(saveID*10000 + runID*100 + 4)
-                    ni = result1.ni(:,runID);
-                    ni(end+1,1) = result1.ni(end,1);
+                    ni = result1(1).ni(:,runID);
+                    ni(end+1,1) = result1(1).ni(end,1);
                     plot(s,ni)
                     title('RPM','FontSize',12)             %%Drehzahl
                     xlabel('Track Length [m]','FontSize',10)    %%Strecke
@@ -913,11 +913,12 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                     % vV vs vWoBrake
                     figure(saveID*10000 + runID*100 + 43)
                     
-                    vVlength = length(result1.vV);
+                    vVlength = length(result1.vV(:,runID));
                     Counter = 0;
+                    vDiff = [];
                     
                     for i=1:vVlength
-                        Diff = result1.vV(i)-result1.vWoBrake(i)
+                        Diff = result1.vV(i,runID)-result1.vWoBrake(i,runID);
  
                         if Diff > 0
                             vDiff(i) = Diff;
