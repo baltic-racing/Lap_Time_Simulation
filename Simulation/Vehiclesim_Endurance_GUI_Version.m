@@ -4,39 +4,45 @@
 % By Eric Dornieden, Baltic Racing
 % Copyright (C) 2021, Baltic Racing, all rights reserved.
 
-function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, disciplineID, sensitivityID, minValue, stepSize, numSteps, processDataButtonHandle, textAreaHandle, sensitivityID2, minValue2, stepSize2, logCellData, Debug, StartingSpeed, numOfLaps, brakeFunction)
+function [result] = Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, disciplineID, sensitivityID, minValue, stepSize, numSteps, processDataButtonHandle, textAreaHandle, sensitivityID2, minValue2, stepSize2, logCellData, Debug, StartingSpeed, numOfLaps, brakeFunction)
 
-    % DEBUG
-    %brakeFunction = 2;
-
-    % Adds search path of the setup file and then loads the setup.
+    %% DEBUGING OPTIONS
+    % DEBUG = 1;
+    % brakeFunction = 2;
+    
+    %% Load Setup
+    % Adds search path of the setup file and then loads the setup. -> Setup
+    % can be in any folder this way.
     setup = load(path+"/"+setupFile, '-mat');
 
-    tic   
+    tic         % Start timing
     
-    %% Initalize GUI loading bar
-    % Store original button text
-    originalButtonText = processDataButtonHandle.Text;
-    % When the function ends, return the original button state
-    cleanup = onCleanup(@()set(processDataButtonHandle,'Text',originalButtonText,'Icon',''));
-    % Change button name to "Processing"
-    processDataButtonHandle.Text = 'Simulating...';
-    % Put text on top of icon
-    processDataButtonHandle.IconAlignment = 'bottom';
-    % Create waitbar with same color as button
-    wbar = permute(repmat(processDataButtonHandle.BackgroundColor,15,1,200),[1,3,2]);
-    % Black frame around waitbar
-    wbar([1,end],:,:) = 0;
-    wbar(:,[1,end],:) = 0;
-    % Load the empty waitbar to the button
-    processDataButtonHandle.Icon = wbar;
+    if textAreaHandle ~= 0
+        %% Initalize GUI loading bar
+        % Store original button text
+        originalButtonText = processDataButtonHandle.Text;
+        % When the function ends, return the original button state
+        cleanup = onCleanup(@()set(processDataButtonHandle,'Text',originalButtonText,'Icon',''));
+        % Change button name to "Processing"
+        processDataButtonHandle.Text = 'Simulating...';
+        % Put text on top of icon
+        processDataButtonHandle.IconAlignment = 'bottom';
+        % Create waitbar with same color as button
+        wbar = permute(repmat(processDataButtonHandle.BackgroundColor,15,1,200),[1,3,2]);
+        % Black frame around waitbar
+        wbar([1,end],:,:) = 0;
+        wbar(:,[1,end],:) = 0;
+        % Load the empty waitbar to the button
+        processDataButtonHandle.Icon = wbar;
+    end
     
     %% loads the selected track
     [~, ~, ~, s, R, Track, ApexIndexes, lapLength] = loadTrack(TrackFileName, disciplineID, numOfLaps);
+    writeToLogfile('loaded Track!', Debug, textAreaHandle);
     
     %% Vehicle Data (Fahrzeugdaten)   
     m_tot = setup.m_ges;    % [kg] Total mass of the vehicle including driver (Fahrzeuggesamtmasse inkl. Fahrer)
-    g = setup.g;            % [m/s²] Acceleration due to Gravity (Erdbeschleunigung)
+    g = setup.g;            % [m/sï¿½] Acceleration due to Gravity (Erdbeschleunigung)
     FG = m_tot*g;           % [N] Force due to weight of the vehicle (Gewichtskraft des Fahrzeugs)
     m_balast = setup.m_ballast;
     m_driver = setup.m_driver;
@@ -44,8 +50,8 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
     h_COG_driver = setup.h_cog_driver;
     
     wheelbase = setup.wheelbase;    % [mm] Wheelbase (Radstand)
-    track = setup.track;            % [mm] Trackwidth - Front & Rear (Spurweite für vorne und hinten)
-    h_COG = setup.h_cog;            % [mm] Height of vehicle's Center of Gravity(COG) (Höhe Fahrzeugschwerpunkt)
+    track = setup.track;            % [mm] Trackwidth - Front & Rear (Spurweite fï¿½r vorne und hinten)
+    h_COG = setup.h_cog;            % [mm] Height of vehicle's Center of Gravity(COG) (Hï¿½he Fahrzeugschwerpunkt)
     x_COG = setup.x_cog;            % [mm] x-Coordinate of vehicle's CoG in CAD
     x_vA = setup.x_va;              % [mm] x-Coordinate of the front axle in CAD
 %     x_COP = 1600;           % [mm] x-Coordinate of Center of Pressure in CAD
@@ -57,9 +63,9 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
     aero_pv = setup.aero_pv;
     aero_ph = 1-aero_pv;
 
-    thetaV_X = setup.thetaV_X;                          % [kg*m²] Moment of Inertia of vehicle  about X-Axis (Trägheitsmoment Fahrzeug um X-Achse)
-    thetaV_Y = setup.thetaV_Y;                          % [kg*m²] Moment of Inertia of vehicle about Y-Axis (Trägheitsmoment Fahrzeug um Y-Achse)
-    thetaV_Z = setup.thetaV_Z;                          % [kg*m²] Moment of Inertia of vehicle about Z-Axis (Trägheitsmoment Fahrzeug um Z-Achse)  
+    thetaV_X = setup.thetaV_X;                          % [kg*mï¿½] Moment of Inertia of vehicle  about X-Axis (Trï¿½gheitsmoment Fahrzeug um X-Achse)
+    thetaV_Y = setup.thetaV_Y;                          % [kg*mï¿½] Moment of Inertia of vehicle about Y-Axis (Trï¿½gheitsmoment Fahrzeug um Y-Achse)
+    thetaV_Z = setup.thetaV_Z;                          % [kg*mï¿½] Moment of Inertia of vehicle about Z-Axis (Trï¿½gheitsmoment Fahrzeug um Z-Achse)  
 
     m_ph = setup.m_ph;                                  % [%] Percentage of rear axle wheel load (Prozentualer Radlastanteil Hinterachse)
     lf = wheelbase*m_ph/100;                            % [mm] Distance from front axle to CoG (Abstand Vorderachse zu Fahrzeugschwerpunkt)
@@ -70,7 +76,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
     k_R = setup.k_R;                                    % [-] Co-efficient of rolling resistance (Rollwiderstandsbeiwert)
     c_w = setup.c_w;                                    % [-] cw value (cw-Wert)
     c_l = setup.c_l;                                    % [-] cl value 
-    A_S = setup.A;                                      % [m²] Front Surface Area (Stirnfläche)
+    A_S = setup.A;                                      % [mï¿½] Front Surface Area (Stirnflï¿½che)
     downforce_multiplier = setup.downforce_multiplier;  % [-] multiplier for car downforce
     c_d_DRS = setup.c_d_DRS;                            % [-] Drag coefficient with DRS
                                 
@@ -111,10 +117,10 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
     end      
     
     %% Environmental Conditions (Umgebungsbedingungen)
-    t_L = setup.t_L;                        % [°C] Ambient air temperature (Umgebungslufttemperatur)
+    t_L = setup.t_L;                        % [ï¿½C] Ambient air temperature (Umgebungslufttemperatur)
     p_L = setup.p_L/100000;                 % [bar] Ambient air pressure (Umgebungsluftdruck)
     R_L = setup.R_L;                        % [J/(kg*K)] Air gas constant (Gaskonstante Luft)
-    rho_L = p_L*10^5/(R_L*(t_L+273.15));    % [kg/m³] Air density (Luftdichte)
+    rho_L = p_L*10^5/(R_L*(t_L+273.15));    % [kg/mï¿½] Air density (Luftdichte)
 
     %% Motor Data (Motordaten)
     
@@ -175,35 +181,37 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
 
     %% Tire Model - Magic Tire Formula Model 5.2 (Reifenmodell - Magic Tire Formula Model 5.2)
     
-    load('VerticalStiffness_65kPA_IA0.mat');    % Vertical tire stiffness Lookup-Table (Lookup-Table für vertikale Reifensteifigkeit)
+    load('VerticalStiffness_65kPA_IA0.mat');    % Vertical tire stiffness Lookup-Table (Lookup-Table fï¿½r vertikale Reifensteifigkeit)
 
     % Load tir-file in structure (Tir-File in Struktur laden)
     TIRparam = loadTIR('C19_CONTINENTAL_FORMULASTUDENT_205_470_R13_65kPa.tir');
 
     % Tire Data (Reifendaten)
-    J_Tire = setup.J_Tire;              % [kg*m²] Moment of inertia of tire about axis of rotaion (Trägheitsmoment des Reifens um Drehachse)
+    J_Tire = setup.J_Tire;              % [kg*mï¿½] Moment of inertia of tire about axis of rotaion (Trï¿½gheitsmoment des Reifens um Drehachse)
     R0 = TIRparam.UNLOADED_RADIUS;      % [m] Tire radius - Manufacturing (Fertigungsradius des Reifens)
     bW = TIRparam.WIDTH;                % [m] Tire width (contact area) (Breite des Reifens (Aufstandsbreite))
     p_infl = setup.p_Tire;              % [Pa] Tire pressure (Luftdruck des Reifens)
-    GAMMA = setup.camber;               % [°] Camber (Sturz)
+    GAMMA = setup.camber;               % [ï¿½] Camber (Sturz)
 
-    % Scaling factors for grip level (Skalierungsfaktoren für Grip-Niveau)
-    % 0.75 for optimum tire temperature; 0.6 for low tire temperature (0.75 für optimale Reifentemperatur, 0.6 für niedrige Reifentemperatur)
-    TIRparam.LMUX = setup.LMUX;          % [-] Longitudinal scaling factor (Skalierungsfaktor Längsrichtung)
+    % Scaling factors for grip level (Skalierungsfaktoren fï¿½r Grip-Niveau)
+    % 0.75 for optimum tire temperature; 0.6 for low tire temperature (0.75 fï¿½r optimale Reifentemperatur, 0.6 fï¿½r niedrige Reifentemperatur)
+    TIRparam.LMUX = setup.LMUX;          % [-] Longitudinal scaling factor (Skalierungsfaktor Lï¿½ngsrichtung)
     TIRparam.LMUY = setup.LMUY;          % [-] Lateral scaling factor (Skalierungsfaktor Querrichtung)
 
-    % Additional factors for longitudinal/lateral slip interaction (Zusätzliche Faktoren für Wechselwirkung Längs/Querschlupf)
-    TIRparam.LXAL = 1.2;    % [-] Influence of slip angle on transmissible longitudinal force (Einfluss Schräglaufwinkel auf übertragbare Längskraft)
-    TIRparam.LYKA = 1.2;    % [-] Influence of longitudinal slip on transmissible lateral force (Einfluss Längsschlupf auf übertragbare Querkraft)
-    TIRparam.RBX3 = 0;      % [-] Additional factor Fx for combined slip (Zusätzlicher Faktor für combined slip Fx)
+    % Additional factors for longitudinal/lateral slip interaction (Zusï¿½tzliche Faktoren fï¿½r Wechselwirkung Lï¿½ngs/Querschlupf)
+    TIRparam.LXAL = 1.2;    % [-] Influence of slip angle on transmissible longitudinal force (Einfluss Schrï¿½glaufwinkel auf ï¿½bertragbare Lï¿½ngskraft)
+    TIRparam.LYKA = 1.2;    % [-] Influence of longitudinal slip on transmissible lateral force (Einfluss Lï¿½ngsschlupf auf ï¿½bertragbare Querkraft)
+    TIRparam.RBX3 = 0;      % [-] Additional factor Fx for combined slip (Zusï¿½tzlicher Faktor fï¿½r combined slip Fx)
 
     %% Set progress
     % sets button progress (progressbar)
-    currentProg = min(round((size(wbar,2)-2)*(0/numSteps)),size(wbar,2)-2); 
-    processDataButtonHandle.Icon(2:end-1, 2:currentProg+1, 1) = 0.25391; % (royalblue)
-    processDataButtonHandle.Icon(2:end-1, 2:currentProg+1, 2) = 0.41016;
-    processDataButtonHandle.Icon(2:end-1, 2:currentProg+1, 3) = 0.87891;
-    drawnow; % updates button progress
+    if textAreaHandle ~= 0
+        currentProg = min(round((size(wbar,2)-2)*(0/numSteps)),size(wbar,2)-2); 
+        processDataButtonHandle.Icon(2:end-1, 2:currentProg+1, 1) = 0.25391; % (royalblue)
+        processDataButtonHandle.Icon(2:end-1, 2:currentProg+1, 2) = 0.41016;
+        processDataButtonHandle.Icon(2:end-1, 2:currentProg+1, 3) = 0.87891;
+        drawnow; % updates button progress
+    end
     
     %% Sensitivity Analysis
     steps = 0;
@@ -260,7 +268,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 max_power = minValue + stepSize*(steps1-1);
             case 19
                 t_L = minValue + stepSize*(steps1-1);
-                rho_L = p_L*10^5/(R_L*(t_L+273.15));    % [kg/m³] Air density (Luftdichte)
+                rho_L = p_L*10^5/(R_L*(t_L+273.15));    % [kg/mï¿½] Air density (Luftdichte)
             case 20
                 thetaV_X = minValue + stepSize*(steps1-1);
             case 21
@@ -285,12 +293,12 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 x_vA = minValue + stepSize*(steps1-1);
             case 31
                 z_chaindrive = minValue + stepSize*(steps1-1);
-                z_pinion = setup.z_sprocket;        % [-] Number of teeth on pinion (Zähnezahl des Ritzels)
-                i_G = z_chaindrive / z_pinion * i_P;     % [-] Gear ratio (Motor to wheel) (Übersetzung Motor zu Rad)
+                z_pinion = setup.z_sprocket;        % [-] Number of teeth on pinion (Zï¿½hnezahl des Ritzels)
+                i_G = z_chaindrive / z_pinion * i_P;     % [-] Gear ratio (Motor to wheel) (ï¿½bersetzung Motor zu Rad)
             case 32
                 z_pinion = minValue + stepSize*(steps1-1);
-                z_chaindrive = setup.z_chaindrive; % [-] Number of teeth on sprocket (Zähnezahl des Kettenblatts)
-                i_G = z_chaindrive / z_pinion * i_P;     % [-] Gear ratio (Motor to wheel) (Übersetzung Motor zu Rad)
+                z_chaindrive = setup.z_chaindrive; % [-] Number of teeth on sprocket (Zï¿½hnezahl des Kettenblatts)
+                i_G = z_chaindrive / z_pinion * i_P;     % [-] Gear ratio (Motor to wheel) (ï¿½bersetzung Motor zu Rad)
             case 33       
                 i_G = minValue + stepSize*(steps1-1);
             case 34
@@ -345,7 +353,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                         max_power = minValue2 + stepSize2*(steps2-1);
                     case 19
                         t_L = minValue2 + stepSize2*(steps2-1);
-                        rho_L = p_L*10^5/(R_L*(t_L+273.15));    % [kg/m³] Air density (Luftdichte)
+                        rho_L = p_L*10^5/(R_L*(t_L+273.15));    % [kg/mï¿½] Air density (Luftdichte)
                     case 20
                         thetaV_X = minValue2 + stepSize2*(steps2-1);
                     case 21
@@ -370,12 +378,12 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                         x_vA = minValue2 + stepSize*(steps2-1);
                     case 31
                         z_chaindrive = minValue2 + stepSize2*(steps2-1);
-                        z_pinion = setup.z_sprocket;        % [-] Number of teeth on pinion (Zähnezahl des Ritzels)
-                        i_G = z_chaindrive / z_pinion;     % [-] Gear ratio (Motor to wheel) (Übersetzung Motor zu Rad)
+                        z_pinion = setup.z_sprocket;        % [-] Number of teeth on pinion (Zï¿½hnezahl des Ritzels)
+                        i_G = z_chaindrive / z_pinion;     % [-] Gear ratio (Motor to wheel) (ï¿½bersetzung Motor zu Rad)
                     case 32
                         z_pinion = minValue2 + stepSize2*(steps2-1);
-                        z_chaindrive = setup.z_chaindrive; % [-] Number of teeth on sprocket (Zähnezahl des Kettenblatts)
-                        i_G = z_chaindrive / z_pinion;     % [-] Gear ratio (Motor to wheel) (Übersetzung Motor zu Rad)
+                        z_chaindrive = setup.z_chaindrive; % [-] Number of teeth on sprocket (Zï¿½hnezahl des Kettenblatts)
+                        i_G = z_chaindrive / z_pinion;     % [-] Gear ratio (Motor to wheel) (ï¿½bersetzung Motor zu Rad)
                     case 33       
                         i_G = minValue2 + stepSize2*(steps2-1);
                     case 34
@@ -387,7 +395,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             
             % Initalize simulation start values
             [aRev,aVX,aVY,BPPsignal,cZ_fl,cZ_fr,cZ_rl,cZ_rr,dFWZrl_aero,dFWZrr_aero,dFWZfl_aero,dFWZfr_aero,dFWZrl_x,dFWZrr_x,dFWZfl_x,dFWZfr_x...
-            ,dFWZrl_y,dFWZrr_y,dFWZfl_y,dFWZfr_y,E_Accu,E_Accu_Recu,E_heat,Faero,FB,FVX,FVX_f,FVX_fr,FVX_fl,FVX_rl,FVX_rr,FVXre,FVXid,FR,FL,Fdr,FVY,...
+            ,dFWZrl_y,dFWZrr_y,dFWZfl_y,dFWZfr_y,E_Accu,E_Accu_Recu,E_heat,Faero,FB,FVX,FVX_f,FVX_fr,FVX_fl,FVX_rl,FVX_rr,FR,FL,Fdr,FVY,...
             FWXmax_f,FWXmax_r,FWXmax_fl,FWXmax_fr,FWXmax_rl,FWXmax_rr,FWYf,FWYr,FWYmax_f,FWYmax_r,FWYmax_fl,FWYmax_fr,FWYmax_rl,FWYmax_rr,FWZtot,FWZ_rl,...
             FWZ_rr,FWZ_fl,FWZ_fr,FWZr,FWZf,Mi,M_tractive,ni,P_M,P_el,P_tractive,Rdyn_fl,Rdyn_fr,Rdyn_rl,Rdyn_rr,slipY_f,slipY_r,t,l_contact_patch_fl,...
             l_contact_patch_fr,l_contact_patch_rl,l_contact_patch_rr,kappa_rl,kappa_rr,kappa_fl,kappa_fr,delta,beta,psi1,alpha_f,alpha_r,TC,TC_front,ABS,...
@@ -411,7 +419,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
 
             FWXmax_r(1) = Inf;
 
-            % Static tire loads for calculation (Statische Reifenlasten für Berechnung)
+            % Static tire loads for calculation (Statische Reifenlasten fï¿½r Berechnung)
             FWZ_fl_stat = FWZ_fl(1); 
             FWZ_fr_stat = FWZ_fr(1);
             FWZ_rl_stat = FWZ_rl(1);
@@ -419,20 +427,14 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             
             % Calculate Skidpad Time and Speed
             [t_skidpad, vV_skidpad] = calculateSkidPad(downforce_multiplier, c_l, A_S, rho_L, ConstantDownforce, c_l_DRS, DRS_status, m_tot, lr, lf, wheelbase, track, aero_ph, aero_pv, h_COG, GAMMA, TIRparam, FWZ_fl_stat, FWZ_fr_stat, FWZ_rl_stat, FWZ_rr_stat);
-
             
-            % DEBUG
-            if c_w == 1 && c_l == 1.6
-                AFWawf = 3;
-            end
-            
-            %% Calculation of the maximum apex speed for all apexes (numerically) (Berechnen der maximalen Kurvengeschwindigkeiten für alle Apexes (numerisch))
+            %% Calculation of the maximum apex speed for all apexes (numerically) (Berechnen der maximalen Kurvengeschwindigkeiten fï¿½r alle Apexes (numerisch))
             for i = 1:length(ApexIndexes)
 
                 FWYf(i) = 0;            % [N] Start/Initial value of front axle lateral force (Startwert Querkraft Vorderachse)
                 FWYr(i) = 0;            % [N] Start/Initial value of rear axle lateral force (Startwert Querkraft Hinterachse)
-                FWYmax_f(i) = 0.1;      % [N] Start/Initial value of maximum transmissible front axle lateral force (Startwert maximal übertragbare Querkraft Vorderachse)
-                FWYmax_r(i) = 0.1;      % [N] Start/Initial value of maximum transmissible rear axle lateral force (Startwert maximal übertragbare Querkraft Hinterachse)
+                FWYmax_f(i) = 0.1;      % [N] Start/Initial value of maximum transmissible front axle lateral force (Startwert maximal ï¿½bertragbare Querkraft Vorderachse)
+                FWYmax_r(i) = 0.1;      % [N] Start/Initial value of maximum transmissible rear axle lateral force (Startwert maximal ï¿½bertragbare Querkraft Hinterachse)
                 vV(i) = 0;              % [m/s] Start/Initial value of vehicle speed (Startwert Fahrzeuggeschwindigkeit)
                 
                 if R(ApexIndexes(i)) > 0
@@ -443,29 +445,29 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
 
                 while  FWYf(i) < FWYmax_f(i) && FWYr(i) < FWYmax_r(i) && vV(i) < 40
 
-                    vV(i) = vV(i) + 0.01;   % [m/s] Increaing vehicle speed (Erhöhen der Fahrzeuggeschwindigkeit)
+                    vV(i) = vV(i) + 0.01;   % [m/s] Increaing vehicle speed (Erhï¿½hen der Fahrzeuggeschwindigkeit)
               
                     Faero(i) = calculateAeroforce(downforce_multiplier, c_l, A_S, rho_L, vV(i), ConstantDownforce, c_l_DRS, DRS_status(ApexIndexes(i))); % [N] Aerodynamic force
 
                     FVY(i) = m_tot*vV(i)^2/R(ApexIndexes(i));    % [N] Centrifugal force (Zentrifugalkraft)
 
-                    %aVY(i) = vV(i)^2/R(ApexIndexes(i));  % [m/s²] Lateral acceleration (Querbeschleunigung)
+                    %aVY(i) = vV(i)^2/R(ApexIndexes(i));  % [m/sï¿½] Lateral acceleration (Querbeschleunigung)
 
-                    % Lateral forces to be applied on front and rear axle (Aufzubringende Querkräfte an Vorder- und Hinterachse)
+                    % Lateral forces to be applied on front and rear axle (Aufzubringende Querkrï¿½fte an Vorder- und Hinterachse)
                     FWYf(i) = lr/wheelbase*abs(FVY(i));   % [N] Lateral force to be applied to the front axle (Aufzubringende Querkraft der Vorderachse)
                     FWYr(i) = lf/wheelbase*abs(FVY(i));   % [N] Lateral force to be applied to the rear axle (Aufzubringende Querkraft der Hinterachse)
                     
-                    % Lenkwinkel, Schwimmwinkel, Gierrate, Schräglaufwinkel  
+                    % Lenkwinkel, Schwimmwinkel, Gierrate, Schrï¿½glaufwinkel  
                     delta(i) = f*atan((wheelbase/1000)/sqrt(R(ApexIndexes(i))^2-(lr/1000)^2));   % [rad] Lenkwinkel
                     beta(i) = f*atan((lr/1000)/sqrt(R(ApexIndexes(i))^2-(lr/1000)^2));  % [rad] Schwimmwinkel
                     psi1(i) = vV(i)/R(ApexIndexes(i));                               % [rad/s] Gierrate
-                    alpha_f(i) = 180/pi*(delta(i)-(lf/1000)/vV(i)*psi1(i)-beta(i));  % [°] Schräglaufwinkel vorne
-                    alpha_r(i) = 180/pi*((lr/1000)/vV(i)*psi1(i)-beta(i));           % [°] Schräglaufwinkel hinten
+                    alpha_f(i) = 180/pi*(delta(i)-(lf/1000)/vV(i)*psi1(i)-beta(i));  % [ï¿½] Schrï¿½glaufwinkel vorne
+                    alpha_r(i) = 180/pi*((lr/1000)/vV(i)*psi1(i)-beta(i));           % [ï¿½] Schrï¿½glaufwinkel hinten
 
-                    % Wheel load transfer due to aero forces (Radlastverlagerung in Folge von Aerokräften) 
+                    % Wheel load transfer due to aero forces (Radlastverlagerung in Folge von Aerokrï¿½ften) 
                     [dFWZrl_aero(i), dFWZrr_aero(i), dFWZfl_aero(i), dFWZfr_aero(i)] = calculateAeroforceOnWheels(Faero(i), aero_ph, aero_pv);
 
-                    % Dynamic wheel load displacement in longitudinal direction (Dynamische Radlastverlagerung in Längsrichtung = 0 angenommen)
+                    % Dynamic wheel load displacement in longitudinal direction (Dynamische Radlastverlagerung in Lï¿½ngsrichtung = 0 angenommen)
                     [dFWZfl_x(i), dFWZfr_x(i), dFWZrl_x(i), dFWZrr_x(i)] = calculateWheelloadLongDisp(h_COG, 0, aVX(i), wheelbase); % Loads = 0 assumed
 
                     % Dynamic wheel load displacement in lateral direction (Dynamische Radlastverlagerung in Querrichtung)
@@ -479,24 +481,24 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
 
                     % Maximum transmissible tire forces in longitudinal direction = 0 assumed (because longitudinal wheel loads = 0 assumed) 
 
-                    % Maximum transmissible tire forces in lateral direction (Maximal übertragbare Reifenkräfte in Querrichtung)    
+                    % Maximum transmissible tire forces in lateral direction (Maximal ï¿½bertragbare Reifenkrï¿½fte in Querrichtung)    
                     [FWYmax_f(i), FWYmax_r(i)] = calculateLatTireforces(FWZ_fl(i), FWZ_fr(i),FWZ_rl(i), FWZ_rr(i), GAMMA, TIRparam, alpha_f(i), alpha_r(i));
 
                 end
 
-                vAPEXmax(i) = vV(i);   % [m/s] Maximum speed for any apex (Maximalgeschwindigkeit für jede Apex)
+                vAPEXmax(i) = vV(i);   % [m/s] Maximum speed for any apex (Maximalgeschwindigkeit fï¿½r jede Apex)
             end
 
             writeToLogfile('caclculated Apex Speeds!', Debug, textAreaHandle);
             
-            %% Start/Initial values for first simulation run WITHOUT BRAKES (Startwerte für ersten Simulationslauf OHNE BREMSEN)
+            %% Start/Initial values for first simulation run WITHOUT BRAKES (Startwerte fï¿½r ersten Simulationslauf OHNE BREMSEN)
             vV(1) = StartingSpeed + 0.005;
             
             gear = 1;
 
             t(1) = 0;      % [s] Time (Zeit)
 
-            % Supporting variables (Hilfsgrößen)
+            % Supporting variables (Hilfsgrï¿½ï¿½en)
             z = 1;         % [-] Determination of the upcoming apex (Bestimmung der anstehenden Apex)
 
             %% Simulation WITHOUT BRAKES (Simulation OHNE BREMSEN)
@@ -514,19 +516,19 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                     [ni(i), gear, t_x] = calculateGearbox(gearbox, idleRPM, n_shift, n_downshift, vV(i), gr, gear, Rdyn_rl(i), Rdyn_rr(i), i_G, n_Mmax, t_x);      % Calculates Gearbox data and rpm
                 end 
                     
-                % Determination of aero forces and motor torque (Bestimmen von Aero-Kräften und Motormoment)      
+                % Calculation of aero forces    
                 Faero(i) = calculateAeroforce(downforce_multiplier, c_l, A_S, rho_L, vV(i), ConstantDownforce, c_l_DRS, DRS_status(i)); % [N] Aerodynamic force
 
                 % [Nm] Interpolated motor torque (Motormoment interpoliert)
                 Mi(i) = interp1(n,M,ni(i),'linear','extrap'); 
 
-                % Pointer for efficiency table (Pointer für effizienztabelle)
+                % Pointer for efficiency table (Pointer fï¿½r effizienztabelle)
                 rpmpointer = round(ni(i));                          
 
                 if Mi(i) <= 0
                     torquepointer = 1;
                 else
-                    torquepointer = round(Mi(i));               % Pointer for efficiency table (Pointer für effizienztabelle)
+                    torquepointer = round(Mi(i));               % Pointer for efficiency table (Pointer fï¿½r effizienztabelle)
                 end
 
                 % Motor power & limitation to 80 kW from FS-Rules (for electric cars) (Motorleistung & Begrenzung auf 80 kW aus FS-Rules)
@@ -559,7 +561,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 % Calculate the tractive forces on the wheels
                 [FVX_fl(i), FVX_fr(i), FVX_rl(i), FVX_rr(i), FVX(i), FVX_f(i), TC_front(i), TC(i)] = calculateTractiveForces(Mi(i), num_motors, i_G, gr, Rdyn_fl(i), Rdyn_fr(i), Rdyn_rl(i), Rdyn_rr(i), t_x, gear, FWXmax_f(i), FWXmax_r(i), t_shift);
 
-                % Driving resistances (Fahrwiderstände) & Vehicle (Fahrzeug)        
+                % Driving resistances (Fahrwiderstï¿½nde) & Vehicle (Fahrzeug)        
                 [FR(i), FL(i), Fdr(i), FVY(i), aVX(i), aVY(i)] = calculateVehicleResistancesForces(k_R, FWZtot(i), rho_L, vV(i), c_w, A_S, m_tot, R(i), FVX(i), FVX_f(i), c_d_DRS, DRS_status(i), rpmpointer, n_Mmax, 0, 0, 0, 0);
 
                 if ismember(i,ApexIndexes)
@@ -572,20 +574,20 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 vV(i+1) = sqrt(vV(i)^2+2*aVX(i)*(s(i+1)-s(i))); % [m/s] Total vehicle speed (Gesamt-Fahrzeuggeschwindigkeit)
                 t(i+1) = t(i)+(s(i+1)-s(i))/vV(i+1);            % [s] Time (Zeit)
 
-                % Lateral forces to be applied on front and rear axles (Aufzubringende Querkräfte an Vorder- und Hinterachse)
+                % Lateral forces to be applied on front and rear axles (Aufzubringende Querkrï¿½fte an Vorder- und Hinterachse)
                 FWYf(i) = lr/wheelbase*FVY(i);   % [N] Lateral force to be applied on front axle (Aufzubringende Querkraft der Vorderachse)
                 FWYr(i) = lf/wheelbase*FVY(i);   % [N] Lateral force to be applied on rear axle (Aufzubringende Querkraft der Hinterachse)
                 
                 delta(i) = f*atan((wheelbase/1000)/sqrt(R(i)^2-(lr/1000)^2));       % [rad] Lenkwinkel
                 beta(i) = f*atan((lr/1000)/sqrt(R(i)^2-(lr/1000)^2));               % [rad] Schwimmwinkel
                 psi1(i) = vV(i)/R(i);                                               % [rad/s] Gierrate
-                alpha_f(i) = 180/pi*(delta(i)-(lf/1000)/vV(i)*psi1(i)-beta(i));     % [°] Schräglaufwinkel vorne
-                alpha_r(i) = 180/pi*((lr/1000)/vV(i)*psi1(i)-beta(i));              % [°] Schräglaufwinkel hinten
+                alpha_f(i) = 180/pi*(delta(i)-(lf/1000)/vV(i)*psi1(i)-beta(i));     % [ï¿½] Schrï¿½glaufwinkel vorne
+                alpha_r(i) = 180/pi*((lr/1000)/vV(i)*psi1(i)-beta(i));              % [ï¿½] Schrï¿½glaufwinkel hinten
 
-                % Wheel load transfer due to aerodynamic forces (Radlastverlagerung in Folge von Aerokräften)  
+                % Wheel load transfer due to aerodynamic forces (Radlastverlagerung in Folge von Aerokrï¿½ften)  
                 [dFWZrl_aero(i), dFWZrr_aero(i), dFWZfl_aero(i), dFWZfr_aero(i)] = calculateAeroforceOnWheels(Faero(i), aero_ph, aero_pv);
 
-                % Dynamic wheel load displacement in longitudinal direction (Dynamische Radlastverlagerungen in Längsrichtung)
+                % Dynamic wheel load displacement in longitudinal direction (Dynamische Radlastverlagerungen in Lï¿½ngsrichtung)
                 [dFWZfl_x(i), dFWZfr_x(i), dFWZrl_x(i), dFWZrr_x(i)] = calculateWheelloadLongDisp(h_COG, m_tot, aVX(i), wheelbase);
 
                 % Dynamic wheel load displacement in lateral direction (Dynamische Radlastverlagerung in Querrichtung)
@@ -620,15 +622,17 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 % Dynamic tire radii (Dynamische Reifenradien)
                 [Rdyn_fl(i+1), Rdyn_fr(i+1), Rdyn_rl(i+1), Rdyn_rr(i+1)] = calculateDynRadii(R0, FWZ_fl(i+1), FWZ_fr(i+1), FWZ_rl(i+1), FWZ_rr(i+1), cZ_fl(i+1), cZ_fr(i+1), cZ_rr(i+1), cZ_rl(i+1));
 
-                % Maximum transmissible tire forces in longitudinal direction (Maximal übertragbare Reifenkräfte in Längsrichtung)
+                % Maximum transmissible tire forces in longitudinal direction (Maximal ï¿½bertragbare Reifenkrï¿½fte in Lï¿½ngsrichtung)
                 [FWXmax_fl(i+1), FWXmax_fr(i+1), FWXmax_rl(i+1), FWXmax_rr(i+1), FWXmax_f(i+1), FWXmax_r(i+1)] = calculateLongiTireforces(FWZ_fl(i+1), FWZ_fr(i+1),FWZ_rl(i+1), FWZ_rr(i+1), GAMMA, TIRparam, alpha_f(i), alpha_r(i));
 
-                % Maximum transmissible tire forces in lateral direction (Maximal übertragbare Reifenkräfte in Querrichtung)
+                % Maximum transmissible tire forces in lateral direction (Maximal ï¿½bertragbare Reifenkrï¿½fte in Querrichtung)
                 [FWYmax_fl(i+1), FWYmax_fr(i+1), FWYmax_rl(i+1), FWYmax_rr(i+1), FWYmax_f(i+1), FWYmax_r(i+1)] = calculateLatTireforces(FWZ_fl(i+1), FWZ_fr(i+1),FWZ_rl(i+1), FWZ_rr(i+1), GAMMA, TIRparam, alpha_f(i), alpha_r(i));
 
             end
             
             vWoBrake = vV;                                      % Save velocity without braking for log file.
+            avXWoBrake = aVX;                                   % Save longitudinal acceleration for log file.
+            avYWoBrake = aVY;                                   % Save lateral acceleration for log file.
 
             writeToLogfile('Simulated without brakes!', Debug, textAreaHandle);
 
@@ -648,13 +652,13 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             E_heat(1) = 0; 
             E_Accu_Recu(i) = 0;  % [J] Energy recuperated by battery (Rekuperierte Energie Akku)
 
-            % Supporting variables (Hilfsgrößen)
+            % Supporting variables (Hilfsgrï¿½ï¿½en)
             z = 1;          % [-] Determination of the upcoming apex (Bestimmung der anstehenden Apex)
 
             %% SIMULATION WITH BRAKES (SIMULATION MIT BREMSEN)
             for i = 1:length(Track)-1
 
-                % Checking at which apex the vehicle is (Überprüfen, vor welcher Apex das Auto ist)
+                % Checking at which apex the vehicle is (ï¿½berprï¿½fen, vor welcher Apex das Auto ist)
                 if ismember(i,ApexIndexes)  
                     z = z + 1;
                 end
@@ -677,12 +681,12 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 [Faero(i)] = calculateAeroforce(downforce_multiplier, c_l, A_S, rho_L, vV(i), ConstantDownforce, c_l_DRS, DRS_status(i)); % [N] Aerodynamic force
                 
                %% Braking
-                % Checking if braking is required (Prüfen, ob gebremst werden muss)
+                % Checking if braking is required (Prï¿½fen, ob gebremst werden muss)
                 if ismember(i,BrakeIndexes) && not(ismember(z,NonBrakeApexes))                      % Initiaion of braking process (Einleiten des Bremsvorgangs)     
                     % Braking 
                     Mi(i) = 0;                                    % [Nm] Motor torque (Motormoment)
                     BPPsignal(i) = 1;                             % [-] Brake signal (Bremssignal)
-                    P_Bh(i) = FWZr(i)/FWZtot(i)*FB(i)*vV(i);      % [W] Rear braking power for recuperation (Bremsleistung hinten für Rekuperation)
+                    P_Bh(i) = FWZr(i)/FWZtot(i)*FB(i)*vV(i);      % [W] Rear braking power for recuperation (Bremsleistung hinten fï¿½r Rekuperation)
 
                     P_M(i) = 0;
                     Mi(i) = 0;
@@ -715,12 +719,12 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                     FB_rr(i) = 0;    
 
                     % Motor power & limitation to 80 kW from FS-Rules (Motorleistung & Begrenzung auf 80 kW aus FS-Rules)
-                    rpmpointer = round(ni(i));                   % Pointer for efficiency table (Pointer für effizienztabelle)
+                    rpmpointer = round(ni(i));                   % Pointer for efficiency table (Pointer fï¿½r effizienztabelle)
 
                     if Mi(i) <= 0
                         torquepointer = 1;
                     else
-                        torquepointer = round(Mi(i));               % Pointer for efficiency table (Pointer für effizienztabelle)
+                        torquepointer = round(Mi(i));               % Pointer for efficiency table (Pointer fï¿½r effizienztabelle)
                     end 
 
                     P_M(i) = num_motors * Mi(i) * ni(i) / 60 * 2 * pi; % [W] Total motor power (P_el!)
@@ -765,7 +769,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                     P_el(i) = (P_tractive(i)/(drivetrain_eff * motor_eff(i) * eta_inv));     % [kW] Motor power including efficiencies
                 end
 
-                % Driving resistances (Fahrwiderstände) & Vehicle (Fahrzeug)
+                % Driving resistances (Fahrwiderstï¿½nde) & Vehicle (Fahrzeug)
                 [FR(i), FL(i), Fdr(i), FVY(i), aVX(i), aVY(i)] = calculateVehicleResistancesForces(k_R, FWZtot(i), rho_L, vV(i), c_w, A_S, m_tot, R(i), FVX(i), FVX_f(i), c_d_DRS, DRS_status(i), rpmpointer, n_Mmax, FB_fl(i), FB_fr(i), FB_rl(i), FB_rr(i));
 
                 % [m/s] Total vehicle speed (Gesamt-Fahrzeuggeschwindigkeit)
@@ -787,18 +791,18 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                     E_Accu_Recu(i+1) = E_Accu_Recu(i) + (t(i+1)-t(i)) * P_Bh(i); % [J]
                 end
                 
-                % Latschlängen für Längsschlupfberechnung nach Carter
-                FU_fl(i) = FVX(i)/2-k_R*FWZ_fl(i+1)-FB_fl(i);   % [N] Umfangskräfte an einem Hinterrad
-                FU_fr(i) = FVX(i)/2-k_R*FWZ_fr(i+1)-FB_fr(i);   % [N] Umfangskräfte an einem Hinterrad
-                FU_rl(i) = FVX(i)/2-k_R*FWZ_rl(i+1)-FB_rl(i);   % [N] Umfangskräfte an einem Hinterrad
-                FU_rr(i) = FVX(i)/2-k_R*FWZ_rr(i+1)-FB_rr(i);   % [N] Umfangskräfte an einem Hinterrad
+                % Latschlï¿½ngen fï¿½r Lï¿½ngsschlupfberechnung nach Carter
+                FU_fl(i) = FVX(i)/2-k_R*FWZ_fl(i+1)-FB_fl(i);   % [N] Umfangskrï¿½fte an einem Hinterrad
+                FU_fr(i) = FVX(i)/2-k_R*FWZ_fr(i+1)-FB_fr(i);   % [N] Umfangskrï¿½fte an einem Hinterrad
+                FU_rl(i) = FVX(i)/2-k_R*FWZ_rl(i+1)-FB_rl(i);   % [N] Umfangskrï¿½fte an einem Hinterrad
+                FU_rr(i) = FVX(i)/2-k_R*FWZ_rr(i+1)-FB_rr(i);   % [N] Umfangskrï¿½fte an einem Hinterrad
                 
-                l_contact_patch_fl(i) = FWZ_fl(i)/(p_infl*bW);   % [m] Latschlänge vorne links
-                l_contact_patch_fr(i) = FWZ_fr(i)/(p_infl*bW);   % [m] Latschlänge vorne rechts
-                l_contact_patch_rl(i) = FWZ_rl(i)/(p_infl*bW);   % [m] Latschlänge hinten links
-                l_contact_patch_rr(i) = FWZ_rr(i)/(p_infl*bW);   % [m] Latschlänge hinten rechts
+                l_contact_patch_fl(i) = FWZ_fl(i)/(p_infl*bW);   % [m] Latschlï¿½nge vorne links
+                l_contact_patch_fr(i) = FWZ_fr(i)/(p_infl*bW);   % [m] Latschlï¿½nge vorne rechts
+                l_contact_patch_rl(i) = FWZ_rl(i)/(p_infl*bW);   % [m] Latschlï¿½nge hinten links
+                l_contact_patch_rr(i) = FWZ_rr(i)/(p_infl*bW);   % [m] Latschlï¿½nge hinten rechts
 
-                % Längsschlupf nach Carter
+                % Lï¿½ngsschlupf nach Carter
                 my0 = 2;    % [-] Haftreibungsbeiwert   
                 kappa_fl(i) = l_contact_patch_fl(i)/(2*Rdyn_fl(i))*my0*(wheelbase-sqrt(1-FU_fl(i)/(my0*FWZ_fl(i))));
                 kappa_fr(i) = l_contact_patch_fr(i)/(2*Rdyn_fr(i))*my0*(wheelbase-sqrt(1-FU_fr(i)/(my0*FWZ_fr(i))));
@@ -808,16 +812,16 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 delta(i) = f*atan((wheelbase/1000)/sqrt(R(i)^2-(lr/1000)^2));       % [rad] Lenkwinkel
                 beta(i) = f*atan((lr/1000)/sqrt(R(i)^2-(lr/1000)^2));               % [rad] Schwimmwinkel
                 psi1(i) = vV(i)/R(i);                                               % [rad/s] Gierrate
-                alpha_f(i) = 180/pi*(delta(i)-(lf/1000)/vV(i)*psi1(i)-beta(i));     % [°] Schräglaufwinkel vorne
-                alpha_r(i) = 180/pi*((lr/1000)/vV(i)*psi1(i)-beta(i));              % [°] Schräglaufwinkel hinten
+                alpha_f(i) = 180/pi*(delta(i)-(lf/1000)/vV(i)*psi1(i)-beta(i));     % [ï¿½] Schrï¿½glaufwinkel vorne
+                alpha_r(i) = 180/pi*((lr/1000)/vV(i)*psi1(i)-beta(i));              % [ï¿½] Schrï¿½glaufwinkel hinten
 
 
                 E_Accu(i+1) = E_Accu(i) + (t(i+1)-t(i)) * P_el(i); % [J] 
                 E_heat(i+1) = E_heat(i) + (P_el(i)-P_tractive(i)) * (t(i+1)-t(i));
-                %E_Waerme(i+1) = P_el(i)*(1-M_eff_inter(i))+(E_Akku(i) + (t(i+1)-t(i)))*(1-eta_inv);    % [J] Motor losses + 5% for inverter losses; Drivetrain losses with heat (Motorverluste + 5% flat für inverterverlsute % Drivetrain Verluste auch Wärme)
+                %E_Waerme(i+1) = P_el(i)*(1-M_eff_inter(i))+(E_Akku(i) + (t(i+1)-t(i)))*(1-eta_inv);    % [J] Motor losses + 5% for inverter losses; Drivetrain losses with heat (Motorverluste + 5% flat fï¿½r inverterverlsute % Drivetrain Verluste auch Wï¿½rme)
 
 
-                % Lateral forces on front and rear axle (Querkräfte an Vorder- und Hinterachse)
+                % Lateral forces on front and rear axle (Querkrï¿½fte an Vorder- und Hinterachse)
                 FWYf(i) = lr/wheelbase*FVY(i);   % [N] Lateral force to be applied to the front axle (Aufzubringende Querkraft der Vorderachse)
                 FWYr(i) = lf/wheelbase*FVY(i);   % [N] Lateral force to be applied to the rear axle (Aufzubringende Querkraft der Hinterachse)
 
@@ -829,10 +833,10 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                    slipY_r(i) = 1;  
                 end
 
-                 % Wheel load transfer due to aerodynamic forces (Radlastverlagerung in Folge von Aerokräften)        
+                 % Wheel load transfer due to aerodynamic forces (Radlastverlagerung in Folge von Aerokrï¿½ften)        
                  [dFWZrl_aero(i), dFWZrr_aero(i), dFWZfl_aero(i), dFWZfr_aero(i)] = calculateAeroforceOnWheels(Faero(i), aero_ph, aero_pv);
 
-                 % Dynamic wheel load displacements in longitudinal direction (Dynamische Radlastverlagerungen in Längsrichtung)       
+                 % Dynamic wheel load displacements in longitudinal direction (Dynamische Radlastverlagerungen in Lï¿½ngsrichtung)       
                  [dFWZfl_x(i), dFWZfr_x(i), dFWZrl_x(i), dFWZrr_x(i)] = calculateWheelloadLongDisp(h_COG, m_tot, aVX(i), wheelbase);
 
                  % Dynamic wheel load displacements in lateral direction (Dynamische Radlastverlagerung in Querrichtung)  
@@ -867,22 +871,22 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 % Dynamic tire radii (Dynamische Reifenradien)   
                 [Rdyn_fl(i+1), Rdyn_fr(i+1), Rdyn_rl(i+1), Rdyn_rr(i+1)] = calculateDynRadii(R0, FWZ_fl(i+1), FWZ_fr(i+1), FWZ_rl(i+1), FWZ_rr(i+1), cZ_fl(i+1), cZ_fr(i+1), cZ_rr(i+1), cZ_rl(i+1));
 
-                % Maximum transmissible tire forces in longitudinal direction (Maximal übertragbare Reifenkräfte in Längsrichtung)       
+                % Maximum transmissible tire forces in longitudinal direction (Maximal ï¿½bertragbare Reifenkrï¿½fte in Lï¿½ngsrichtung)       
                 [FWXmax_fl(i+1), FWXmax_fr(i+1), FWXmax_rl(i+1), FWXmax_rr(i+1),FWXmax_f(i+1), FWXmax_r(i+1)] = calculateLongiTireforces(FWZ_fl(i+1), FWZ_fr(i+1),FWZ_rl(i+1), FWZ_rr(i+1), GAMMA, TIRparam, alpha_f(i), alpha_r(i));
 
-                % Maximum transmissible tire forces in lateral direction (Maximal übertragbare Reifenkräfte in Querrichtung)      
+                % Maximum transmissible tire forces in lateral direction (Maximal ï¿½bertragbare Reifenkrï¿½fte in Querrichtung)      
                 [FWYmax_fl(i+1), FWYmax_fr(i+1), FWYmax_rl(i+1), FWYmax_rr(i+1), FWYmax_f(i+1), FWYmax_r(i+1)] = calculateLatTireforces(FWZ_fl(i), FWZ_fr(i),FWZ_rl(i), FWZ_rr(i), GAMMA, TIRparam, alpha_f(i), alpha_r(i));
                 
                 % Maximum cornering velocity 
                 vVYmax(i+1) = sqrt((FWYmax_f(i+1)+FWYmax_r(i+1))*R(i+1)/m_tot); % Calculating maximum possible lateral velocity with given Tire forces [m/s] (inaccuaracy because tire force is based on aero force)
 
-%                 %Akkuströme
+%                 %Akkustrï¿½me
 %                 V_i(i) = sum(Voltage_Cellpack(:,i));
 % 
-%                 % Battery Currents (Akkuströme)
+%                 % Battery Currents (Akkustrï¿½me)
 %                 A_accu_cell(i) = P_el(i) / V_i(i) / ncells_parallel;  
 % 
-%                 Current_Cellpack_Pointer(i) = P_M(i) / V_i(i) *10 ; %Strombelastung eines %er Parrallel Paketes in 0,1A parameter für die berechnung der korrigierten belastung mit höhren verlusten durch höhere zellströme
+%                 Current_Cellpack_Pointer(i) = P_M(i) / V_i(i) *10 ; %Strombelastung eines %er Parrallel Paketes in 0,1A parameter fï¿½r die berechnung der korrigierten belastung mit hï¿½hren verlusten durch hï¿½here zellstrï¿½me
 %                 if Current_Cellpack_Pointer(i) <= 1
 %                     Current_Cellpack_Pointer(i)=1;
 %                 end
@@ -891,14 +895,14 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
 %                     Current_Cellpack_Pointer(i)=1500;
 %                 end
 % 
-%                 VirtualCurrent_Cellpack(i) = CorrectedDischargeInterpolated(1,round(Current_Cellpack_Pointer(i))); %Berechnung der Virtuell höheren zellströme basierend auf den höheren verlsuten durch höhere Ströme
+%                 VirtualCurrent_Cellpack(i) = CorrectedDischargeInterpolated(1,round(Current_Cellpack_Pointer(i))); %Berechnung der Virtuell hï¿½heren zellstrï¿½me basierend auf den hï¿½heren verlsuten durch hï¿½here Strï¿½me
 % 
-%                 Energy_Cellpack(i) = (VirtualCurrent_Cellpack(i)*(t(i+1)-t(i))) - ((P_Bh(i)/V_i(i))*(t(i+1)-t(i))) ; %Energieverbrauch in As für ein 5erpacket an akkuzellen -> Akkustrom zum zeitpunkt i mal Zeitdifferenz zwischen i und i+1
-%                 Energy_Cellpack_Total(i+1) = Energy_Cellpack_Total(i) + Energy_Cellpack(i); % Über Endurance Run Integrierte Energieverbrauch in As für ein 5erpacket an akkuzellen
+%                 Energy_Cellpack(i) = (VirtualCurrent_Cellpack(i)*(t(i+1)-t(i))) - ((P_Bh(i)/V_i(i))*(t(i+1)-t(i))) ; %Energieverbrauch in As fï¿½r ein 5erpacket an akkuzellen -> Akkustrom zum zeitpunkt i mal Zeitdifferenz zwischen i und i+1
+%                 Energy_Cellpack_Total(i+1) = Energy_Cellpack_Total(i) + Energy_Cellpack(i); % ï¿½ber Endurance Run Integrierte Energieverbrauch in As fï¿½r ein 5erpacket an akkuzellen
 % 
 %                 Capacity_Cellpack(1:131,i+1) =  Capacity_Cellpack(1:131,i)- Energy_Cellpack(i); 
 % 
-%                 SOC_Cellpack(1:131,i+1) = Capacity_Cellpack(1:131,i)./Capacity_Cellpack(1:131,1); %Berechnung des SOC für den nächsten tick basierend auf der aktuellen cellcapacity und der im nächsten tick
+%                 SOC_Cellpack(1:131,i+1) = Capacity_Cellpack(1:131,i)./Capacity_Cellpack(1:131,1); %Berechnung des SOC fï¿½r den nï¿½chsten tick basierend auf der aktuellen cellcapacity und der im nï¿½chsten tick
 % 
 %                 SOC_Pointer(1:131,i+1) = round(SOC_Cellpack(1:131,i+1)*1000);
 %                 Current_Cellpack_Pointer_Voltage(1,i+1) = round(Current_Cellpack_Pointer(i)/5);
@@ -915,7 +919,7 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
 %                     Current_Cellpack_Pointer_Voltage(1,i) = size(Track,1);
 %                 end
 %                 
-%                 %% @Lukas bitte prüfen if, wegen sonst auftretender Fehler bei langen Strecken!
+%                 %% @Lukas bitte prï¿½fen if, wegen sonst auftretender Fehler bei langen Strecken!
 %                 if (SOC_Pointer(1:131,i+1)>1001) 
 %                     Voltage_Cellpack(1:131,i+1) = Voltage_inter(Current_Cellpack_Pointer_Voltage(1,i),1001);    
 %                 else
@@ -924,8 +928,6 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
                 
              
             end
-            
-            writeToLogfile('Simulated with brakes!', Debug, textAreaHandle);
             
             % Conversion of battery energy capacity (Umrechnen der Energiemengen des Akkus)
             E_Accu = E_Accu/(3.6e6);                % [kWh] Energy consumed by battery per lap (Verbrauchte Akku-Energie je Runde)
@@ -936,37 +938,16 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             %%  Output of the values (Ausgabe der Werte)
             tEnd = toc;
             
-            if Debug
-                if (disciplineID == 2)
-                    textAreaHandle.Value{end+1} = ['Endurance Time for ONE Lap: ' num2str(t(end)) ' s = ' num2str(t(end)/60) ' min'];
-                    t_tot = t(end) *(22000/s(end));       % t(end) = Time for one lap ; 22000 [m] = length of Endurance ; s(end) length of the track.
-                    textAreaHandle.Value{end+1} =  ['Endurance Total Time: ' num2str(t_tot(end)) ' s = ' num2str(t_tot(end)/60) ' min'];
-                    textAreaHandle.Value{end+1} =  ['Total Travel Distance: ' num2str(s(end)) ' m'];
-                    E_Accu_total_without_recu = E_Accu(end) * (22000/s(end));
-                    textAreaHandle.Value{end+1} =  ['Total energy consumption W/O recuperation: ' num2str(E_Accu_total_without_recu) ' kWh'];
-                    E_Accu_total = E_res(end) * (22000/s(end));
-                    textAreaHandle.Value{end+1} =  ['Total energy consumption W recuperation: ' num2str(E_Accu_total) ' kWh'];
-                    E_AccuCellPackage_energy_totalEndurance = (Energy_Cellpack_Total(end) * (22000/s(end)))/60^2;
-                    textAreaHandle.Value{end+1} =  ['Total energy consumption in Ah: ' num2str(E_AccuCellPackage_energy_totalEndurance) ' Ah'];
-                    textAreaHandle.Value{end+1} =  ['Average heat output: ' num2str(E_heat(end)/(t(end)/60^2)) ' kW'];
-                else
-                    %%  Output of the values (Ausgabe der Werte)
-                    textAreaHandle.Value{end+1} = ['Endurance Time for ONE Lap: ' num2str(t(end)) ' s = ' num2str(t(end)/60) ' min'];
-                    textAreaHandle.Value{end+1} =  ['Laptime: ' num2str(t(end)) ' s = ' num2str(t(end)/60) ' min'];
-                    textAreaHandle.Value{end+1} =  ['Total Travel Distance: ' num2str(s(end)) ' m'];
-                    textAreaHandle.Value{end+1} =  ['Total energy consumption W/O recuperation: ' num2str(E_Accu(end)) ' kWh'];
-                    textAreaHandle.Value{end+1} =  ['Total energy consumption W recuperation: ' num2str(E_res(end)) ' kWh'];
-                    E_AccuCellPackage_energy_totalEndurance = (Energy_Cellpack_Total(end))/60^2;
-                    textAreaHandle.Value{end+1} =  ['Total energy consumption in Ah: ' num2str(E_AccuCellPackage_energy_totalEndurance) ' Ah'];
-                    textAreaHandle.Value{end+1} =  ['Average heat output: ' num2str(E_heat(end)/(t(end)/60^2)) ' kW'];   
-                end
-            end
+            writeToLogfile(['Simulated with brakes! ' num2str(t(end)) ' s'], Debug, textAreaHandle);         
 
             t_tot = t(end);
 
             %% Writing the results to Mat File (Schreiben der Ergebnisse in Mat File)
+            
+            %% skidpad data
             result.t_skidpad(steps) = t_skidpad;
             result.vV_skidpad(steps) = vV_skidpad;
+            
             result.tEnd(steps) = tEnd;
             result.t_ges(steps) = t_tot;    
             result.Track = Track;
@@ -999,8 +980,6 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             result.FVX(:,steps) = FVX(:);
             result.FVX_hl(:,steps) = FVX_rl(:);
             result.FVX_hr(:,steps) = FVX_rr(:);
-            result.FVXre(:,steps) = FVXre(:);
-            result.FVXid(:,steps) = FVXid(:);
             result.FR(:,steps) = FR(:);
             result.FL(:,steps) = FL(:);
             result.Fdr(:,steps) = Fdr(:);
@@ -1040,16 +1019,21 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             result.TC(:,steps) = TC(:);
             result.Tirelimit(:,steps) = Tirelimit(:);
             result.vAPEXmax(:,steps) = vAPEXmax(:);
-            result.vWoBrake(:,steps) = vWoBrake(:);
+            
             result.vV(:,steps) = vV(:);
             result.vRev(:,steps) = vRev(:);
             result.vVYmax(:,steps) = vVYmax(:);
             result.A_Akkuzelle(:,steps) = A_accu_cell(:);
             result.ApexIndizes(:,steps) = ApexIndexes(:);
-        %     result.M_eff_inter = M_eff_inter;
             result.motor_eff(:,steps) = motor_eff(:);
             result.gear(:,steps) = gearSelection(:);
+            
+            %% Data without braking 
+            result.vWoBrake(:,steps) = vWoBrake(:);
+            result.avXWoBrake(:,steps) = avXWoBrake(:);
+            result.avYWoBrake(:,steps) = avYWoBrake(:);
                 
+            %% Cell Data
             if logCellData
                 result.Energy_Cellpack(:,steps) = Energy_Cellpack(:);
                 result.VirtualCurrent_Cellpack(:,steps) = VirtualCurrent_Cellpack(:);
@@ -1123,20 +1107,23 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
             result.ptype(:,steps) = ptype(:);
 
             % sets button progress (progressbar)
-            if sensitivityID2 ~= 0 
+            if sensitivityID2 ~= 0 && textAreaHandle ~= 0
                 currentProg = min(round((size(wbar,2)-2)*(steps/numSteps^2)),size(wbar,2)-2); 
-            else
+            elseif textAreaHandle ~= 0
                 currentProg = min(round((size(wbar,2)-2)*(steps/numSteps)),size(wbar,2)-2); 
             end
             
-            processDataButtonHandle.Icon(2:end-1, 2:currentProg+1, 1) = 0.25391; % (royalblue)
-            processDataButtonHandle.Icon(2:end-1, 2:currentProg+1, 2) = 0.41016;
-            processDataButtonHandle.Icon(2:end-1, 2:currentProg+1, 3) = 0.87891;
-            drawnow; % updates button progress
+            if textAreaHandle ~= 0
+                processDataButtonHandle.Icon(2:end-1, 2:currentProg+1, 1) = 0.25391; % (royalblue)
+                processDataButtonHandle.Icon(2:end-1, 2:currentProg+1, 2) = 0.41016;
+                processDataButtonHandle.Icon(2:end-1, 2:currentProg+1, 3) = 0.87891;
+                drawnow; % updates button progress
+            end
         end
     end
     
-    [~, name, ~] = fileparts(setupFile);
+    if textAreaHandle ~= 0
+        [~, name, ~] = fileparts(setupFile);
         
         % Saves the results to a .mat file in the same location as the
         % setup file. The name is generated by adding _result to the name.
@@ -1145,4 +1132,5 @@ function Vehiclesim_Endurance_GUI_Version(setupFile, path, TrackFileName, discip
         save(path+"/"+savefilename, '-struct','result');
         
         writeToLogfile('File succesfully written', Debug, textAreaHandle);
+    end
 end

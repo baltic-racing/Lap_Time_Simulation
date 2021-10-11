@@ -47,8 +47,6 @@ function [x_Track, y_Track, z_Track, s, R, Track, ApexIndexes, lapLength] = load
         end
         
         % Complete Endurance Track (All Laps)
-        Track = [x_Track, y_Track, z_Track, s, R];
-        
-        writeToLogfile('loaded Track!', Debug, textAreaHandle);
+        Track = [x_Track, y_Track, z_Track, s, R];  
     end   
 end
