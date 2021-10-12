@@ -259,7 +259,7 @@ function updateColorScheme(app)
     app.DisciplineDropDown.BackgroundColor = app.PrimaryColor;
     app.DisciplineDropDown.FontColor = app.OnPrimaryColor;
 
-    app.activatedCheckBox.FontColor = app.OnPrimaryColor;
+    app.sensitivityCheckBox.FontColor = app.OnPrimaryColor;
 
     app.VariableDropDownLabel.FontColor = app.OnPrimaryColor;
     app.VariableDropDown.BackgroundColor = app.SurfaceColor; 

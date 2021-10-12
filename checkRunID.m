@@ -6,7 +6,7 @@
 
 function error = checkRunID(app, runID, saveFile)
     % check if a valid runID has been used
-    if (runID > size(saveFile.t,2))     
+    if (runID > size(saveFile,2))     
         uialert(app.LaptimeSimulationUIFigure,'runID is greater than the number of runs in the save file','runID Error')
         error = 1;
     else
