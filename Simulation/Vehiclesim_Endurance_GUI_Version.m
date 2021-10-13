@@ -6,10 +6,6 @@
 
 function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValue, minValue2, sensitivityID, sensitivityID2)
 
-    %% DEBUGING OPTIONS
-    % DEBUG = 1;
-    % brakeFunction = 2;
-    
     if nargin == 5
         startingParameters.minValue = minValue;
         startingParameters.minValue2 = minValue2;
@@ -111,7 +107,6 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
     TIRparam = loadTIR('C19_CONTINENTAL_FORMULASTUDENT_205_470_R13_65kPa.tir');
 
     % Tire Data (Reifendaten)
-%     J_Tire = setup.J_Tire;              % [kg*m�] Moment of inertia of tire about axis of rotaion (Tr�gheitsmoment des Reifens um Drehachse)
     R0 = TIRparam.UNLOADED_RADIUS;      % [m] Tire radius - Manufacturing (Fertigungsradius des Reifens)
     bW = TIRparam.WIDTH;                % [m] Tire width (contact area) (Breite des Reifens (Aufstandsbreite))
     p_infl = setup.p_Tire;              % [Pa] Tire pressure (Luftdruck des Reifens)
@@ -326,6 +321,8 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
             gearSelection,Tirelimit,vAPEXmax,vV,vVYmax,A_accu_cell,P_Mloss,P_Bh,motor_eff,Capacity_Cellpack,SOC_Cellpack,Voltage_Cellpack,V_i,VirtualCurrent_Cellpack,...
             Current_Cellpack_Pointer,Energy_Cellpack,Energy_Cellpack_Total,SOC_Pointer,Current_Cellpack_Pointer_Voltage] = initializeStartValues(setup.FB, Track, ApexIndexes);
             
+            vAPEXmax = zeros(1,length(ApexIndexes));
+        
             % Axle and wheel loads (static) ((Statische) Achs- und Radlasten)
             FWZtot(1) = FG;                 % [N] Static total axle load (Statische Gesamtachslast)
             FWZr(1) = setup.m_ph/100*FWZtot(1);   % [N] Static rear axle load (Statische Achslast hinten)
@@ -627,8 +624,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
 
                     FVX_rl(i) = 0;                   % [N] Traction on rear left wheel (Zugkraft an linkem Hinterrad)
                     FVX_rr(i) = 0;                   % [N] Traction on rear right wheel (Zugkraft an rechtem Hinterrad)
-                    FVX(i) = 0;                % [N] Traction on rear axle (Zugkraft an der Hinterachse)
-                     
+                    FVX(i) = 0;                % [N] Traction on rear axle (Zugkraft an der Hinterachse)              
                     
                     [FB_fl(i), FB_fr(i), FB_rl(i), FB_rr(i), ~, BrakeBias(i), ABS(i)] = calculateDeceleration(FB(i), setup.m_ges, Fdr(i), FWXmax_fl(i), FWXmax_fr(i), FWXmax_rl(i), FWXmax_rr(i), setup.brakeBias_setup);
                 else
@@ -702,8 +698,14 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
                 % ToDo Check vehicle speed before applying brakes 
                 % Limit Braking before Apex if car is allready slower than
                 % needed
-                if ismember(i,BrakeIndexes) && vV(i+1) < vAPEXmax(z) && not(ismember(z,NonBrakeApexes))  % Begrenzen der Geschwindigkeit auf ApexGeschwindigkeit (Bremst solange bis Geschwindigkeiten gleich)
-                     vV(i+1) = vAPEXmax(z);                         % [m/s] Total vehicle speed 
+                if ismember(i,BrakeIndexes) && vV(i+1) < vAPEXmax(z)   % Begrenzen der Geschwindigkeit auf ApexGeschwindigkeit (Bremst solange bis Geschwindigkeiten gleich)
+                    vV(i+1) = vAPEXmax(z);                         % [m/s] Total vehicle speed 
+                end
+                
+                if vV(i+1) < min(vAPEXmax) && ismember(i,BrakeIndexes)
+                    vV(i+1) = min(vAPEXmax);
+                elseif vV(i+1) > vWoBrake(i+1)
+                    vV(i+1) = vWoBrake(i+1);
                 end
 
                 t(i+1) = t(i)+(s(i+1)-s(i))/vV(i+1);                % [s] Time (Zeit)

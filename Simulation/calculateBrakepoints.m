@@ -13,11 +13,13 @@ function [BrakeIndexes, NonBrakeApexes, vRev] = calculateBrakepoints(FB_in, Trac
     FB = FB_in.*ones(1,length(Track));            
 
     if brakeFunction == 0
-        while k >= 1
+        %while k >= 1
+        for k = 1:length(ApexIndexes)
 
             Counter = 0;
             j = ApexIndexes(k);
-            vRev(j-1) = vAPEXmax(k);
+            vRev(j-1) = vAPEXmax(k);        % why j-1
+            vRev(j) = vAPEXmax(k); 
 
             if vV(j-1)>vAPEXmax(k)
                 while vRev(j-1) < vV(j-1) 
@@ -26,7 +28,7 @@ function [BrakeIndexes, NonBrakeApexes, vRev] = calculateBrakepoints(FB_in, Trac
 %                         vRev(j) = vV(j);
 %                     end
 
-                    if R(ApexIndexes(k)) > 0
+                    if R(j-1) > 0
                         f = -1;
                     else
                         f = 1;
@@ -91,12 +93,12 @@ function [BrakeIndexes, NonBrakeApexes, vRev] = calculateBrakepoints(FB_in, Trac
                 BrakeIndexes = [BrakeIndexes j:ApexIndexes(k)-1];
             end
 
-            if k > 1 && j < ApexIndexes(k-1)
-                NonBrakeApexes = [NonBrakeApexes k-1];
-                k = k - 1;
-            end
+%             if k > 1 && j < ApexIndexes(k-1)
+%                 NonBrakeApexes = [NonBrakeApexes k-1];
+%                 k = k - 1;
+%             end
 
-            k = k - 1;             
+            %k = k - 1;             
         end
     else
         BrakeIndizes = [];

@@ -13,9 +13,26 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
             % Loads first and second result file
             result1 = load(resultFile1, '-mat');
             result2 = load(resultFile2, '-mat');      
+            
+            try 
+                % Checks if the track file is 4 or 5 columns and read it acordingly          
+                [~, columns] = size(result1(runID).Track);
+            catch 
+                result1 = result1.result;
 
-            % Checks if the track file is 4 or 5 columns and read it acordingly          
-            [rows, columns] = size(result1(runID).Track);
+                % Checks if the track file is 4 or 5 columns and read it acordingly          
+                [~, columns] = size(result1(runID).Track);
+            end
+            
+            try 
+                % Checks if the track file is 4 or 5 columns and read it acordingly          
+                [~, columns] = size(result2(runID).Track);
+            catch 
+                result2 = result2.result;
+
+                % Checks if the track file is 4 or 5 columns and read it acordingly          
+                [~, columns] = size(result2(runID).Track);
+            end
             
             if (columns == 4)
                 x_Track = result1(runID).Track(:,1);           % [m] X-Koordinate der Strecke
@@ -56,11 +73,11 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                 case 1
                     % Draw RPM Plot
                     figure(1)
-                    ni = result1.ni(:,1);
-                    ni(end+1) = result1.ni(end);
+                    ni = result1(runID).ni(:,1);
+                    ni(end+1) = result1(runID).ni(end);
                     
-                    ni_2 = result2.ni(:,1);
-                    ni_2(end+1) = result2.ni(end);
+                    ni_2 = result2(runID).ni(:,1);
+                    ni_2(end+1) = result2(runID).ni(end);
                     
                     %figure(1)
                     plot(s,ni,'b',s_2,ni_2,'r')                
@@ -74,8 +91,8 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                 case 2
                     % Draw Aero Plot
                     figure(2)
-                    Faero = result1.Faero(:,1);
-                    Faero(end+1,1) = result1.Faero(end,1);
+                    Faero = result1(runID).Faero(:,1);
+                    Faero(end+1,1) = result1(runID).Faero(end,1);
                     
                     Faero_2 = result2.Faero(:,1);
                     Faero_2(end+1,1) = result2.Faero(end,1);
@@ -91,11 +108,11 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                 case 3
                     % Draw Torque Plot
                     figure(3)
-                    Mi = result1.Mi(:,1);
-                    Mi(end+1,1) = result1.Mi(end,1);
+                    Mi = result1(runID).Mi(:,1);
+                    Mi(end+1,1) = result1(runID).Mi(end,1);
                     
-                    Mi_2 = result2.Mi(:,1);
-                    Mi_2(end+1,1) = result2.Mi(end,1);
+                    Mi_2 = result2(runID).Mi(:,1);
+                    Mi_2(end+1,1) = result2(runID).Mi(end,1);
                     
                     plot(s,Mi,'b',s_2,Mi_2,'r')                
                     title('Torque','FontSize',12)
@@ -108,11 +125,11 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                 case 4
                     % Draw Power Plot
                     figure(4)
-                    P_M = result1.P_M(:,1);
-                    P_M(end+1,1) = result1.P_M(end,1);
+                    P_M = result1(runID).P_M(:,1);
+                    P_M(end+1,1) = result1(runID).P_M(end,1);
                     
-                    P_M_2 = result2.P_M(:,1);
-                    P_M_2(end+1,1) = result2.P_M(end,1);
+                    P_M_2 = result2(runID).P_M(:,1);
+                    P_M_2(end+1,1) = result2(runID).P_M(end,1);
                     
                     %figure(1)
                     plot(s,P_M,'b',s_2,P_M_2,'r')                
@@ -126,11 +143,11 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                 case 5
                     % Draw Drag Plot
                     figure(5)
-                    FL = result1.FL(:,1);
-                    FL(end+1,1) = result1.FL(end,1);
+                    FL = result1(runID).FL(:,1);
+                    FL(end+1,1) = result1(runID).FL(end,1);
                     
-                    FL_2 = result2.FL(:,1);
-                    FL_2(end+1,1) = result2.FL(end,1);
+                    FL_2 = result2(runID).FL(:,1);
+                    FL_2(end+1,1) = result2(runID).FL(end,1);
                     
                     %figure(1)
                     plot(s,FL,'b',s_2,FL_2,'r')                
@@ -144,11 +161,11 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                 case 6
                     % Draw Driving resistance Plot
                     figure(6)
-                    Fdr = result1.Fdr(:,1);
-                    Fdr(end+1,1) = result1.Fdr(end,1);
+                    Fdr = result1(runID).Fdr(:,1);
+                    Fdr(end+1,1) = result1(runID).Fdr(end,1);
                     
-                    Fdr_2 = result2.Fdr(:,1);
-                    Fdr_2(end+1,1) = result2.Fdr(end,1);
+                    Fdr_2 = result2(runID).Fdr(:,1);
+                    Fdr_2(end+1,1) = result2(runID).Fdr(end,1);
                     
                     plot(s,Fdr,'b',s_2,Fdr_2,'r')                
                     title('Driving Resistance','FontSize',12)
@@ -161,8 +178,8 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                 case 7                    
                     % Draw Velocity m/s
                     figure(7)
-                    vV1 = result1.vV(:,1);
-                    vV2 = result2.vV(:,1);
+                    vV1 = result1(runID).vV(:,1);
+                    vV2 = result2(runID).vV(:,1);
                     plot(s,vV1, s, vV2)              
                     title('Velocity m/s','FontSize',12)
                     xlabel('Track Length [m]','FontSize',10) 
@@ -174,8 +191,8 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                 case 8                    
                     % Draw Velocity km/h
                     figure(8)
-                    vV1 = result1.vV(:,1);
-                    vV2 = result2.vV(:,1);
+                    vV1 = result1(runID).vV(:,1);
+                    vV2 = result2(runID).vV(:,1);
                     plot(s, vV1*3.6, s, vV2*3.6)              
                     title('Velocity km/h','FontSize',12)
                     xlabel('Track Length [m]','FontSize',10) 
@@ -187,10 +204,10 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                 case 9
                     % Draw Cellcapacity Plot
                     figure(9)
-                    Capacity_Cellpack = result1.Capacity_Cellpack(:,1);
+                    Capacity_Cellpack = result1(runID).Capacity_Cellpack(:,1);
                     % Capacity_Cellpack(end) = result1.Capacity_Cellpack(end);
                     
-                    Capacity_Cellpack_2 = result2.Capacity_Cellpack(:,1);
+                    Capacity_Cellpack_2 = result2(runID).Capacity_Cellpack(:,1);
                     % Capacity_Cellpack_2(end) = result2.Capacity_Cellpack(end);
                     
                     plot(s,Capacity_Cellpack,'b',s_2,Capacity_Cellpack_2,'r')                
@@ -204,10 +221,10 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                 case 10
                     % Draw Motor efficiency Plot
                     figure(10)
-                    motor_eff = result1.motor_eff(:,1);
+                    motor_eff = result1(runID).motor_eff(:,1);
                     % motor_eff(end+1) = result1.motor_eff(end);
                     
-                    motor_eff_2 = result2.motor_eff(:,1);
+                    motor_eff_2 = result2(runID).motor_eff(:,1);
                     % motor_eff_2(end+1) = result2.motor_eff(end);
                     
                     %figure(10)
@@ -222,17 +239,17 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                 case 11
                     % Draw Acceleration m/s² Plot
                     figure(11)
-                    aVX = result1.aVX(:,1);
-                    aVX(end+1) = result1.aVX(end,1);
+                    aVX = result1(runID).aVX(:,1);
+                    aVX(end+1) = result1(runID).aVX(end,1);
                     
-                    aVY = result1.aVY(:,1);
-                    aVY(end+1) = result1.aVY(end,1);
+                    aVY = result1(runID).aVY(:,1);
+                    aVY(end+1) = result1(runID).aVY(end,1);
                     
-                    aVX_2 = result2.aVX(:,1);
-                    aVX_2(end+1) = result2.aVX(end,1);
+                    aVX_2 = result2(runID).aVX(:,1);
+                    aVX_2(end+1) = result2(runID).aVX(end,1);
                     
-                    aVY_2 = result2.aVY(:,1);
-                    aVY_2(end+1) = result2.aVY(end,1);
+                    aVY_2 = result2(runID).aVY(:,1);
+                    aVY_2(end+1) = result2(runID).aVY(end,1);
                     
                     plot(s,aVX,'b',s,aVY,'b--',s_2,aVX_2,'g',s_2,aVY_2,'g--')                
                     title('Accelerations','FontSize',12)

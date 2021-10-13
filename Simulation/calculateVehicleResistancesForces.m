@@ -7,6 +7,7 @@
 function [FR, FL, Fdr, FVY, aVX, aVY] = calculateVehicleResistancesForces(k_R, FWZges, rho_L, vV, c_d, A_S, m_tot, R, FVX, FVX_f, c_d_DRS, DRS_status, rpm, n_Mmax, FB_fl, FB_fr, FB_rl, FB_rr)
 %% Driving resistances and vehicle
 
+        FB = FB_fl + FB_fr + FB_rl + FB_rr;
         FR = k_R*FWZges;                % [N] Rolling resistance (Rollwiderstand)
         
         if DRS_status == 1
@@ -19,10 +20,10 @@ function [FR, FL, Fdr, FVY, aVX, aVY] = calculateVehicleResistancesForces(k_R, F
         FVY = m_tot*vV^2/R;             % [N] Centrifugal force (Zentrifugalkraft)
         
         % Check if rpm limiter is reached if so don't accelerate further
-        if rpm >= n_Mmax
+        if rpm >= n_Mmax && FB <= 0
             aVX = 0;
         else
-            aVX = ((FVX+FVX_f)-Fdr-(FB_fl+FB_fr+FB_rl+FB_rr))/m_tot;       % [m/s²] Longitudinal acceleration (Längsbeschleunigung)
+            aVX = ((FVX+FVX_f)-Fdr-FB)/m_tot;       % [m/s²] Longitudinal acceleration (Längsbeschleunigung)
         end      
             
         aVY = vV^2/R;                   % [m/s²] Lateral acceleration (Querbeschleunigung)

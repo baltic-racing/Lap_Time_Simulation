@@ -11,7 +11,12 @@ function simulationManager(startingParameters)
 
     numSteps = startingParameters.numSteps;                                 % Number of simulation steps (sensitivity analysis steps)
     sensitivityID = startingParameters.sensitivityID;                   % save sensitivityIDs to extra variable
-    sensitivityID2 = startingParameters.sensitivityID2;
+    
+    try
+        sensitivityID2 = startingParameters.sensitivityID2;
+    catch
+        sensitivityID2 = 0;
+    end
     
     if numSteps > 1 && sensitivityID ~= 0                                   % Use parfor for sensitivity analysis
 
