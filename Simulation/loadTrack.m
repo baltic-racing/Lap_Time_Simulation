@@ -48,5 +48,32 @@ function [x_Track, y_Track, z_Track, s, R, Track, ApexIndexes, lapLength] = load
         
         % Complete Endurance Track (All Laps)
         Track = [x_Track, y_Track, z_Track, s, R];  
+
+
+        trackLength = length(Track);
+
+        for i = 1:trackLength
+            x(i*3-2) = x_Track(i);
+            x(i*3-1) = x_Track(i);
+            x(i*3) = x_Track(i);
+
+            y(i*3-2) = y_Track(i);
+            y(i*3-1) = y_Track(i);
+            y(i*3) = y_Track(i);
+
+            z(i*3-2) = z_Track(i);
+            z(i*3-1) = z_Track(i);
+            z(i*3) = z_Track(i);
+
+            s(i*3-2) = s(i);
+            s(i*3-1) = s(i);
+            s(i*3) = s(i);
+
+            R(i*3-2) = R(i);
+            R(i*3-1) = R(i);
+            R(i*3) = R(i);
+        end
+
+        Track = [x, y, z, s, R];  
     end   
 end
