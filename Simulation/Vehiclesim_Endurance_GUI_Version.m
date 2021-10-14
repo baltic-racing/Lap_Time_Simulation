@@ -47,6 +47,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
     FG = setup.m_ges*setup.g;           % [N] Force due to weight of the vehicle (Gewichtskraft des Fahrzeugs)
     setup.aero_ph = 1-setup.aero_pv;
 
+%    setup.lf = setup.x_cog-setup.x_va;     
     setup.lf = setup.wheelbase*setup.m_ph/100;                            % [mm] Distance from front axle to CoG (Abstand Vorderachse zu Fahrzeugschwerpunkt)
     setup.lr = setup.wheelbase-setup.lf;                                  % [mm] Distance from rear axle to CoG (Abstand Hinterachse zu Fahrzeugschwerpunkt)
 
@@ -321,6 +322,11 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
             gearSelection,Tirelimit,vAPEXmax,vV,vVYmax,A_accu_cell,P_Mloss,P_Bh,motor_eff,Capacity_Cellpack,SOC_Cellpack,Voltage_Cellpack,V_i,VirtualCurrent_Cellpack,...
             Current_Cellpack_Pointer,Energy_Cellpack,Energy_Cellpack_Total,SOC_Pointer,Current_Cellpack_Pointer_Voltage] = initializeStartValues(setup.FB, Track, ApexIndexes);
             
+            alpha_fr = zeros(1,length(Track)-1);
+            alpha_rl = zeros(1,length(Track)-1);
+            alpha_rr = zeros(1,length(Track)-1);
+            alpha_rl = zeros(1,length(Track)-1);
+        
             vAPEXmax = zeros(1,length(ApexIndexes));
         
             % Axle and wheel loads (static) ((Statische) Achs- und Radlasten)
@@ -384,6 +390,13 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
                     psi1(i) = vV(i)/R(ApexIndexes(i));                               % [rad/s] Gierrate
                     alpha_f(i) = 180/pi*(delta(i)-(setup.lf/1000)/vV(i)*psi1(i)-beta(i));  % [�] Schr�glaufwinkel vorne
                     alpha_r(i) = 180/pi*((setup.lr/1000)/vV(i)*psi1(i)-beta(i));           % [�] Schr�glaufwinkel hinten
+                    
+%                     % Lenkwinkel, Schwimmwinkel, Gierrate, Schr�glaufwinkel  
+%                     delta(i) = f*atan((setup.wheelbase/1000)/sqrt(R(ApexIndexes(i))^2-(setup.lr/1000)^2));   % [rad] Lenkwinkel
+%                     beta(i) = f*atan((setup.lr/1000)/sqrt(R(ApexIndexes(i))^2-(setup.lr/1000)^2));  % [rad] Schwimmwinkel
+%                     psi1(i) = vV(i)/R(ApexIndexes(i));                               % [rad/s] Gierrate
+%                     alpha_f(i) = 180/pi*(beta(i)+(setup.lf/1000)/vV(i)-delta(i));     % [�] Schr�glaufwinkel vorne
+%                     alpha_r(i) = 180/pi*(beta(i)-(setup.lr/1000/vV(i)));              % [degree] Slipangle Rear
 
                     % Wheel load transfer due to aero forces (Radlastverlagerung in Folge von Aerokr�ften) 
                     [dFWZrl_aero(i), dFWZrr_aero(i), dFWZfl_aero(i), dFWZfr_aero(i)] = calculateAeroforceOnWheels(Faero(i), setup.aero_ph, setup.aero_pv);
@@ -504,6 +517,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
                 psi1(i) = vV(i)/R(i);                                               % [rad/s] Gierrate
                 alpha_f(i) = 180/pi*(delta(i)-(setup.lf/1000)/vV(i)*psi1(i)-beta(i));     % [�] Schr�glaufwinkel vorne
                 alpha_r(i) = 180/pi*((setup.lr/1000)/vV(i)*psi1(i)-beta(i));              % [�] Schr�glaufwinkel hinten
+                
 
                 % Wheel load transfer due to aerodynamic forces (Radlastverlagerung in Folge von Aerokr�ften)  
                 [dFWZrl_aero(i), dFWZrr_aero(i), dFWZfl_aero(i), dFWZfr_aero(i)] = calculateAeroforceOnWheels(Faero(i), setup.aero_ph, setup.aero_pv);
@@ -737,10 +751,20 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
 
                 delta(i) = f*atan((setup.wheelbase/1000)/sqrt(R(i)^2-(setup.lr/1000)^2));       % [rad] Lenkwinkel
                 beta(i) = f*atan((setup.lr/1000)/sqrt(R(i)^2-(setup.lr/1000)^2));               % [rad] Schwimmwinkel
-                psi1(i) = vV(i)/R(i);                                               % [rad/s] Gierrate
-                alpha_f(i) = 180/pi*(delta(i)-(setup.lf/1000)/vV(i)*psi1(i)-beta(i));     % [�] Schr�glaufwinkel vorne
-                alpha_r(i) = 180/pi*((setup.lr/1000)/vV(i)*psi1(i)-beta(i));              % [�] Schr�glaufwinkel hinten
+                psi1(i) = vV(i)/R(i);                                                           % [rad/s] Gierrate
+                alpha_f(i) = 180/pi*(delta(i)-(setup.lf/1000)/vV(i)*psi1(i)-beta(i));           % [�] Schr�glaufwinkel vorne
+                alpha_r(i) = 180/pi*((setup.lr/1000)/vV(i)*psi1(i)-beta(i));                    % [�] Schr�glaufwinkel hinten
 
+%                 beta(i) = f*atan(((-setup.lr/1000)/setup.wheelbase)*delta(i));  
+%                 delta(i) = f*atan((setup.wheelbase/1000)/sqrt(R(i)^2-(setup.lr/1000)^2));       % [rad] Lenkwinkel
+%                 psi1(i) = vV(i)/R(i);
+%                              % [rad] Schwimmwinkel% [rad/s] Gierrate
+%                 alpha_fl(i) = 180/pi*(beta(i)+(setup.lf/1000)/vV(i)-delta(i));             
+%                 alpha_fr(i) = 180/pi*(beta(i)+(setup.lf/1000)/vV(i)-delta(i));     % [�] Schr�glaufwinkel vorne
+%                 alpha_f(i) = (alpha_fr(i)+ alpha_fl(i))/2;
+%                 alpha_rl(i) = 180/pi*((1-(FWZ_fl(i+1)/FWZ_rl(i+1))*alpha_f(i)));
+%                 alpha_rr(i) = 180/pi*((1-(FWZ_fl(i+1)/FWZ_rl(i+1))*alpha_f(i)));         % [degree] Slipangle Rear
+%                 alpha_r(i) = (alpha_rr(i)+ alpha_rl(i))/2;
 
                 E_Accu(i+1) = E_Accu(i) + (t(i+1)-t(i)) * P_el(i); % [J] 
                 E_heat(i+1) = E_heat(i) + (P_el(i)-P_tractive(i)) * (t(i+1)-t(i));
@@ -988,6 +1012,8 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
             result.psi1(:,steps) = psi1(:);
             result.alpha_f(:,steps) = alpha_f(:);
             result.alpha_r(:,steps) = alpha_r(:);
+            result.alpha_rr(:,steps) = alpha_rr(:);
+            result.alpha_rl(:,steps) = alpha_rl(:);
 
             result.lapLength = lapLength;
 
