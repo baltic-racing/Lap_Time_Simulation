@@ -4,7 +4,7 @@
 % By Eric Dornieden / Patrick Siuta, Baltic Racing
 % Copyright (C) 2021, Baltic Racing, all rights reserved.
 
-function [delta, beta, psi1, alpha_f, alpha_r, alpha_fr, alpha_fl, alpha_rr, alpha_rl] = calculateSteeringData(wheelbase, R, lr, lf, vV, FWZ_fl, FWZ_rl)
+function [delta, beta, psi1, alpha_f, alpha_r, alpha_fr, alpha_fl, alpha_rr, alpha_rl] = calculateSteeringData(wheelbase, R, lr, lf, vV, FWZ_fl, FWZ_rl,FWZ_fr,FWZ_rr)
     
     %% Check corner direction (left / right corner)
     if R > 0
@@ -21,10 +21,19 @@ function [delta, beta, psi1, alpha_f, alpha_r, alpha_fr, alpha_fl, alpha_rr, alp
     alpha_f = 180/pi*(delta-(lf/1000)/vV*psi1-beta);  % [�] Schr�glaufwinkel vorne
     alpha_r = 180/pi*((lr/1000)/vV*psi1-beta);           % [�] Schr�glaufwinkel hinten
     
-    alpha_fr = 0;
-    alpha_fl = 0;
-    alpha_rr = 0;
-    alpha_rl = 0;
+
+    if FWZ_fr/FWZ_rr >1                                 %[degree] Slipangle rear right
+        alpha_rr = ((1/(FWZ_fr/FWZ_rr))*alpha_r);
+    else
+        alpha_rr = ((1-(FWZ_fr/FWZ_rr))*alpha_r);        
+    end
+
+    if FWZ_fl/FWZ_rl >1                                 %[degree] Slipangle rear left
+        alpha_rl = ((1/(FWZ_fl/FWZ_rl))*alpha_r);
+    else
+        alpha_rl = ((1-(FWZ_fl/FWZ_rl))*alpha_r);        
+    end
+
     
 %     delta = f*atan((wheelbase/1000)/sqrt(R^2-(lr/1000)^2));         % [rad] steerung angel (Lenkwinkel)
 %     beta = f*atan(((-lr/1000)/wheelbase)*delta);                    % [rad] sideslip (Schwimmwinkel)
