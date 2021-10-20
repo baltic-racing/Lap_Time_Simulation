@@ -32,6 +32,9 @@ function loadSetup(app, file)
         app.p_Tire = setup.p_Tire;
         app.LMUX = setup.LMUX;
         app.LMUY = setup.LMUY;
+        app.LXAL = setup.LXAL;
+        app.LYKA = setup.LYKA;
+        app.RBX3 = setup.RBX3;
         app.k_R = setup.k_R;
         app.FB = setup.FB;
         app.camber = setup.camber;

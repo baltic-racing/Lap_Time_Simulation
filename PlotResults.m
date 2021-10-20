@@ -946,7 +946,7 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                     vDiff = [];
                     
                     for i=1:vVlength
-                        Diff = result1(runID).vV(i,runID)-result1(runID).vWoBrake(i,runID);
+                        Diff = result1(runID).vV(i)-result1(runID).vWoBrake(i);
  
                         if Diff > 0
                             vDiff(i) = Diff;

@@ -30,6 +30,9 @@ function saveData(app)
         setup.p_Tire = app.p_Tire;
         setup.LMUX = app.LMUX;
         setup.LMUY = app.LMUY;
+        setup.LXAL = app.LXAL;
+        setup.LYKA = app.LYKA;
+        setup.RBX3 = app.RBX3;
         setup.k_R = app.k_R;
         setup.FB = app.FB;
         setup.camber = app.camber;

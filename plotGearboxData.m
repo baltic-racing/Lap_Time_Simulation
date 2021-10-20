@@ -9,13 +9,13 @@ R0 = TIRparam.UNLOADED_RADIUS;
 resultData(1,1) = 0;
 resultData(1,2) = 0;
 
-for i = 2:length(gearboxData)+1
-    speed(i) = (3.6 * n_shift * pi * R0) / (30 * gearboxData(i-1,2));  % Max Speed km/h
+for i = 2:size(gearboxData,1)+1
+    speed(i) = (3.6 * n_max * pi * R0) / (30 * gearboxData(i-1,2));  % Max Speed km/h
     
-    resultData(end+1,1) = speed(i)  
+    resultData(end+1,1) = speed(i);  
     resultData(end,2) = n_shift;                             % shift rpm
     
-    if i <= length(gearboxData) 
+    if i <= size(gearboxData,1) 
         resultData(end+1,1) = speed(i); 
         resultData(end,2) = (speed(i) * 30 * gearboxData(i,2))/(3.6 * pi * R0);
     end

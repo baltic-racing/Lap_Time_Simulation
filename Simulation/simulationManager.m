@@ -10,7 +10,7 @@
 function simulationManager(startingParameters)
 
     numSteps = startingParameters.numSteps;                                 % Number of simulation steps (sensitivity analysis steps)
-    sensitivityID = startingParameters.sensitivityID;                   % save sensitivityIDs to extra variable
+    sensitivityID = startingParameters.sensitivityID;                       % save sensitivityIDs to extra variable
     
     try
         sensitivityID2 = startingParameters.sensitivityID2;
@@ -32,7 +32,7 @@ function simulationManager(startingParameters)
         
         if sensitivityID2 ~= 0 
             tic
-            for steps1 = 1:numSteps                                                  % Calculate Values for sensitivity analysis (multiple variables)
+            for steps1 = 1:numSteps                                         % Calculate Values for sensitivity analysis (multiple variables)
   
                 for steps2 = 1:numSteps
                     minValue(steps) = startingParameters.minValue + startingParameters.stepSize*(steps1-1);
@@ -43,15 +43,18 @@ function simulationManager(startingParameters)
         else
             tic  
             
-            for i = 1:numSteps                                                % Calculate Values for sensitivity analysis (single variable)
+            for i = 1:numSteps                                              % Calculate Values for sensitivity analysis (single variable)
                 minValue(i) = startingParameters.minValue + startingParameters.stepSize*(i-1);
                 steps = numSteps;
             end
         end
         
-        writeToLogfile('parfor loop started');
+        if sensitivityID2 ~= 0                                              % Change step size for one or two used variables (-1 when two variables are used)
+            steps = steps -1;
+        end
         
-        parfor i = 1:steps-1
+        writeToLogfile('parfor loop started');
+        parfor i = 1:steps
             result(i) = Vehiclesim_Endurance_GUI_Version(startingParameters,minValue(i), minValue2(i), sensitivityID, sensitivityID2);
         end
         
