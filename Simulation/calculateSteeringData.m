@@ -4,7 +4,7 @@
 % By Eric Dornieden / Patrick Siuta, Baltic Racing
 % Copyright (C) 2021, Baltic Racing, all rights reserved.
 
-function [delta, beta, psi1, alpha_f, alpha_r, alpha_fr, alpha_fl, alpha_rr, alpha_rl ] = calculateSteeringData(wheelbase, R, lr, lf, vV, FWZ_fl, FWZ_rl,FWZ_fr,FWZ_rr)
+function [delta, beta, psi1, alpha_f, alpha_r, alpha_fr, alpha_fl, alpha_rr, alpha_rl] = calculateSteeringData(wheelbase, R, lr, lf, vV, FWZ_fl, FWZ_rl, FWZ_fr, FWZ_rr)
     
     %% Check corner direction (left / right corner)
     if R > 0
@@ -33,13 +33,13 @@ function [delta, beta, psi1, alpha_f, alpha_r, alpha_fr, alpha_fl, alpha_rr, alp
     
     alpha_fl = (FWZ_fl/FWZ_rl)*alpha_f;                 %[degree] Slipangle front left
 
-    if FWZ_fr/FWZ_rr >1                                 %[degree] Slipangle rear right
+    if FWZ_fr/FWZ_rr >1                                     % [degree] Slipangle rear right
         alpha_rr = ((1/(FWZ_fr/FWZ_rr))*alpha_r);
     else
         alpha_rr = ((1-(FWZ_fr/FWZ_rr))*alpha_r);        
     end
 
-    if FWZ_fl/FWZ_rl >1                                 %[degree] Slipangle rear left
+    if FWZ_fl/FWZ_rl >1                                     % [degree] Slipangle rear left
         alpha_rl = ((1/(FWZ_fl/FWZ_rl))*alpha_r);
     else
         alpha_rl = ((1-(FWZ_fl/FWZ_rl))*alpha_r);        

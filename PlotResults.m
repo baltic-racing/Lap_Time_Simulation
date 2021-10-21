@@ -360,9 +360,9 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                 case 6
                     % Tire load front
                     figure(saveID*10000 + runID*100 + 6)
-                    FWZ_vl = result1(runID).FWZ_vl(:);
-                    FWZ_vr = result1(runID).FWZ_vr(:);
-                    plot(s,FWZ_vl,s,FWZ_vr)
+                    FWZ_fl = result1(runID).FWZ_fl(:);
+                    FWZ_fr = result1(runID).FWZ_fr(:);
+                    plot(s,FWZ_fl,s,FWZ_fr)
                     title('Tireloads front')
                     xlabel('Track Length [m]','FontSize',10)
                     ylabel('Tireload [N]','FontSize',10)
@@ -373,9 +373,9 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                 case 7
                     % Tire load rear
                     figure(saveID*10000 + runID*100 + 7)
-                    FWZ_hl = result1(runID).FWZ_hl(:);
-                    FWZ_hr = result1(runID).FWZ_hr(:);
-                    plot(s,FWZ_hl,s,FWZ_hr)
+                    FWZ_rl = result1(runID).FWZ_rl(:);
+                    FWZ_rr = result1(runID).FWZ_rr(:);
+                    plot(s,FWZ_rl,s,FWZ_rr)
                     title('Tireload rear')
                     xlabel('Track Length [m]','FontSize',10)
                     ylabel('Tireload [N]','FontSize',10)

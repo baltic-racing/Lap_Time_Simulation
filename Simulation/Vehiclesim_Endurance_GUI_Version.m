@@ -686,7 +686,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
                     sim.vV(i+1) = sim.vAPEXmax(sim.z);                         % [m/s] Total vehicle speed 
                 end
                 
-                if sim.vV(i+1) < min(sim.vAPEXmax) && ismember(i,sim.BrakeIndexes)
+                if ismember(i,sim.BrakeIndexes) && sim.vV(i+1) < min(sim.vAPEXmax)
                     sim.vV(i+1) = min(sim.vAPEXmax);
                 elseif sim.vV(i+1) > sim.vWoBrake(i+1)
                     sim.vV(i+1) = sim.vWoBrake(i+1);
