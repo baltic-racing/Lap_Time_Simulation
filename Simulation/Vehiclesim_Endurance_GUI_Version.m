@@ -702,6 +702,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
                 end
                 
                 % Latschl�ngen f�r L�ngsschlupfberechnung nach Carter
+                % (WRONG USE FVX for each wheel wrong formula for front wheels!)
                 sim.FU_fl(i) = sim.FVX(i)/2-setup.k_R*sim.FWZ_fl(i+1)-sim.FB_fl(i);   % [N] Umfangskr�fte an einem Hinterrad
                 sim.FU_fr(i) = sim.FVX(i)/2-setup.k_R*sim.FWZ_fr(i+1)-sim.FB_fr(i);   % [N] Umfangskr�fte an einem Hinterrad
                 sim.FU_rl(i) = sim.FVX(i)/2-setup.k_R*sim.FWZ_rl(i+1)-sim.FB_rl(i);   % [N] Umfangskr�fte an einem Hinterrad
