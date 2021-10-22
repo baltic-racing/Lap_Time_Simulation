@@ -19,7 +19,7 @@ function PlotSensitivity(resultFile, xparam, yparam, dots, zparam, resx, resy)
     
     switch xparam  
         case 1
-            x_axis = [result1.t_ges];
+            x_axis = [result1.t_tot];
             xlabelText = 'lap time [s]';
         case 2
             x_axis = [result1.A];
@@ -139,7 +139,7 @@ function PlotSensitivity(resultFile, xparam, yparam, dots, zparam, resx, resy)
     
     switch yparam  
         case 1
-            y_axis = [result1.t_ges];
+            y_axis = [result1.t_tot];
             ylabelText = 'lap time [s]';
         case 2
             y_axis = [result1.A];
@@ -260,7 +260,7 @@ function PlotSensitivity(resultFile, xparam, yparam, dots, zparam, resx, resy)
     if nargin == 7
         switch zparam  
             case 1
-                z_axis = [result1.t_ges];
+                z_axis = [result1.t_tot];
                 zlabelText = 'lap time [s]';
             case 2
                 z_axis = [result1.A];

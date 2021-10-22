@@ -19,7 +19,7 @@ function [FR, FL, Fdr, FVY, aVX, aVY] = calculateVehicleResistancesForces(k_R, F
         Fdr = FR + FL;                              % [N] Total resistance (Gesamtwiderstand)
         FVY = m_tot*vV^2/R;                         % [N] Centrifugal force (Zentrifugalkraft)
         
-        % Check if rpm limiter is reached if so don't accelerate further
+        % Check if rpm limiter is reached and no braking is applied if so don't accelerate further
         if rpm >= n_Mmax && FB <= 0
             aVX = 0;
         else

@@ -36,7 +36,7 @@ function [BrakeIndexes, NonBrakeApexes, vRev] = calculateBrakepoints(FB_in, Trac
 
                     %[~, FL(j-1), Fdr(j-1), FVY(j-1), ~, ~] = calculateVehicleResistancesForces(k_R, FG, rho_L, vRev(j), c_w, A_S, m_tot, R(j), FVX(j), FVX_f(j), c_d_DRS, DRS_status(j-1), rpmpointer, n_Mmax, FB_fl(i), FB_fr(i), FB_rl(i), FB_rr(i));
 
-                    Faero(j-1) = calculateAeroforce(downforce_multiplier, c_l, A_S, rho_L, vRev(j), ConstantDownforce, c_l_DRS, DRS_status(j-1));   % [N] Aerodynamic force
+                    Faero(j-1) = calculateAeroforce(downforce_multiplier, c_l, A_S, rho_L, vRev(j), ConstantDownforce, c_l_DRS, 0);   % [N] Aerodynamic force
                     FR(j-1) = k_R*(FG+Faero(j-1));                                              % [N] Rolling Resistance
                     FL(j-1) = rho_L*vRev(j)^2/2*c_d*A_S;                                      % [N] Air resistance
                     Fdr(j-1) = FR(j-1)+FL(j-1);                                                 % [N] Overall Resistance 

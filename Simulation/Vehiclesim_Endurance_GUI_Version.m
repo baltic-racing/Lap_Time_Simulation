@@ -53,7 +53,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
 
     %% Initalise DRS   
     for i = 1:length(R)
-        if R(i) > setup.DRS_Radius && setup.DRS
+        if abs(R(i)) > setup.DRS_Radius && setup.DRS
             sim.DRS_status(i) = 1;
         else
             sim.DRS_status(i) = 0;
@@ -349,7 +349,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
             sim.FWZ_rr_stat = sim.FWZ_rr(1);
             
             % Calculate Skidpad Time and Speed
-            [sim.t_skidpad, sim.vV_skidpad] = calculateSkidPad(setup.downforce_multiplier, setup.c_l, setup.A, sim.rho_L, setup.ConstantDownforce, setup.c_l_DRS, sim.DRS_status(i), setup.m_ges, setup.lr, setup.lf, setup.wheelbase, setup.track, setup.aero_ph, setup.aero_pv, setup.h_cog, GAMMA, TIRparam, sim.FWZ_fl_stat, sim.FWZ_fr_stat, sim.FWZ_rl_stat, sim.FWZ_rr_stat);
+            [sim.t_skidpad, sim.vV_skidpad] = calculateSkidPad(setup.downforce_multiplier, setup.c_l, setup.A, sim.rho_L, setup.ConstantDownforce, setup.c_l_DRS, 0, setup.m_ges, setup.lr, setup.lf, setup.wheelbase, setup.track, setup.aero_ph, setup.aero_pv, setup.h_cog, GAMMA, TIRparam, sim.FWZ_fl_stat, sim.FWZ_fr_stat, sim.FWZ_rl_stat, sim.FWZ_rr_stat);
             
             %% Calculation of the maximum apex speed for all apexes (numerically) (Berechnen der maximalen Kurvengeschwindigkeiten f�r alle Apexes (numerisch))
             for i = 1:length(sim.ApexIndexes)
@@ -360,15 +360,15 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
                 sim.FWYmax_r(i) = 0.1;      % [N] Start/Initial value of maximum transmissible rear axle lateral force (Startwert maximal �bertragbare Querkraft Hinterachse)
                 sim.vV(i) = 0;              % [m/s] Start/Initial value of vehicle speed (Startwert Fahrzeuggeschwindigkeit)
 
-                while  sim.FWYf(i) < sim.FWYmax_f(i) && sim.FWYr(i) < sim.FWYmax_r(i) && sim.vV(i) < 40
+                while  sim.FWYf(i) < sim.FWYmax_f(i) && sim.FWYr(i) < sim.FWYmax_r(i) && sim.vV(i) < 40 % ToDo: replace with max speed in last gear
 
-                    sim.vV(i) = sim.vV(i) + 0.01;   % [m/s] Increaing vehicle speed (Erh�hen der Fahrzeuggeschwindigkeit)
+                    sim.vV(i) = sim.vV(i) + 0.01;   % [m/s] Increaing vehicle speed (Erhoehen der Fahrzeuggeschwindigkeit)
               
                     sim.Faero(i) = calculateAeroforce(setup.downforce_multiplier, setup.c_l, setup.A, sim.rho_L, sim.vV(i), setup.ConstantDownforce, setup.c_l_DRS, sim.DRS_status(sim.ApexIndexes(i))); % [N] Aerodynamic force
 
                     sim.FVY(i) = setup.m_ges*sim.vV(i)^2/R(sim.ApexIndexes(i));    % [N] Centrifugal force (Zentrifugalkraft)
 
-                    %aVY(i) = vV(i)^2/R(sim.ApexIndexes(i));  % [m/s�] Lateral acceleration (Querbeschleunigung)
+                    %aVY(i) = vV(i)^2/R(sim.ApexIndexes(i));  % [m/s^2] Lateral acceleration (Querbeschleunigung)
 
                     % Lateral forces to be applied on front and rear axle (Aufzubringende Querkr�fte an Vorder- und Hinterachse)
                     sim.FWYf(i) = setup.lr/setup.wheelbase*abs(sim.FVY(i));   % [N] Lateral force to be applied to the front axle (Aufzubringende Querkraft der Vorderachse)
@@ -480,11 +480,18 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
                 if ismember(i,sim.ApexIndexes)
                     if sim.vV(i) > sim.vAPEXmax(sim.z)   % Limiting maximum speeds at apexes (Begrenzen auf maximale Kurvengeschwindigkeit in Apexes)
                         sim.vV(i) = sim.vAPEXmax(sim.z);
+                        sim.ni(i) = sim.vV(i) * 30 / pi * sim.gr(sim.gear) * sim.i_G / ((sim.Rdyn_rr(i)+sim.Rdyn_rl(i))/2);
                     end
                     sim.z = sim.z + 1;
                 end
-
-                sim.vV(i+1) = sqrt(sim.vV(i)^2+2*sim.aVX(i)*(s(i+1)-s(i))); % [m/s] Total vehicle speed (Gesamt-Fahrzeuggeschwindigkeit)
+                
+                if sim.ni(i) == setup.n_max && sim.aVX(i) == 0
+                    sim.vV(i+1) = (setup.n_max * pi * ((sim.Rdyn_rr(i)+sim.Rdyn_rl(i))/2)) / (30 * sim.gr(sim.gear) * sim.i_G);
+                    %sim.vV(i+1) = (setup.n_max * pi * R0) / (30 * sim.gr(sim.gear) * sim.i_G);
+                else
+                    sim.vV(i+1) = sqrt(sim.vV(i)^2+2*sim.aVX(i)*(s(i+1)-s(i))); % [m/s] Total vehicle speed (Gesamt-Fahrzeuggeschwindigkeit)
+                end
+                
                 sim.t(i+1) = sim.t(i)+(s(i+1)-s(i))/sim.vV(i+1);            % [s] Time (Zeit)
 
                 % Lateral forces to be applied on front and rear axles (Aufzubringende Querkr�fte an Vorder- und Hinterachse)
@@ -583,11 +590,16 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
                     [sim.ni(i), sim.gear, sim.t_x] = calculateGearbox(setup.gearbox, setup.idleRPM, setup.n_shift, setup.n_downshift, sim.vV(i), sim.gr, sim.gear, sim.Rdyn_rl(i), sim.Rdyn_rr(i), sim.i_G, setup.n_max, sim.t_x);      % Calculates Gearbox data and rpm
                 end 
 
-                [sim.Faero(i)] = calculateAeroforce(setup.downforce_multiplier, setup.c_l, setup.A, sim.rho_L, sim.vV(i), setup.ConstantDownforce, setup.c_l_DRS, sim.DRS_status(i)); % [N] Aerodynamic force
+                
                 
                %% Braking
                 % Checking if braking is required (Pr�fen, ob gebremst werden muss)
                 if ismember(i,sim.BrakeIndexes) && not(ismember(sim.z,sim.NonBrakeApexes))                      % Initiaion of braking process (Einleiten des Bremsvorgangs)     
+                    
+                    [sim.Faero(i)] = calculateAeroforce(setup.downforce_multiplier, setup.c_l, setup.A, sim.rho_L, sim.vV(i), setup.ConstantDownforce, setup.c_l_DRS, 0); % [N] Aerodynamic force
+                    
+                    sim.DRS_status(i) = 0;
+                    
                     % Braking 
                     sim.Mi(i) = 0;                                    % [Nm] Motor torque (Motormoment)
                     sim.BPPsignal(i) = 1;                             % [-] Brake signal (Bremssignal)
@@ -613,6 +625,8 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
                     [sim.FB_fl(i), sim.FB_fr(i), sim.FB_rl(i), sim.FB_rr(i), ~, sim.BrakeBias(i), sim.ABS(i)] = calculateDeceleration(sim.FB(i), setup.m_ges, sim.Fdr(i), sim.FWXmax_fl(i), sim.FWXmax_fr(i), sim.FWXmax_rl(i), sim.FWXmax_rr(i), setup.brakeBias_setup);
                 else
                 %% Accelerating 
+                
+                    [sim.Faero(i)] = calculateAeroforce(setup.downforce_multiplier, setup.c_l, setup.A, sim.rho_L, sim.vV(i), setup.ConstantDownforce, setup.c_l_DRS, sim.DRS_status(i)); % [N] Aerodynamic force
                 
                     sim.Mi(i) = interp1(sim.n,sim.M,sim.ni(i),'linear','extrap'); % [Nm] Motor torque (single motor!)
                     sim.FB(i) = 0;                                    % [N] Braking force
@@ -674,10 +688,15 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
                 end
 
                 % Driving resistances (Fahrwiderst�nde) & Vehicle (Fahrzeug)
-                [sim.FR(i), sim.FL(i), sim.Fdr(i), sim.FVY(i), sim.aVX(i), sim.aVY(i)] = calculateVehicleResistancesForces(setup.k_R, sim.FWZtot(i), sim.rho_L, sim.vV(i), setup.c_w, setup.A, setup.m_ges, R(i), sim.FVX(i), sim.FVX_f(i), setup.c_d_DRS, sim.DRS_status(i), sim.rpmpointer, setup.n_max, sim.FB_fl(i), sim.FB_fr(i), sim.FB_rl(i), sim.FB_rr(i));
-
+                [sim.FR(i), sim.FL(i), sim.Fdr(i), sim.FVY(i), sim.aVX(i), sim.aVY(i)] = calculateVehicleResistancesForces(setup.k_R, sim.FWZtot(i), sim.rho_L, sim.vV(i), setup.c_w, setup.A, setup.m_ges, R(i), sim.FVX(i), sim.FVX_f(i), setup.c_d_DRS, sim.DRS_status(i), sim.rpmpointer, setup.n_max, sim.FB_fl(i), sim.FB_fr(i), sim.FB_rl(i), sim.FB_rr(i));    
+                
                 % [m/s] Total vehicle speed (Gesamt-Fahrzeuggeschwindigkeit)
-                sim.vV(i+1) = sqrt(sim.vV(i)^2+2*sim.aVX(i)*(s(i+1)-s(i)));     
+                if sim.ni(i) == setup.n_max && sim.aVX(i) == 0
+                    sim.vV(i+1) = (setup.n_max * pi * ((sim.Rdyn_rr(i)+sim.Rdyn_rl(i))/2)) / (30 * sim.gr(sim.gear) * sim.i_G);
+                    %sim.vV(i+1) = (setup.n_max * pi * R0) / (30 * sim.gr(sim.gear) * sim.i_G);
+                else
+                    sim.vV(i+1) = sqrt(sim.vV(i)^2+2*sim.aVX(i)*(s(i+1)-s(i))); % [m/s] Total vehicle speed (Gesamt-Fahrzeuggeschwindigkeit)
+                end
 
                 % ToDo Check vehicle speed before applying brakes 
                 % Limit Braking before Apex if car is allready slower than
