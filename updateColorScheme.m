@@ -468,16 +468,15 @@ function updateColorScheme(app)
     app.Panel_2.ForegroundColor = app.OnSurfaceColor;
     app.Panel_2.BorderType = app.BorderType;
 
-    app.DropDownLabel.FontColor = app.OnPrimaryColor;
     app.DropDown.BackgroundColor = app.SurfaceColor;
     app.DropDown.FontColor = app.OnSurfaceColor;
 
     app.LoadReplayButton.BackgroundColor = app.PrimaryVariantColor;
     app.LoadReplayButton.FontColor = app.OnPrimaryColor;
 
-    app.LapNumberSpinnerLabel.FontColor = app.OnPrimaryColor;
-    app.LapNumberSpinner.BackgroundColor = app.SurfaceColor;
-    app.LapNumberSpinner.FontColor = app.OnSurfaceColor;
+    app.RunNumberSpinnerLabel.FontColor = app.OnPrimaryColor;
+    app.RunNumberSpinner.BackgroundColor = app.SurfaceColor;
+    app.RunNumberSpinner.FontColor = app.OnSurfaceColor;
 
     app.UIAxes3.Title.Color = app.OnPrimaryColor;
     app.UIAxes3.XColor = app.OnPrimaryColor;
