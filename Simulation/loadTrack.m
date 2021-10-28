@@ -8,7 +8,7 @@ function [x_Track, y_Track, z_Track, s, R, Track, ApexIndexes, lapLength] = load
 %% Loads the track for the simulation    
 
     % DEBUG!
-    expandData = 0;
+    expandData = 1;
         
     % Loads all the track variables from the Trackfile
     load(TrackFileName,'Track')

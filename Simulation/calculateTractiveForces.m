@@ -4,7 +4,7 @@
 % By Eric Dornieden, Baltic Racing
 % Copyright (C) 2021, Baltic Racing, all rights reserved.
 
-function [FVX_fl, FVX_fr, FVX_rl, FVX_rr, FVX_r, FVX_f, TC_f, TC_r, t_x] = calculateTractiveForces(Mi, num_motors, i_G, gr, Rdyn_fl, Rdyn_fr, Rdyn_rl, Rdyn_rr, t_x, gear, FWXmax_f, FWXmax_r, t_shift)
+function [FVX_fl, FVX_fr, FVX_rl, FVX_rr, FVX_r, FVX_f, TC_f, TC_r, t_x] = calculateTractiveForces(Mi, num_motors, i_G, gr, Rdyn_fl, Rdyn_fr, Rdyn_rl, Rdyn_rr, t_x, gear, FWXmax_f, FWXmax_r, t_shift, FWYmax_f, FWYmax_r, FWYf, FWYr)
     % Calculation of tractive forces 
     if t_x == 0 || t_x >= t_shift
         if num_motors == 4
@@ -37,10 +37,16 @@ function [FVX_fl, FVX_fr, FVX_rl, FVX_rr, FVX_r, FVX_f, TC_f, TC_r, t_x] = calcu
 
         if FVX_r > FWXmax_r                                 % Limiting the tractive force to the traction limit rear axle
             FVX_r = FWXmax_r;
-            TC_r = 1;                                       % Traction control "on" (Traktionskontrolle "an")
+            TC_r = 1;                                       % Traction control "on" (Traktionskontrolle "an")    
         else
             TC_r = 0;
         end
+        
+%         if abs(FWYf) > abs(FWYmax_f) || abs(FWYr) > abs(FWYmax_r)                              % FWYmax_f, FWYmax_r, FWYf, FWYr
+%             FVX_r = 0;
+%             FVX_rl = 0;
+%             FVX_rr = 0;
+%         end
         
         if t_x >= t_shift                                   % Reset t_x if higher than shift time
             t_x = 0;

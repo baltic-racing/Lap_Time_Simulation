@@ -149,6 +149,9 @@ function updateColorScheme(app)
     
     app.StyleSettingsButton.BackgroundColor = app.PrimaryVariantColor;
     app.StyleSettingsButton.FontColor = app.OnPrimaryColor;  
+    
+    app.FSGRulesButton.BackgroundColor = app.PrimaryVariantColor;
+    app.FSGRulesButton.FontColor = app.OnPrimaryColor; 
 
     app.Image.ImageSource = app.Host_Logo;
 
@@ -295,6 +298,10 @@ function updateColorScheme(app)
     app.ClearButton.FontColor = app.OnPrimaryColor;
 
     app.LogCellDataCheckBox.FontColor = app.OnPrimaryColor;
+    
+    app.TrackDataOptimizationSpinnerLabel.FontColor = app.OnPrimaryColor;
+    app.TrackDataOptimizationSpinner.FontColor = app.OnPrimaryColor;
+    app.TrackDataOptimizationSpinner.BackgroundColor = app.PrimaryColor;
 
     app.UIAxes2.Title.Color = app.OnPrimaryColor;
     app.UIAxes2.XColor = app.OnPrimaryColor;
@@ -467,13 +474,37 @@ function updateColorScheme(app)
     app.Panel_2.BackgroundColor = app.SurfaceColor;
     app.Panel_2.ForegroundColor = app.OnSurfaceColor;
     app.Panel_2.BorderType = app.BorderType;
-
-    app.DropDown.BackgroundColor = app.SurfaceColor;
+    
+    % Variable Dropdowns
+    app.DropDown.BackgroundColor = app.PrimaryColor;
     app.DropDown.FontColor = app.OnSurfaceColor;
+    app.DropDown_2.BackgroundColor = app.PrimaryColor;
+    app.DropDown_2.FontColor = app.OnSurfaceColor;
+    app.DropDown_3.BackgroundColor = app.PrimaryColor;
+    app.DropDown_3.FontColor = app.OnSurfaceColor;
+    app.DropDown_4.BackgroundColor = app.PrimaryColor;
+    app.DropDown_4.FontColor = app.OnSurfaceColor;
+    app.DropDown_5.BackgroundColor = app.PrimaryColor;
+    app.DropDown_5.FontColor = app.OnSurfaceColor;
+    app.DropDown_6.BackgroundColor = app.PrimaryColor;
+    app.DropDown_6.FontColor  = app.OnSurfaceColor;
+    app.DropDown_7.BackgroundColor = app.PrimaryColor;
+    app.DropDown_7.FontColor = app.OnSurfaceColor;
+    app.DropDown_8.BackgroundColor = app.PrimaryColor;
+    app.DropDown_8.FontColor = app.OnSurfaceColor;
 
     app.LoadReplayButton.BackgroundColor = app.PrimaryVariantColor;
     app.LoadReplayButton.FontColor = app.OnPrimaryColor;
-
+    
+    app.PlayButton.BackgroundColor = app.PrimaryVariantColor;
+    app.PlayButton.FontColor = app.OnPrimaryColor;
+    
+    app.StopButton.BackgroundColor = app.PrimaryVariantColor;
+    app.StopButton.FontColor = app.OnPrimaryColor;
+    
+    app.BrakeLampLabel.FontColor = app.OnPrimaryColor;
+    app.DRSStatusLampLabel.FontColor = app.OnPrimaryColor;
+    
     app.RunNumberSpinnerLabel.FontColor = app.OnPrimaryColor;
     app.RunNumberSpinner.BackgroundColor = app.SurfaceColor;
     app.RunNumberSpinner.FontColor = app.OnSurfaceColor;
@@ -482,8 +513,41 @@ function updateColorScheme(app)
     app.UIAxes3.XColor = app.OnPrimaryColor;
     app.UIAxes3.YColor = app.OnPrimaryColor;
     app.UIAxes3.Color = app.SurfaceColor;
+    
+    app.UIAxes4.Title.Color = app.OnPrimaryColor;
+    app.UIAxes4.XColor = app.OnPrimaryColor;
+    app.UIAxes4.YColor = app.OnPrimaryColor;
+    app.UIAxes4.Color = app.SurfaceColor;
 
-    app.Label.FontColor = app.OnPrimaryColor;
-
-    app.Image_3.ImageSource = app.Host_Logo;
+    app.var1Label.FontColor = app.OnPrimaryColor;
+    app.var2Label.FontColor = app.OnPrimaryColor;
+    app.var3Label.FontColor = app.OnPrimaryColor;
+    app.var4Label.FontColor = app.OnPrimaryColor;
+    app.var5Label.FontColor = app.OnPrimaryColor;
+    app.var6Label.FontColor = app.OnPrimaryColor;
+    
+    app.SpeedLabel.FontColor = app.OnPrimaryColor;
+    app.GearLabel.FontColor = app.OnPrimaryColor;
+    app.RPMLabel.FontColor = app.OnPrimaryColor;
+    app.RPMLabel_2.FontColor = app.OnPrimaryColor;
+    app.TimeLabel.FontColor = app.OnPrimaryColor;
+    app.DistanceLabel.FontColor = app.OnPrimaryColor;
+    app.RadiusLabel.FontColor = app.OnPrimaryColor;
+    
+    app.Slider.FontColor = app.OnPrimaryColor;
+    app.Slider_2.FontColor = app.OnPrimaryColor;
+    
+    app.Gauge.FontColor = app.OnPrimaryColor;
+    app.Gauge.BackgroundColor = app.PrimaryColor;
+    app.Gauge_2.FontColor = app.OnPrimaryColor;
+    app.Gauge_2.BackgroundColor = app.PrimaryColor;
+    app.Gauge_3.FontColor = app.OnPrimaryColor;
+    app.Gauge_3.BackgroundColor = app.PrimaryColor;
+    app.Gauge_4.FontColor = app.OnPrimaryColor;
+    app.Gauge_4.BackgroundColor = app.PrimaryColor;
+    
+    app.RPMGauge.FontColor = app.OnPrimaryColor;
+    app.RPMGauge.BackgroundColor = app.BackgroundColor;
+    
+    app.Copyright2021BalticRacingbyEricDorniedenLabel_5.FontColor = app.OnSurfaceColor;
 end

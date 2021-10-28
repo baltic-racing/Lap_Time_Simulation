@@ -21,6 +21,10 @@ function [delta, beta, psi1, alpha_f, alpha_r, alpha_fr, alpha_fl, alpha_rr, alp
     alpha_f = 180/pi*((beta+((lf/1000) *psi1 )/vV)-delta);      % [degree] Slipangle Front (Formula 5.4 S148 / Race Car Vehicle Dynamics) 
     alpha_r = 180/pi*((lr/1000)/vV*psi1-beta);                  % [degree] Slipangle rear
     
+    if alpha_f < 1 && alpha_f > -1
+        x = 1;
+    end
+    
 %     if  delta < 0
 %        delta_fl= atan(wheelbase/(R-Track/2));                 % [degree] Steeringangle inner wheel
 %     else    
