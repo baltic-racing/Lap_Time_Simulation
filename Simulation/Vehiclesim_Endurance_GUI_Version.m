@@ -692,7 +692,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
                     sim.P_el(i) = (sim.P_tractive(i)/(setup.drivetrain_eff * sim.motor_eff(i) * sim.eta_inv));      % [kW] Motor power required for tractive forces including efficiencies
                 end
 
-                % Driving resistances (Fahrwiderst�nde) & Vehicle (Fahrzeug)
+                % Driving resistances (Fahrwiderstaende) & Vehicle (Fahrzeug)
                 [sim.FR(i), sim.FL(i), sim.Fdr(i), sim.FVY(i), sim.aVX(i), sim.aVY(i)] = calculateVehicleResistancesForces(setup.k_R, sim.FWZtot(i), sim.rho_L, sim.vV(i), setup.c_w, setup.A, setup.m_ges, R(i), sim.FVX(i), sim.FVX_f(i), setup.c_d_DRS, sim.DRS_status(i), sim.rpmpointer, setup.n_max, sim.FB_fl(i), sim.FB_fr(i), sim.FB_rl(i), sim.FB_rr(i));    
                 
                 % [m/s] Total vehicle speed (Gesamt-Fahrzeuggeschwindigkeit)
@@ -725,19 +725,19 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
                     sim.E_Accu_Recu(i+1) = sim.E_Accu_Recu(i) + (sim.t(i+1)-sim.t(i)) * sim.P_Bh(i); % [J]
                 end
                 
-                % Latschl�ngen f�r L�ngsschlupfberechnung nach Carter
+                % Latschlaengen fuer Laengsschlupfberechnung nach Carter
                 % (WRONG USE FVX for each wheel wrong formula for front wheels!)
-                sim.FU_fl(i) = sim.FVX(i)/2-setup.k_R*sim.FWZ_fl(i+1)-sim.FB_fl(i);   % [N] Umfangskr�fte an einem Hinterrad
-                sim.FU_fr(i) = sim.FVX(i)/2-setup.k_R*sim.FWZ_fr(i+1)-sim.FB_fr(i);   % [N] Umfangskr�fte an einem Hinterrad
-                sim.FU_rl(i) = sim.FVX(i)/2-setup.k_R*sim.FWZ_rl(i+1)-sim.FB_rl(i);   % [N] Umfangskr�fte an einem Hinterrad
-                sim.FU_rr(i) = sim.FVX(i)/2-setup.k_R*sim.FWZ_rr(i+1)-sim.FB_rr(i);   % [N] Umfangskr�fte an einem Hinterrad
+                sim.FU_fl(i) = sim.FVX(i)/2-setup.k_R*sim.FWZ_fl(i+1)-sim.FB_fl(i);   % [N] Umfangskraefte an einem Hinterrad
+                sim.FU_fr(i) = sim.FVX(i)/2-setup.k_R*sim.FWZ_fr(i+1)-sim.FB_fr(i);   % [N] Umfangskraefte an einem Hinterrad
+                sim.FU_rl(i) = sim.FVX(i)/2-setup.k_R*sim.FWZ_rl(i+1)-sim.FB_rl(i);   % [N] Umfangskraefte an einem Hinterrad
+                sim.FU_rr(i) = sim.FVX(i)/2-setup.k_R*sim.FWZ_rr(i+1)-sim.FB_rr(i);   % [N] Umfangskraefte an einem Hinterrad
                 
-                sim.l_contact_patch_fl(i) = sim.FWZ_fl(i)/(p_infl*bW);   % [m] Latschl�nge vorne links
-                sim.l_contact_patch_fr(i) = sim.FWZ_fr(i)/(p_infl*bW);   % [m] Latschl�nge vorne rechts
-                sim.l_contact_patch_rl(i) = sim.FWZ_rl(i)/(p_infl*bW);   % [m] Latschl�nge hinten links
-                sim.l_contact_patch_rr(i) = sim.FWZ_rr(i)/(p_infl*bW);   % [m] Latschl�nge hinten rechts
+                sim.l_contact_patch_fl(i) = sim.FWZ_fl(i)/(p_infl*bW);   % [m] Latschlaenge vorne links
+                sim.l_contact_patch_fr(i) = sim.FWZ_fr(i)/(p_infl*bW);   % [m] Latschlaenge vorne rechts
+                sim.l_contact_patch_rl(i) = sim.FWZ_rl(i)/(p_infl*bW);   % [m] Latschlaenge hinten links
+                sim.l_contact_patch_rr(i) = sim.FWZ_rr(i)/(p_infl*bW);   % [m] Latschlaenge hinten rechts
 
-                % L�ngsschlupf nach Carter
+                % Laengsschlupf nach Carter
                 sim.my0 = 2;    % [-] Haftreibungsbeiwert   
                 sim.kappa_fl(i) = sim.l_contact_patch_fl(i)/(2*sim.Rdyn_fl(i))*sim.my0*(setup.wheelbase-sqrt(1-sim.FU_fl(i)/(sim.my0*sim.FWZ_fl(i))));
                 sim.kappa_fr(i) = sim.l_contact_patch_fr(i)/(2*sim.Rdyn_fr(i))*sim.my0*(setup.wheelbase-sqrt(1-sim.FU_fr(i)/(sim.my0*sim.FWZ_fr(i))));
@@ -750,10 +750,10 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
 
                 sim.E_Accu(i+1) = sim.E_Accu(i) + (sim.t(i+1)-sim.t(i)) * sim.P_el(i); % [J] 
                 sim.E_heat(i+1) = sim.E_heat(i) + (sim.P_el(i)-sim.P_tractive(i)) * (sim.t(i+1)-sim.t(i));
-                %E_Waerme(i+1) = P_el(i)*(1-M_eff_inter(i))+(E_Akku(i) + (t(i+1)-t(i)))*(1-eta_inv);    % [J] Motor losses + 5% for inverter losses; Drivetrain losses with heat (Motorverluste + 5% flat f�r inverterverlsute % Drivetrain Verluste auch W�rme)
+                %E_Waerme(i+1) = P_el(i)*(1-M_eff_inter(i))+(E_Akku(i) + (t(i+1)-t(i)))*(1-eta_inv);    % [J] Motor losses + 5% for inverter losses; Drivetrain losses with heat (Motorverluste + 5% flat fuer inverterverlsute % Drivetrain Verluste auch Waerme)
 
 
-                % Lateral forces on front and rear axle (Querkr�fte an Vorder- und Hinterachse)
+                % Lateral forces on front and rear axle (Querkraefte an Vorder- und Hinterachse)
                 sim.FWYf(i) = setup.lr/setup.wheelbase*sim.FVY(i);   % [N] Lateral force to be applied to the front axle (Aufzubringende Querkraft der Vorderachse)
                 sim.FWYr(i) = setup.lf/setup.wheelbase*sim.FVY(i);   % [N] Lateral force to be applied to the rear axle (Aufzubringende Querkraft der Hinterachse)
 
@@ -765,10 +765,10 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
                    sim.slipY_r(i) = 1;  
                 end
 
-                 % Wheel load transfer due to aerodynamic forces (Radlastverlagerung in Folge von Aerokr�ften)        
+                 % Wheel load transfer due to aerodynamic forces (Radlastverlagerung in Folge von Aerokraeften)        
                  [sim.dFWZrl_aero(i), sim.dFWZrr_aero(i), sim.dFWZfl_aero(i), sim.dFWZfr_aero(i)] = calculateAeroforceOnWheels(sim.Faero(i), setup.aero_ph, setup.aero_pv);
 
-                 % Dynamic wheel load displacements in longitudinal direction (Dynamische Radlastverlagerungen in L�ngsrichtung)       
+                 % Dynamic wheel load displacements in longitudinal direction (Dynamische Radlastverlagerungen in Laengsrichtung)       
                  [sim.dFWZfl_x(i), sim.dFWZfr_x(i), sim.dFWZrl_x(i), sim.dFWZrr_x(i)] = calculateWheelloadLongDisp(setup.h_cog, setup.m_ges, sim.aVX(i), setup.wheelbase);
 
                  % Dynamic wheel load displacements in lateral direction (Dynamische Radlastverlagerung in Querrichtung)  
@@ -823,10 +823,10 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
 %                 %Akkustr�me
 %                 V_i(i) = sum(Voltage_Cellpack(:,i));
 % 
-%                 % Battery Currents (Akkustr�me)
+%                 % Battery Currents (Akkustroeme)
 %                 A_accu_cell(i) = P_el(i) / V_i(i) / ncells_parallel;  
 % 
-%                 Current_Cellpack_Pointer(i) = P_M(i) / V_i(i) *10 ; %Strombelastung eines %er Parrallel Paketes in 0,1A parameter f�r die berechnung der korrigierten belastung mit h�hren verlusten durch h�here zellstr�me
+%                 Current_Cellpack_Pointer(i) = P_M(i) / V_i(i) *10 ; %Strombelastung eines %er Parrallel Paketes in 0,1A parameter fuer die berechnung der korrigierten belastung mit hoehren verlusten durch hoehere zellstroeme
 %                 if Current_Cellpack_Pointer(i) <= 1
 %                     Current_Cellpack_Pointer(i)=1;
 %                 end
@@ -835,7 +835,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
 %                     Current_Cellpack_Pointer(i)=1500;
 %                 end
 % 
-%                 VirtualCurrent_Cellpack(i) = CorrectedDischargeInterpolated(1,round(Current_Cellpack_Pointer(i))); %Berechnung der Virtuell h�heren zellstr�me basierend auf den h�heren verlsuten durch h�here Str�me
+%                 VirtualCurrent_Cellpack(i) = CorrectedDischargeInterpolated(1,round(Current_Cellpack_Pointer(i))); %Berechnung der Virtuell hoeheren zellstr�me basierend auf den h�heren verlsuten durch h�here Str�me
 % 
 %                 Energy_Cellpack(i) = (VirtualCurrent_Cellpack(i)*(t(i+1)-t(i))) - ((P_Bh(i)/V_i(i))*(t(i+1)-t(i))) ; %Energieverbrauch in As f�r ein 5erpacket an akkuzellen -> Akkustrom zum zeitpunkt i mal Zeitdifferenz zwischen i und i+1
 %                 Energy_Cellpack_Total(i+1) = Energy_Cellpack_Total(i) + Energy_Cellpack(i); % �ber Endurance Run Integrierte Energieverbrauch in As f�r ein 5erpacket an akkuzellen

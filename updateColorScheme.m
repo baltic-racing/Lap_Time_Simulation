@@ -477,21 +477,34 @@ function updateColorScheme(app)
     
     % Variable Dropdowns
     app.DropDown.BackgroundColor = app.PrimaryColor;
-    app.DropDown.FontColor = app.OnSurfaceColor;
+    %app.DropDown.FontColor = app.OnSurfaceColor;
     app.DropDown_2.BackgroundColor = app.PrimaryColor;
-    app.DropDown_2.FontColor = app.OnSurfaceColor;
+    %app.DropDown_2.FontColor = app.OnSurfaceColor;
     app.DropDown_3.BackgroundColor = app.PrimaryColor;
-    app.DropDown_3.FontColor = app.OnSurfaceColor;
+    %app.DropDown_3.FontColor = app.OnSurfaceColor;
     app.DropDown_4.BackgroundColor = app.PrimaryColor;
-    app.DropDown_4.FontColor = app.OnSurfaceColor;
+    %app.DropDown_4.FontColor = app.OnSurfaceColor;
     app.DropDown_5.BackgroundColor = app.PrimaryColor;
-    app.DropDown_5.FontColor = app.OnSurfaceColor;
+    %app.DropDown_5.FontColor = app.OnSurfaceColor;
     app.DropDown_6.BackgroundColor = app.PrimaryColor;
-    app.DropDown_6.FontColor  = app.OnSurfaceColor;
+    %app.DropDown_6.FontColor  = app.OnSurfaceColor;
     app.DropDown_7.BackgroundColor = app.PrimaryColor;
     app.DropDown_7.FontColor = app.OnSurfaceColor;
     app.DropDown_8.BackgroundColor = app.PrimaryColor;
     app.DropDown_8.FontColor = app.OnSurfaceColor;
+    app.DropDown_9.BackgroundColor = app.PrimaryColor;
+    app.DropDown_9.FontColor = app.OnSurfaceColor;
+    app.DropDown_10.BackgroundColor = app.PrimaryColor;
+    app.DropDown_10.FontColor = app.OnSurfaceColor;
+    app.DropDown_11.BackgroundColor = app.PrimaryColor;
+    app.DropDown_11.FontColor = app.OnSurfaceColor;
+    app.DropDown_12.BackgroundColor = app.PrimaryColor;
+    app.DropDown_12.FontColor = app.OnSurfaceColor;
+    app.DropDown_13.BackgroundColor = app.PrimaryColor;
+    app.DropDown_13.FontColor = app.OnSurfaceColor;
+    app.DropDown_14.BackgroundColor = app.PrimaryColor;
+    app.DropDown_14.FontColor = app.OnSurfaceColor;
+
 
     app.LoadReplayButton.BackgroundColor = app.PrimaryVariantColor;
     app.LoadReplayButton.FontColor = app.OnPrimaryColor;
@@ -519,12 +532,18 @@ function updateColorScheme(app)
     app.UIAxes4.YColor = app.OnPrimaryColor;
     app.UIAxes4.Color = app.SurfaceColor;
 
-    app.var1Label.FontColor = app.OnPrimaryColor;
-    app.var2Label.FontColor = app.OnPrimaryColor;
-    app.var3Label.FontColor = app.OnPrimaryColor;
-    app.var4Label.FontColor = app.OnPrimaryColor;
-    app.var5Label.FontColor = app.OnPrimaryColor;
-    app.var6Label.FontColor = app.OnPrimaryColor;
+%     app.var1Label.FontColor = app.OnPrimaryColor;
+%     app.var2Label.FontColor = app.OnPrimaryColor;
+%     app.var3Label.FontColor = app.OnPrimaryColor;
+%     app.var4Label.FontColor = app.OnPrimaryColor;
+%     app.var5Label.FontColor = app.OnPrimaryColor;
+%     app.var6Label.FontColor = app.OnPrimaryColor;
+    app.var7Label.FontColor = app.OnPrimaryColor;
+    app.var8Label.FontColor = app.OnPrimaryColor;
+    app.var9Label.FontColor = app.OnPrimaryColor;
+    app.var10Label.FontColor = app.OnPrimaryColor;
+    app.var11Label.FontColor = app.OnPrimaryColor;
+    app.var12Label.FontColor = app.OnPrimaryColor;
     
     app.SpeedLabel.FontColor = app.OnPrimaryColor;
     app.GearLabel.FontColor = app.OnPrimaryColor;
@@ -536,15 +555,18 @@ function updateColorScheme(app)
     
     app.Slider.FontColor = app.OnPrimaryColor;
     app.Slider_2.FontColor = app.OnPrimaryColor;
+
+    app.LowerLimitEditFieldLabel.FontColor = app.OnPrimaryColor;
+    app.LowerLimitEditField.BackgroundColor = app.SurfaceColor;
+    app.LowerLimitEditField.FontColor = app.OnSurfaceColor;
     
-    app.Gauge.FontColor = app.OnPrimaryColor;
-    app.Gauge.BackgroundColor = app.PrimaryColor;
-    app.Gauge_2.FontColor = app.OnPrimaryColor;
-    app.Gauge_2.BackgroundColor = app.PrimaryColor;
-    app.Gauge_3.FontColor = app.OnPrimaryColor;
-    app.Gauge_3.BackgroundColor = app.PrimaryColor;
-    app.Gauge_4.FontColor = app.OnPrimaryColor;
-    app.Gauge_4.BackgroundColor = app.PrimaryColor;
+    app.UpperLimitEditField_2Label.FontColor = app.OnPrimaryColor;
+    app.UpperLimitEditField.BackgroundColor = app.SurfaceColor;
+    app.UpperLimitEditField.FontColor = app.OnSurfaceColor;
+
+    app.AutoCheckBox.FontColor = app.OnSurfaceColor;
+
+    app.DrawApexesCheckBox.FontColor = app.OnSurfaceColor;
     
     app.RPMGauge.FontColor = app.OnPrimaryColor;
     app.RPMGauge.BackgroundColor = app.BackgroundColor;
