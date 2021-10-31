@@ -10,6 +10,9 @@ function [runNumber, result] = initalizeSimulationReplay(app)
         [file_run_3, path] = uigetfile('*.mat');                                    % Load the file name of the selected save file.
 
         result = load(path+"/"+file_run_3, '-mat');                               % open the .mat file with the given name.
+
+        cla(app.UIAxes3);                                                   % Clear UIAxes when loading a new save file
+        cla(app.UIAxes4);
         
         try        
             size(result(1).Track);
