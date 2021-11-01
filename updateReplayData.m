@@ -54,4 +54,17 @@ function updateReplayData(app, runNumber, result)
     
     delete(app.xline);
     app.xline = xline(app.UIAxes4,ind,'r');
+    
+    throttle = result(runNumber).P_M/max(result(runNumber).P_M);
+    brake = result(runNumber).FB/max(result(runNumber).FB);
+
+    pedalInputs = [brake(ind)*100 throttle(ind)*100];
+
+    ytips2 = [10 10];
+    labels2 = string(app.pedalPlot(1).YData);
+    app.pedalLabel = text(app.UIAxes5, [1 2],ytips2,labels2,'HorizontalAlignment','center','FontSize',10);
+    
+    refreshdata(app.UIAxes5,'caller');
+    drawnow;
+
 end

@@ -14,6 +14,8 @@ function [runNumber, result] = initalizeSimulationReplay(app)
         cla(app.UIAxes3);                                                   % Clear UIAxes when loading a new save file
         cla(app.UIAxes4);
         
+        drawPedalPlots(app);
+
         try        
             size(result(1).Track);
             app.RunNumberSpinner.Enable = 'off';
@@ -126,5 +128,33 @@ function [runNumber, result] = initalizeSimulationReplay(app)
     %catch error
         %writeToLogfile(error.message);                                             % Write error message to log file.
     %end
+end
+
+function drawPedalPlots(app)
+    X = categorical({'Brake','Throttle'});
+    
+    brake = 0;
+    throttle = 0;
+    pedalInputs = [brake throttle];
+    
+    c = bar(app.UIAxes5, X,[100,100],'FaceColor','flat');
+    c(1).CData = [1 1 1; 1 1 1];
+    
+    hold(app.UIAxes5,'on');
+    
+    app.pedalPlot = bar(app.UIAxes5,X, pedalInputs,'FaceColor','flat');
+    app.pedalPlot.YDataSource = 'pedalInputs';
+    
+    app.pedalPlot(1).CData = [1 0 0; 0 1 0];
+    ylim([0 100])
+    ax = gca;
+    disableDefaultInteractivity(ax)
+    axis off
+
+    xtips2 = app.pedalPlot(1).XEndPoints;
+    ytips2 = [10 10];
+    labels2 = string(app.pedalPlot(1).YData);
+    delete(app.pedalLabel);
+    app.pedalLabel = text(app.UIAxes5, xtips2,ytips2,labels2,'HorizontalAlignment','center','FontSize',10);
 end
 
