@@ -51,11 +51,9 @@ function updateLiveReplay(app, runNumber, result, ind)
     throttle = result(runNumber).P_M/max(result(runNumber).P_M);
     brake = result(runNumber).FB/max(result(runNumber).FB);
 
-    pedalInputs = [brake(ind)*100 throttle(ind)*100];
+    pedalInputs = [round(brake(ind)*100,0) round(throttle(ind)*100,0)];
     delete(app.pedalLabel);
-
-    labels2 = string(b(1).YData);
-    app.pedalLabel = text(app.UIAxes5, [1 2],[10 10],labels2,'HorizontalAlignment','center','FontSize',10);
+    app.pedalLabel = text(app.UIAxes5, [1 2],[10 10],strsplit(num2str(pedalInputs)),'HorizontalAlignment','center','FontSize',10);
     
     refreshdata(app.UIAxes5,'caller');
 

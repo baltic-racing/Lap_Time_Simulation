@@ -36,7 +36,21 @@ function [delta, beta, psi1, alpha_f, alpha_r, alpha_fr, alpha_fl, alpha_rr, alp
     alpha_fr = (FWZ_fr/FWZ_rr)*alpha_f;                     % [degree] Slipangle front right
     
     alpha_fl = (FWZ_fl/FWZ_rl)*alpha_f;                     % [degree] Slipangle front left
+    
+    %% Check fr and fl @PatrickSiuta
+    if FWZ_fr/FWZ_rr >1                                     % [degree] Slipangle rear right
+        alpha_fr = ((1/(FWZ_fr/FWZ_rr))*alpha_f);
+    else
+        alpha_fr = ((1-(FWZ_fr/FWZ_rr))*alpha_f);        
+    end
 
+    if FWZ_fl/FWZ_rl >1                                     % [degree] Slipangle rear right
+        alpha_fl = ((1/(FWZ_fl/FWZ_rl))*alpha_f);
+    else
+        alpha_fl = ((1-(FWZ_fl/FWZ_rl))*alpha_f);        
+    end
+    
+    %% rr and rl
     if FWZ_fr/FWZ_rr >1                                     % [degree] Slipangle rear right
         alpha_rr = ((1/(FWZ_fr/FWZ_rr))*alpha_r);
     else
