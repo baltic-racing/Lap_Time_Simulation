@@ -128,6 +128,10 @@ function [runNumber, result] = initalizeSimulationReplay(app)
     %catch error
         %writeToLogfile(error.message);                                             % Write error message to log file.
     %end
+    
+%         axes(handles.axes1);
+%         y = imread('SteeringWheel1.png');
+%         imshow(app.UIAxes6)
 end
 
 function drawPedalPlots(app)
@@ -142,18 +146,18 @@ function drawPedalPlots(app)
     
     hold(app.UIAxes5,'on');
     
-    app.pedalPlot = bar(app.UIAxes5,X, pedalInputs,'FaceColor','flat');
-    app.pedalPlot.YDataSource = 'pedalInputs';
+    pedalPlot = bar(app.UIAxes5,X, pedalInputs,'FaceColor','flat');
+    pedalPlot.YDataSource = 'pedalInputs';
     
-    app.pedalPlot(1).CData = [1 0 0; 0 1 0];
+    pedalPlot(1).CData = [1 0 0; 0 1 0];
     ylim([0 100])
     ax = gca;
     disableDefaultInteractivity(ax)
     axis off
 
-    xtips2 = app.pedalPlot(1).XEndPoints;
+    xtips2 = pedalPlot(1).XEndPoints;
     ytips2 = [10 10];
-    labels2 = string(app.pedalPlot(1).YData);
+    labels2 = string(pedalPlot(1).YData);
     delete(app.pedalLabel);
     app.pedalLabel = text(app.UIAxes5, xtips2,ytips2,labels2,'HorizontalAlignment','center','FontSize',10);
 end

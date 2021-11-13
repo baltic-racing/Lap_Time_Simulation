@@ -21,7 +21,7 @@ function updateReplayData(app, runNumber, result)
     app.GearLabel.Text = "Gear: " + num2str(result(runNumber).gearSelection(ind));   % Update Current Speed Label
     app.RPMLabel.Text = "RPM: " + num2str(round(result(runNumber).ni(ind)));   % Update Current Speed Label
     app.TimeLabel.Text = "Time: " + num2str(result(runNumber).t(ind)) + " s";   % Update Current Speed Label
-    app.DistanceLabel.Text = "Distance: " + num2str(result(runNumber).Track(ind,4)) + " m";   % Update Current Speed Label
+    app.DistanceLabel.Text = "Distance: " + num2str(round(result(runNumber).Track(ind,4),2)) + " m";   % Update Current Speed Label
     app.RadiusLabel.Text = "Radius: " + num2str(round(result(runNumber).Track(ind,5),2)) + " m";   % Update Current Speed Label
 
     app.RPMGauge.Value = result(runNumber).ni(ind);
