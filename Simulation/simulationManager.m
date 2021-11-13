@@ -18,7 +18,7 @@ function simulationManager(startingParameters)
         sensitivityID2 = 0;
     end
     
-    if numSteps > 1 && sensitivityID ~= 0                                   % Use parfor for sensitivity analysis
+    if numSteps > 1 && sensitivityID ~= "0"                                   % Use parfor for sensitivity analysis
 
         startingParameters.textAreaHandle = 0;
         startingParameters.processDataButtonHandle = 0;
@@ -55,7 +55,7 @@ function simulationManager(startingParameters)
         
         writeToLogfile('parfor loop started');
         parfor i = 1:steps
-            result(i) = Vehiclesim_Endurance_GUI_Version(startingParameters,minValue(i), minValue2(i), sensitivityID, sensitivityID2);
+            result(i) = Vehiclesim_Endurance_GUI_Version(startingParameters, minValue(i), minValue2(i), sensitivityID, sensitivityID2);
         end
         
         writeToLogfile(['parfor loop finished time: ' num2str(toc) ' s']);

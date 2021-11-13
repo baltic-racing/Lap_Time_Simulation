@@ -80,6 +80,11 @@ function sim = initializeStartValues(sim, FB, Track, ApexIndexes)
     sim.slipY_r = zeros(1,trackLength);
     sim.t = zeros(1,trackLength-1);
 
+    sim.alpha_fr = zeros(1,length(Track)-1);
+    sim.alpha_rl = zeros(1,length(Track)-1);
+    sim.alpha_rr = zeros(1,length(Track)-1);
+    sim.alpha_rl = zeros(1,length(Track)-1);
+
     sim.l_contact_patch_fl = zeros(1,trackLength);
     sim.l_contact_patch_fr = zeros(1,trackLength);
     sim.l_contact_patch_rl = zeros(1,trackLength);

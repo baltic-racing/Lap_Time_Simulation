@@ -411,9 +411,7 @@ function PlotSensitivity(resultFile, xparam, yparam, dots, zparam, resx, resy)
         else
             plot(x_axis,y_axis)
         end
-    end
-    
-    
+    end    
     
     title('Sensitvity Analysis','FontSize',12)
     xlabel(xlabelText,'FontSize',10)
