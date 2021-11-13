@@ -1,8 +1,7 @@
 function updateLiveReplay(app, runNumber, result, ind)
-
+    tic
     delete(app.pointHandle2)                 % Deletes previous pointHandle
-            
-    hold(app.UIAxes3,'on')
+              
     x = result.Track(ind,1);
     y = result.Track(ind,2);
     app.pointHandle2 = plot(app.UIAxes3, x, y, 'Marker', 'o', 'LineWidth',5,'MarkerSize',11,'Color','r');   % Creates pointHandle (marks selected point from UITable in the UIAxes)
@@ -50,12 +49,15 @@ function updateLiveReplay(app, runNumber, result, ind)
 
     throttle = result(runNumber).P_M/max(result(runNumber).P_M);
     brake = result(runNumber).FB/max(result(runNumber).FB);
-
+    
     pedalInputs = [round(brake(ind)*100,0) round(throttle(ind)*100,0)];
     delete(app.pedalLabel);
     app.pedalLabel = text(app.UIAxes5, [1 2],[10 10],strsplit(num2str(pedalInputs)),'HorizontalAlignment','center','FontSize',10);
     
-    refreshdata(app.UIAxes5,'caller');
+    if (ind > 1 && (round(brake(ind)*100,0) ~= round(brake(ind-1)*100,0) || round(throttle(ind)*100,0) ~= round(throttle(ind-1)*100,0)))
+        refreshdata(app.UIAxes5,'caller');
+    end
 
     drawnow limitrate;
+    toc
 end

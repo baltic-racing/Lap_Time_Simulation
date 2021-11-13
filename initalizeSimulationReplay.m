@@ -14,8 +14,6 @@ function [runNumber, result] = initalizeSimulationReplay(app)
         cla(app.UIAxes3);                                                   % Clear UIAxes when loading a new save file
         cla(app.UIAxes4);
         
-        drawPedalPlots(app);
-
         try        
             size(result(1).Track);
             app.RunNumberSpinner.Enable = 'off';
@@ -25,14 +23,22 @@ function [runNumber, result] = initalizeSimulationReplay(app)
             app.RunNumberSpinner.Limits = [1 size(result, 2)];   
             app.RunNumberSpinner.Enable = 'on';
         end
-              
+
         runNumber = app.RunNumberSpinner.Value; 
+
+%         for i=1:length(result(runNumber).Track(:,1))
+%             M(i) = recordPedalPlot(app, i, runNumber, result);
+%         end
+
+        drawPedalPlots(app)
 
         if app. DarkModeCheckBox.Value                                               % Check if Dark Mode is active, if so plot line in white else plot line in black.
             plot(app.UIAxes3,result(runNumber).Track(:,1),result(runNumber).Track(:,2),'w')       % Plot Track in white.
         else
             plot(app.UIAxes3,result(runNumber).Track(:,1),result(runNumber).Track(:,2),'k')       % Plot Track in black.
         end
+
+        
 
         title(app.UIAxes3,'','FontSize',12);                                        % Set the title of the UIAxes to an empty String
         app.UIAxes2.LineWidth = 1.5;                                                % Set the Line width of the plot
@@ -160,5 +166,36 @@ function drawPedalPlots(app)
     labels2 = string(pedalPlot(1).YData);
     delete(app.pedalLabel);
     app.pedalLabel = text(app.UIAxes5, xtips2,ytips2,labels2,'HorizontalAlignment','center','FontSize',10);
+end
+
+function [frame] = recordPedalPlot(app, i, runNumber, result)
+    X = categorical({'Brake','Throttle'});
+    
+    throttle = result(runNumber).P_M/max(result(runNumber).P_M);
+    brake = result(runNumber).FB/max(result(runNumber).FB);
+
+    pedalInputs = [round(brake(i)*100,0) round(throttle(i)*100,0)];
+    
+    c = bar(app.UIAxes5, X,[100,100],'FaceColor','flat');
+    c(1).CData = [1 1 1; 1 1 1];
+    
+    hold(app.UIAxes5,'on');
+    
+    pedalPlot = bar(app.UIAxes5,X, pedalInputs,'FaceColor','flat');
+    pedalPlot.YDataSource = 'pedalInputs';
+    
+    pedalPlot(1).CData = [1 0 0; 0 1 0];
+    ylim([0 100])
+    ax = gca;
+    disableDefaultInteractivity(ax)
+    axis off
+
+%     xtips2 = pedalPlot(1).XEndPoints;
+%     ytips2 = [10 10];
+%     labels2 = string(pedalPlot(1).YData);
+%     delete(app.pedalLabel);
+%     app.pedalLabel = text(app.UIAxes5, xtips2,ytips2,labels2,'HorizontalAlignment','center','FontSize',10);
+
+    frame = getframe;
 end
 
