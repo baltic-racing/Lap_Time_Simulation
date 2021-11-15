@@ -56,7 +56,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
     setup.aero_ph = 1-setup.aero_pv;
 
     setup.lf = setup.x_cog-setup.x_va;     
-%    setup.lf = setup.wheelbase*setup.m_ph/100;                            % [mm] Distance from front axle to CoG (Abstand Vorderachse zu Fahrzeugschwerpunkt)
+    %setup.lf = setup.wheelbase*setup.m_ph/100;                            % [mm] Distance from front axle to CoG (Abstand Vorderachse zu Fahrzeugschwerpunkt)
     setup.lr = setup.wheelbase-setup.lf;                                  % [mm] Distance from rear axle to CoG (Abstand Hinterachse zu Fahrzeugschwerpunkt)
 
     %% Initalise DRS   
@@ -150,12 +150,19 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
 
     % Axle and wheel loads (static) ((Statische) Achs- und Radlasten)
     sim.FWZtot(1) = sim.FG;                 % [N] Static total axle load (Statische Gesamtachslast)
+    
     sim.FWZr(1) = setup.m_ph/100*sim.FWZtot(1);   % [N] Static rear axle load (Statische Achslast hinten)
     sim.FWZf(1) = sim.FWZtot(1)-sim.FWZr(1);    % [N] Static front axle load (Statische Achslast vorne)
+
     sim.FWZ_fr(1) = sim.FWZf(1)/2;          % [N] Static front right wheel load (Statische Radlast vorne rechts)  
     sim.FWZ_fl(1) = sim.FWZf(1)/2;          % [N] Static front left wheel load (Statische Radlast vorne links)
     sim.FWZ_rr(1) = sim.FWZr(1)/2;          % [N] Static rear right wheel load (Statische Radlast hinten rechts)
     sim.FWZ_rl(1) = sim.FWZr(1)/2;          % [N] Static rear left wheel load (Statische Radlast hinten links)
+    % Static tire loads for calculation
+    sim.FWZ_fl_stat = sim.FWZ_fl(1); 
+    sim.FWZ_fr_stat = sim.FWZ_fr(1);
+    sim.FWZ_rl_stat = sim.FWZ_rl(1);
+    sim.FWZ_rr_stat = sim.FWZ_rr(1);  
 
     % Interpolated vertical tire stiffness (Vertikale Reifensteifigkeiten interpoliert) 
     [sim.cZ_fl(1), sim.cZ_fr(1), sim.cZ_rl(1), sim.cZ_rr(1)] = calculateVtirestiff(Fz, cZ_tire, sim.FWZ_fl(1), sim.FWZ_fr(1), sim.FWZ_rl(1), sim.FWZ_rr(1));
@@ -165,12 +172,6 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
 
     sim.FWXmax_r(1) = Inf;
 
-    % Static tire loads for calculation
-    sim.FWZ_fl_stat = sim.FWZ_fl(1); 
-    sim.FWZ_fr_stat = sim.FWZ_fr(1);
-    sim.FWZ_rl_stat = sim.FWZ_rl(1);
-    sim.FWZ_rr_stat = sim.FWZ_rr(1);
-    
     % Calculate Skidpad Time and Speed
     [sim.t_skidpad, sim.vV_skidpad] = calculateSkidPad(setup.downforce_multiplier, setup.c_l, setup.A, sim.rho_L, setup.ConstantDownforce, setup.c_l_DRS, 0, setup.m_ges, setup.lr, setup.lf, setup.wheelbase, setup.track, setup.aero_ph, setup.aero_pv, setup.h_cog, GAMMA, TIRparam, sim.FWZ_fl_stat, sim.FWZ_fr_stat, sim.FWZ_rl_stat, sim.FWZ_rr_stat);
     
@@ -192,7 +193,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
 
             sim.FVY(i) = setup.m_ges*sim.vV(i)^2/R(sim.ApexIndexes(i));    % [N] Centrifugal force (Zentrifugalkraft)
 
-            %aVY(i) = vV(i)^2/R(sim.ApexIndexes(i));  % [m/s^2] Lateral acceleration (Querbeschleunigung)
+            sim.aVY(i) = sim.vV(i)^2/R(sim.ApexIndexes(i));  % [m/s^2] Lateral acceleration (Querbeschleunigung)
 
             % Lateral forces to be applied on front and rear axle (Aufzubringende Querkr�fte an Vorder- und Hinterachse)
             sim.FWYf(i) = setup.lr/setup.wheelbase*abs(sim.FVY(i));   % [N] Lateral force to be applied to the front axle (Aufzubringende Querkraft der Vorderachse)
@@ -217,14 +218,14 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
             
             % Calculate delta, beta, psi1 and alpha for all wheels
             % and front / rear
-            [sim.delta(i), sim.beta(i), sim.psi1(i), sim.alpha_f(i), sim.alpha_r(i), sim.alpha_fr(i), sim.alpha_fl(i), sim.alpha_rr(i), sim.alpha_rl(i)] = calculateSteeringData(setup.wheelbase, R(sim.ApexIndexes(i)), setup.lr, setup.lf, sim.vV(i), sim.FWZ_fl(i), sim.FWZ_rl(i),sim.FWZ_fr(i),sim.FWZ_rr(i));            
+            [sim.delta(i), sim.beta(i), sim.psi1(i), sim.alpha_f(i), sim.alpha_r(i), sim.alpha_fr(i), sim.alpha_fl(i), sim.alpha_rr(i), sim.alpha_rl(i), sim.delta_fl(i), sim.delta_fr(i)] = calculateSteeringData(setup.wheelbase, R(sim.ApexIndexes(i)), setup.lr, setup.lf, sim.vV(i), sim.FWZ_fl(i), sim.FWZ_rl(i), sim.FWZ_fr(i), sim.FWZ_rr(i), setup.track);         
 
-            % Maximum transmissible tire forces in lateral direction (Maximal �bertragbare Reifenkr�fte in Querrichtung)    
+            % Maximum transmissible tire forces in lateral direction   
             [sim.FWYmax_f(i), sim.FWYmax_r(i)] = calculateLatTireforces(sim.FWZ_fl(i), sim.FWZ_fr(i), sim.FWZ_rl(i), sim.FWZ_rr(i), GAMMA, TIRparam, sim.alpha_f(i), sim.alpha_r(i));
 
         end
 
-        sim.vAPEXmax(i) = sim.vV(i);   % [m/s] Maximum speed for any apex (Maximalgeschwindigkeit f�r jede Apex)
+        sim.vAPEXmax(i) = sim.vV(i);   % [m/s] Maximum speed for any apex
     end
 
     writeToLogfile('caclculated Apex Speeds!', startingParameters.Debug, startingParameters.textAreaHandle);
@@ -242,7 +243,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
     sim.FWXmax_f(1) = 0;
     sim.FWXmax_f(1) = 0;
 
-    %% Simulation WITHOUT BRAKES (Simulation OHNE BREMSEN)
+    %% Simulation WITHOUT BRAKES
     for i = 1:length(Track)-1            
         
         if i > 1    % if i > 1 use real rpm instead of idle rpm
@@ -296,7 +297,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
         % Calculate the tractive forces on the wheels
         [sim.FVX_fl(i), sim.FVX_fr(i), sim.FVX_rl(i), sim.FVX_rr(i), sim.FVX(i), sim.FVX_f(i), sim.TC_front(i), sim.TC(i)] = calculateTractiveForces(sim.Mi(i), setup.num_motors, sim.i_G, sim.gr, sim.Rdyn_fl(i), sim.Rdyn_fr(i), sim.Rdyn_rl(i), sim.Rdyn_rr(i), sim.t_x, sim.gear, sim.FWXmax_f(i), sim.FWXmax_r(i), setup.t_shift, sim.FWYmax_f(i), sim.FWYmax_r(i), sim.FWYf(i), sim.FWYr(i));
 
-        % Driving resistances (Fahrwiderst�nde) & Vehicle (Fahrzeug)        
+        % Driving resistances      
         [sim.FR(i), sim.FL(i), sim.Fdr(i), sim.FVY(i), sim.aVX(i), sim.aVY(i)] = calculateVehicleResistancesForces(setup.k_R, sim.FWZtot(i), sim.rho_L, sim.vV(i), setup.c_w, setup.A, setup.m_ges, R(i), sim.FVX(i), sim.FVX_f(i), setup.c_d_DRS, sim.DRS_status(i), sim.rpmpointer, setup.n_max, 0, 0, 0, 0);
 
         if ismember(i,sim.ApexIndexes)
@@ -354,7 +355,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
         
         % Calculate delta, beta, psi1 and alpha for all wheels
         % and front / rear
-        [sim.delta(i+1), sim.beta(i+1), sim.psi1(i+1), sim.alpha_f(i+1), sim.alpha_r(i+1), sim.alpha_fr(i+1), sim.alpha_fl(i+1), sim.alpha_rr(i+1), sim.alpha_rl(i+1)] = calculateSteeringData(setup.wheelbase, R(i+1), setup.lr, setup.lf, sim.vV(i+1), sim.FWZ_fl(i+1), sim.FWZ_rl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rr(i+1));  
+        [sim.delta(i+1), sim.beta(i+1), sim.psi1(i+1), sim.alpha_f(i+1), sim.alpha_r(i+1), sim.alpha_fr(i+1), sim.alpha_fl(i+1), sim.alpha_rr(i+1), sim.alpha_rl(i+1), sim.delta_fl(i+1), sim.delta_fr(i+1)] = calculateSteeringData(setup.wheelbase, R(i+1), setup.lr, setup.lf, sim.vV(i+1), sim.FWZ_fl(i+1), sim.FWZ_rl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rr(i+1), setup.track);  
 
         % Vertical tire stiffnesses - for dynamic radii (Vertikale Reifensteifigkeiten)  
         [sim.cZ_fl(i+1), sim.cZ_fr(i+1), sim.cZ_rl(i+1), sim.cZ_rr(i+1)] = calculateVtirestiff(Fz, cZ_tire, sim.FWZ_fl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rl(i+1), sim.FWZ_rr(i+1));
@@ -371,9 +372,9 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
         % Maximum cornering velocity 
         sim.vVYmax(i+1) = sqrt((abs(sim.FWYmax_f(i+1))+abs(sim.FWYmax_r(i+1)))*abs(R(i+1))/setup.m_ges); % Calculating maximum possible lateral velocity with given Tire forces [m/s] (inaccuaracy because tire force is based on aero force)
         
-        if (sim.vV(i+1) > sim.vVYmax(i+1))
-            sim.vV(i+1) = sim.vVYmax(i+1);
-        end
+%         if (sim.vV(i+1) > sim.vVYmax(i+1))
+%             sim.vV(i+1) = sim.vVYmax(i+1);
+%         end
     end
     
     sim.vWoBrake = sim.vV;                                      % Save velocity without braking for log file.
@@ -622,7 +623,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
 
         % Calculate delta, beta, psi1 and alpha for all wheels
         % and front / rear
-        [sim.delta(i+1), sim.beta(i+1), sim.psi1(i+1), sim.alpha_f(i+1), sim.alpha_r(i+1), sim.alpha_fr(i+1), sim.alpha_fl(i+1), sim.alpha_rr(i+1), sim.alpha_rl(i+1)] = calculateSteeringData(setup.wheelbase, R(i+1), setup.lr, setup.lf, sim.vV(i+1), sim.FWZ_fl(i+1), sim.FWZ_rl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rr(i+1));  
+        [sim.delta(i+1), sim.beta(i+1), sim.psi1(i+1), sim.alpha_f(i+1), sim.alpha_r(i+1), sim.alpha_fr(i+1), sim.alpha_fl(i+1), sim.alpha_rr(i+1), sim.alpha_rl(i+1), sim.delta_fl(i+1), sim.delta_fr(i+1)] = calculateSteeringData(setup.wheelbase, R(i+1), setup.lr, setup.lf, sim.vV(i+1), sim.FWZ_fl(i+1), sim.FWZ_rl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rr(i+1), setup.track);  
         
         % Maximum transmissible tire forces in longitudinal direction   
         [sim.FWXmax_fl(i+1), sim.FWXmax_fr(i+1), sim.FWXmax_rl(i+1), sim.FWXmax_rr(i+1), sim.FWXmax_f(i+1), sim.FWXmax_r(i+1)] = calculateLongiTireforces(sim.FWZ_fl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rl(i+1), sim.FWZ_rr(i+1), GAMMA, TIRparam, sim.alpha_f(i+1), sim.alpha_r(i+1));
@@ -633,9 +634,9 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
         % Maximum cornering velocity
         sim.vVYmax(i+1) = sqrt((abs(sim.FWYmax_f(i+1))+abs(sim.FWYmax_r(i+1)))*abs(R(i+1))/setup.m_ges); % Calculating maximum possible lateral velocity with given Tire forces [m/s] (inaccuaracy because tire force is based on aero force)
         
-        if (sim.vV(i+1) > sim.vVYmax(i+1))
-            sim.vV(i+1) = sim.vVYmax(i+1);
-        end
+%         if (sim.vV(i+1) > sim.vVYmax(i+1))
+%             sim.vV(i+1) = sim.vVYmax(i+1);
+%         end
         
         sim.V_i(i) = sum(sim.Voltage_Cellpack(:,i));
         
@@ -678,7 +679,6 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
         try % Catch Exception when sim is empty 
             sim.Voltage_Cellpack(1:131,i+1) = Voltage_inter(sim.Current_Cellpack_Pointer_Voltage(1,i),sim.SOC_Pointer(1,i+1));
         catch
-        
         end
 
         %[Accumulator(i)] = calculateAccumulatorData(Accumulator, sim.P_el(i), sim.P_M(i), sim.P_Bh(i), sim.t, i);  

@@ -11,6 +11,14 @@ function updateReplayData(app, runNumber, result)
     end
 
     delete(app.pointHandle2)                 % Deletes previous pointHandle
+
+    if result(runNumber).ni(ind) >= result(runNumber).n_max
+        app.RPMGauge.FontColor = 'r';
+        app.RPMLabel_2.FontColor = 'r';
+    else
+        app.RPMGauge.FontColor = 'w';
+        app.RPMLabel_2.FontColor = 'w';
+    end
             
     hold(app.UIAxes3,'on')
     x = result.Track(ind,1);

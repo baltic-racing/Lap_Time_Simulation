@@ -8,6 +8,14 @@ function updateLiveReplay(app, runNumber, result, ind)
 
     %comet(app.UIAxes3, x, y, 0);
 
+    if result(runNumber).ni(ind) >= result(runNumber).n_max
+        app.RPMGauge.FontColor = 'r';
+        app.RPMLabel_2.FontColor = 'r';
+    else
+        app.RPMGauge.FontColor = 'w';
+        app.RPMLabel_2.FontColor = 'w';
+    end
+
     app.SpeedLabel.Text = "Speed: " + num2str(round(result(runNumber).vV(ind).*3.6,2)) + " km/h";   % Update Current Speed Label
     app.GearLabel.Text = "Gear: " + num2str(result(runNumber).gearSelection(ind));   % Update Current Speed Label
     app.RPMLabel.Text = "RPM: " + num2str(round(result(runNumber).ni(ind)));   % Update Current Speed Label
@@ -29,8 +37,7 @@ function updateLiveReplay(app, runNumber, result, ind)
     app.var10Label.Text = num2str(app.DropDown_12.Value(ind));
     app.var11Label.Text = num2str(app.DropDown_13.Value(ind));
     app.var12Label.Text = num2str(app.DropDown_14.Value(ind));
-   
-    
+
     if result(runNumber).DRS_status(ind)
         app.DRSStatusLamp.Color = 'green';
     else
@@ -45,17 +52,16 @@ function updateLiveReplay(app, runNumber, result, ind)
     
     delete(app.xline);
     app.xline = xline(app.UIAxes4,ind,'r');
-    
 
     throttle = result(runNumber).P_M/max(result(runNumber).P_M);
     brake = result(runNumber).FB/max(result(runNumber).FB);
-    
-    pedalInputs = [round(brake(ind)*100,0) round(throttle(ind)*100,0)];
-    delete(app.pedalLabel);
-    app.pedalLabel = text(app.UIAxes5, [1 2],[10 10],strsplit(num2str(pedalInputs)),'HorizontalAlignment','center','FontSize',10);
-    
+
+   
     if (ind > 1 && (round(brake(ind)*100,0) ~= round(brake(ind-1)*100,0) || round(throttle(ind)*100,0) ~= round(throttle(ind-1)*100,0)))
-        refreshdata(app.UIAxes5,'caller');
+        pedalInputs = [round(brake(ind)*100,0) round(throttle(ind)*100,0)];
+        delete(app.pedalLabel);
+        app.pedalLabel = text(app.UIAxes5, [1 2],[10 10],strsplit(num2str(pedalInputs)),'HorizontalAlignment','center','FontSize',10);
+        refreshdata(app.UIAxes5,'caller');      
     end
 
     drawnow limitrate;

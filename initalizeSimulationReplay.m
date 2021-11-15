@@ -38,7 +38,7 @@ function [runNumber, result] = initalizeSimulationReplay(app)
             plot(app.UIAxes3,result(runNumber).Track(:,1),result(runNumber).Track(:,2),'k')       % Plot Track in black.
         end
 
-        
+        hold(app.UIAxes3,'on');
 
         title(app.UIAxes3,'','FontSize',12);                                        % Set the title of the UIAxes to an empty String
         app.UIAxes2.LineWidth = 1.5;                                                % Set the Line width of the plot
@@ -86,7 +86,7 @@ function [runNumber, result] = initalizeSimulationReplay(app)
             'FU_fl' saveFile(runID).FU_fl(1:end); 'FU_fr' saveFile(runID).FU_fr(1:end); 'FU_rl' saveFile(runID).FU_rl(1:end); 'FU_rr' saveFile(runID).FU_rr(1:end);...
             'FWZ_fl' saveFile(runID).FWZ_fl(1:end-1); 'FWZ_fr' saveFile(runID).FWZ_fr(1:end-1); 'FWZ_rl' saveFile(runID).FWZ_rl(1:end-1); 'FWZ_rr' saveFile(runID).FWZ_rr(1:end-1);...
             'P_Bh' saveFile(runID).P_Bh(1:end-1); 'P_Mloss' saveFile(runID).P_Mloss(1:end-1); 'P_tractive' saveFile(runID).P_tractive(1:end); 't' saveFile(runID).t(1:end-1);...
-            'delta' saveFile(runID).delta(1:end-1).*(180/pi);};
+            'delta' saveFile(runID).delta(1:end-1).*(180/pi); 'delta_fl' saveFile(runID).delta_fl(1:end-1).*(180/pi); 'delta_fr' saveFile(runID).delta_fr(1:end-1).*(180/pi);};
     
         app.DropDown_14.Items = saveFileData(:,1);
         app.DropDown_14.ItemsData = saveFileData(:,2);

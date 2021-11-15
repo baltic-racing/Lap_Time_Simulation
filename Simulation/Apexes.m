@@ -11,7 +11,7 @@ ApexIndizes = [];
 
 while k < length(R)-1
     
-    if R(k-1) > R(k) && R(k+1) > R(k) && R(k) < 400
+    if R(k-1) > R(k) && R(k+1) > R(k) && R(k) < 300
         ApexIndizes = [ApexIndizes k];
     end
     

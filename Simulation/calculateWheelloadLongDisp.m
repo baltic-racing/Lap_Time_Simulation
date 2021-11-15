@@ -4,7 +4,7 @@
 % By Eric Dornieden, Baltic Racing
 % Copyright (C) 2021, Baltic Racing, all rights reserved.
 
-function [dFWZfl_x, dFWZrr_x, dFWZrl_x, dFWZfr_x] = calculateWheelloadLongDisp(h_COG, m_ges, aVX, l)
+function [dFWZfl_x, dFWZfr_x, dFWZrl_x, dFWZrr_x] = calculateWheelloadLongDisp(h_COG, m_ges, aVX, l)
 %% Dynamic wheel load displacement in longitudinal direction
 %   For calculation of wheel load transfer
 
