@@ -47,7 +47,25 @@ function updateReplayData(app, runNumber, result)
     app.var11Label.Text = num2str(app.DropDown_13.Value(ind));
     app.var12Label.Text = num2str(app.DropDown_14.Value(ind));
    
-    
+    %% Display wheel load in percent
+    FWZ_fl = result(runNumber).FWZ_fl(ind);
+    FWZ_fr = result(runNumber).FWZ_fr(ind);
+    FWZ_rl = result(runNumber).FWZ_rl(ind);
+    FWZ_rr = result(runNumber).FWZ_rr(ind);
+
+    wheelload = FWZ_fl + FWZ_fr + FWZ_rl + FWZ_rr;
+
+    percentfl = num2str(round(FWZ_fl/wheelload*100));
+    percentfr = num2str(round(FWZ_fr/wheelload*100));
+    percentrl = num2str(round(FWZ_rl/wheelload*100));
+    percentrr = num2str(round(FWZ_rr/wheelload*100));
+
+    StringW = [percentfl '      ' percentfr newline percentrl '      ' percentrr];
+
+    app.wheelloadLabel.Text = StringW;
+
+
+    %% Display DRS and Brake Status
     if result(runNumber).DRS_status(ind)
         app.DRSStatusLamp.Color = 'green';
     else

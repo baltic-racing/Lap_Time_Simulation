@@ -27,7 +27,8 @@ function loadSetup(app, file)
 
         %% Suspension Parameters
         app.wheelbase = setup.wheelbase;
-        app.track = setup.track;
+        app.track_f = setup.track_f;
+        app.track_r = setup.track_r;
         app.J_Tire = setup.J_Tire;
         app.p_Tire = setup.p_Tire;
         app.LMUX = setup.LMUX;
@@ -40,6 +41,8 @@ function loadSetup(app, file)
         app.camber = setup.camber;
         app.m_ph = setup.m_ph;
         app.brakeBias = setup.brakeBias_setup;
+        app.h_rc_f = setup.h_rc_f;
+        app.h_rc_r = setup.h_rc_r;
 
         %% Drivetrain Parameters
         app.ptype = setup.ptype;

@@ -25,7 +25,8 @@ function saveData(app)
 
         %% Suspension Parameters
         setup.wheelbase = app.wheelbase;
-        setup.track = app.track;
+        setup.track_f = app.track_f;
+        setup.track_r = app.track_r;
         setup.J_Tire = app.J_Tire;
         setup.p_Tire = app.p_Tire;
         setup.LMUX = app.LMUX;
@@ -38,6 +39,8 @@ function saveData(app)
         setup.camber = app.camber;
         setup.m_ph = app.m_ph;
         setup.brakeBias_setup = app.brakeBias;
+        setup.h_rc_f = app.h_rc_f;
+        setup.h_rc_r = app.h_rc_r;
 
         %% Drivetrain Parameters
         setup.ptype = app.ptype;

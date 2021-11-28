@@ -1,5 +1,5 @@
 function updateLiveReplay(app, runNumber, result, ind)
-    tic
+   
     delete(app.pointHandle2)                 % Deletes previous pointHandle
               
     x = result.Track(ind,1);
@@ -56,7 +56,6 @@ function updateLiveReplay(app, runNumber, result, ind)
     throttle = result(runNumber).P_M/max(result(runNumber).P_M);
     brake = result(runNumber).FB/max(result(runNumber).FB);
 
-   
     if (ind > 1 && (round(brake(ind)*100,0) ~= round(brake(ind-1)*100,0) || round(throttle(ind)*100,0) ~= round(throttle(ind-1)*100,0)))
         pedalInputs = [round(brake(ind)*100,0) round(throttle(ind)*100,0)];
         delete(app.pedalLabel);
@@ -65,5 +64,4 @@ function updateLiveReplay(app, runNumber, result, ind)
     end
 
     drawnow limitrate;
-    toc
 end

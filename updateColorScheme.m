@@ -488,8 +488,6 @@ function updateColorScheme(app)
     %app.DropDown_5.FontColor = app.OnSurfaceColor;
     app.DropDown_6.BackgroundColor = app.PrimaryColor;
     %app.DropDown_6.FontColor  = app.OnSurfaceColor;
-    app.DropDown_7.BackgroundColor = app.PrimaryColor;
-    app.DropDown_7.FontColor = app.OnSurfaceColor;
     app.DropDown_8.BackgroundColor = app.PrimaryColor;
     app.DropDown_8.FontColor = app.OnSurfaceColor;
     app.DropDown_9.BackgroundColor = app.PrimaryColor;
@@ -567,9 +565,14 @@ function updateColorScheme(app)
     app.AutoCheckBox.FontColor = app.OnSurfaceColor;
 
     app.DrawApexesCheckBox.FontColor = app.OnSurfaceColor;
+
+    app.wheelloadLabel.FontColor = app.OnSurfaceColor;
     
     app.RPMGauge.FontColor = app.OnPrimaryColor;
     app.RPMGauge.BackgroundColor = app.BackgroundColor;
+
+    app.ExportasCSVButton.BackgroundColor = app.PrimaryVariantColor;
+    app.ExportasCSVButton.FontColor = app.OnPrimaryColor;
     
     app.Copyright2021BalticRacingbyEricDorniedenLabel_5.FontColor = app.OnSurfaceColor;
 end
