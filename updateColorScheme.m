@@ -575,4 +575,19 @@ function updateColorScheme(app)
     app.ExportasCSVButton.FontColor = app.OnPrimaryColor;
     
     app.Copyright2021BalticRacingbyEricDorniedenLabel_5.FontColor = app.OnSurfaceColor;
+
+    % Plot Colors
+    app.var1Label.FontColor = app.PlotColors(1);
+    app.var2Label.FontColor = app.PlotColors(2);
+    app.var3Label.FontColor = app.PlotColors(3);
+    app.var4Label.FontColor = app.PlotColors(4);
+    app.var5Label.FontColor = app.PlotColors(5);
+    app.var6Label.FontColor = app.PlotColors(6);
+
+    app.DropDown.FontColor = app.PlotColors(1);
+    app.DropDown_2.FontColor = app.PlotColors(2);
+    app.DropDown_3.FontColor = app.PlotColors(3);
+    app.DropDown_4.FontColor = app.PlotColors(4);
+    app.DropDown_5.FontColor = app.PlotColors(5);
+    app.DropDown_6.FontColor = app.PlotColors(6);
 end

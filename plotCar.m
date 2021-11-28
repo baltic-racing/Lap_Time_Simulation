@@ -1,3 +1,9 @@
+%% plotCar.m
+% Plots the car suspension and calculates kinematic data.
+%
+% By Eric Dornieden, Baltic Racing
+% Copyright (C) 2021, Baltic Racing, all rights reserved.
+
 function plotCar(app, CallingApp)
     
     % cla old plot
@@ -240,12 +246,18 @@ function plotCar(app, CallingApp)
     KPI_f = calculateKPI(UPRI_LowPntFront, UPRI_UppPntFront);
     KPI_r = calculateKPI(UPRI_LowPntRear, UPRI_UppPntRear);
 
+    %% Calculate Caster
+    Caster_f = calculateCaster(UPRI_LowPntFront, UPRI_UppPntFront);
+    Caster_r = calculateCaster(UPRI_LowPntRear, UPRI_UppPntRear);
+
     %% Output
     app.RollCenterheightfrontLabel.Text = "Roll Center height front " + num2str(z_RC_Front) + " [mm]";
     app.RollCenterheightrearLabel.Text = "Roll Center height rear " + num2str(z_RC_Rear) + " [mm]";
     %app.RollCenterMomentRadiusLabel.Text = "Roll Center Moment Radius " + num2str(h_rc_mr) + " [mm]";
     app.KPIfrontLabel.Text = "KPI front " + num2str(KPI_f) + " [deg]";
     app.KPIrearLabel.Text = "KPI rear " + num2str(KPI_r) + " [deg]";
+    app.CasterfrontLabel.Text = "Caster front " + num2str(Caster_f) + " [deg]";
+    app.CasterrearLabel.Text = "Caster rear " + num2str(Caster_r) + " [deg]";
     
 end
 
@@ -299,4 +311,19 @@ function KPI = calculateKPI(UPRI_LowPnt, UPRI_UppPnt)
     
     %// you probably want it in degrees: 
     KPI = rad2deg(alpha);
+end
+
+function Caster = calculateCaster(UPRI_LowPnt, UPRI_UppPnt)
+    A = [0,0,0];
+    B = [0,1,0];
+    C = [0,0,1];
+
+    % normal vector to plane ABC
+    N = cross(B-A, C-A);
+    
+    % angle between plane and line, equals pi/2 - angle between UPRI_LowPnt-UPRI_UppPnt and N
+    alpha = abs( pi/2 - acos( dot(UPRI_UppPnt-UPRI_LowPnt, N)/norm(N)/norm(UPRI_UppPnt-UPRI_LowPnt) ) );
+    
+    %// you probably want it in degrees: 
+    Caster = rad2deg(alpha);
 end
