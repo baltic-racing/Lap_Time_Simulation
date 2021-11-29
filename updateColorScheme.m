@@ -503,7 +503,6 @@ function updateColorScheme(app)
     app.DropDown_14.BackgroundColor = app.PrimaryColor;
     app.DropDown_14.FontColor = app.OnSurfaceColor;
 
-
     app.LoadReplayButton.BackgroundColor = app.PrimaryVariantColor;
     app.LoadReplayButton.FontColor = app.OnPrimaryColor;
     
