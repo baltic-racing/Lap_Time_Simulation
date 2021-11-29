@@ -279,6 +279,10 @@ function plotCar(app, CallingApp, AxesObject)
     Caster_f = calculateCaster(UPRI_LowPntFront, UPRI_UppPntFront);
     Caster_r = calculateCaster(UPRI_LowPntRear, UPRI_UppPntRear);
 
+    %% Calculate Wheel Center Y
+    WheelCenterY_f = trackCamber_f/2;
+    WheelCenterY_r = trackCamber_r/2;
+
     %% Output
     app.RollCenterheightfrontLabel.Text = "Roll Center height front " + num2str(z_RC_Front) + " [mm]";
     app.RollCenterheightrearLabel.Text = "Roll Center height rear " + num2str(z_RC_Rear) + " [mm]";
@@ -343,7 +347,7 @@ function KPI = calculateKPI(UPRI_LowPnt, UPRI_UppPnt)
 end
 
 function trackCamber = calculateStaticCamberOffset(Camber, track, tireRadius)
-    trackCamber = track + (tireRadius * sin(Camber*pi/180)) / sin((90-Camber)*pi/180) * -2;
+    trackCamber = track + (tireRadius * sin(Camber*pi/180)) / sin((90-Camber)*pi/180) * 2;
 end
 
 function Caster = calculateCaster(UPRI_LowPnt, UPRI_UppPnt)
