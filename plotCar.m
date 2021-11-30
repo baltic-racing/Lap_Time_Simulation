@@ -34,12 +34,16 @@ function plotCar(app, CallingApp, AxesObject)
     
     track_f = app.TrackfrontmmEditField.Value;
     track_r = app.TrackrearmmEditField.Value;
-    
-%     h_rc_f = app.RollCenterheightfrontmmEditField.Value;
-%     h_rc_r = app.RollCenterheightrearmmEditField.Value;
-    
+
+    camber_f = app.CamberfrontEditField.Value;
+    camber_r = app.CamberrearEditField.Value;
+
+    toe_f = app.ToefrontEditField.Value;
+    toe_r = app.ToerearEditField.Value;
+
     tire_radius = app.TireradiusmmEditField.Value;
     tire_width = app.TirewidthmmEditField.Value;    
+    rim_diameter = app.RimdiametermmEditField.Value;
    
     % hold UIAxes to plot other points and lines
     hold(AxesObject,'on');
@@ -60,56 +64,11 @@ function plotCar(app, CallingApp, AxesObject)
         plot3(AxesObject,[x_fa+wheelbase; x_fa+wheelbase],[-track_r/2; track_r/2],[tire_radius tire_radius])
     end
     
-    %% Plot tires
-    teta=-pi:0.01:pi;
-    z=tire_radius*cos(teta)+tire_radius;
-    
-    % x_front
-    x_f=tire_radius*sin(teta)+x_fa;
-    
-    % x_rear
-    x_r=tire_radius*sin(teta)+x_fa+wheelbase;
-               
-    for i = 0:2:tire_width
-        % Draw front tires
-        if (app.DrawFrontTiresCheckBox.Value)
-            % FR
-            plot3(AxesObject,x_f,ones(1,numel(x_f))*track_f/2+i/2,z, 'k')
-            plot3(AxesObject,x_f,ones(1,numel(x_f))*track_f/2-i/2,z, 'k')
-        
-            % FL
-            plot3(AxesObject,x_f,ones(1,numel(x_f))*-track_f/2+i/2,z, 'k')
-            plot3(AxesObject,x_f,ones(1,numel(x_f))*-track_f/2-i/2,z, 'k')
-        end
-
-        % Draw rear tires
-        if (app.DrawRearTiresCheckBox.Value)
-            % RR
-            plot3(AxesObject,x_r,ones(1,numel(x_r))*track_r/2+i/2,z, 'k')
-            plot3(AxesObject,x_r,ones(1,numel(x_r))*track_r/2-i/2,z, 'k')
-        
-            % RL
-            plot3(AxesObject,x_r,ones(1,numel(x_r))*-track_r/2+i/2,z, 'k')
-            plot3(AxesObject,x_r,ones(1,numel(x_r))*-track_r/2-i/2,z, 'k')
-        end
-    end
-    
     axis(AxesObject, "equal");
     axis(AxesObject, 'off');
 
     %% Plot A-Arms
     %% Front Suspension
-%     CHAS_LowForFront = [388.914, -156.064, 67.743];
-%     CHAS_LowAftFront = [599.771, -153.063, 76.107];
-%     UPRI_LowPntFront = [479.410, -588.899, 73.000];
-% 
-%     CHAS_UppForFront = [395.756, -259.077, 245.545];
-%     CHAS_UppAftFront = [617.179, -287.046, 245.545];
-%     UPRI_UppPntFront = [504.310, -570.000, 295.000];
-% 
-%     CHAS_TiePntFront = [350.172, -226.166, 72.400];
-%     UPRI_TiePntFront = [435.850, -630.210, 78.825];
-
     CHAS_LowForFront = app.CHAS_LowForFront + [0, 0, zOffset];
     CHAS_LowAftFront = app.CHAS_LowAftFront + [0, 0, zOffset];
     UPRI_LowPntFront = app.UPRI_LowPntFront + [0, 0, zOffset];
@@ -122,17 +81,6 @@ function plotCar(app, CallingApp, AxesObject)
     UPRI_TiePntFront = app.UPRI_TiePntFront + [0, 0, zOffset];
 
     %% Rear Suspension
-%     CHAS_LowForRear = [1876.610, 66.501, 118.500];
-%     CHAS_LowAftRear = [2151.485, 45.485, 69.946];
-%     UPRI_LowPntRear = [2012.500, 588.422, 73.000];
-% 
-%     CHAS_UppForRear = [1881.000, 159.103, 199.991];
-%     CHAS_UppAftRear = [2134.104, 153.990, 204.054];
-%     UPRI_UppPntRear = [2012.500, 568.050, 283.000];
-% 
-%     CHAS_TiePntRear = [2171.012, 130.926, 203.734];
-%     UPRI_TiePntRear = [2085.775, 567.088, 283.240];
-
     CHAS_LowForRear = app.CHAS_LowForRear + [0, 0, zOffset];
     CHAS_LowAftRear = app.CHAS_LowAftRear + [0, 0, zOffset];
     UPRI_LowPntRear = app.UPRI_LowPntRear + [0, 0, zOffset];
@@ -283,6 +231,22 @@ function plotCar(app, CallingApp, AxesObject)
     WheelCenterY_f = trackCamber_f/2;
     WheelCenterY_r = trackCamber_r/2;
 
+    %% DEBUG
+    steeringAngle_f = 20;
+    steeringAngle_r = 0;
+
+    %% Plot front tires
+    if app.DrawFrontTiresCheckBox.Value
+        plotTires(AxesObject, tire_radius, tire_width, rim_diameter, track_f, x_fa, camber_f, toe_f, KPI_f, steeringAngle_f)
+        plotTires(AxesObject, tire_radius, tire_width, rim_diameter, -track_f, x_fa, camber_f, toe_f, KPI_f, steeringAngle_f);
+    end
+    
+    %% Plot rear tires
+    if app.DrawRearTiresCheckBox.Value
+        plotTires(AxesObject, tire_radius, tire_width, rim_diameter, track_r, x_fa+wheelbase, camber_r, toe_r, KPI_r, steeringAngle_r)
+        plotTires(AxesObject, tire_radius, tire_width, rim_diameter, -track_r, x_fa+wheelbase, camber_r, toe_r, KPI_r, steeringAngle_r)
+    end
+
     %% Output
     app.RollCenterheightfrontLabel.Text = "Roll Center height front " + num2str(z_RC_Front) + " [mm]";
     app.RollCenterheightrearLabel.Text = "Roll Center height rear " + num2str(z_RC_Rear) + " [mm]";
@@ -291,6 +255,7 @@ function plotCar(app, CallingApp, AxesObject)
     app.KPIrearLabel.Text = "KPI rear " + num2str(KPI_r) + " [deg]";
     app.CasterfrontLabel.Text = "Caster front " + num2str(Caster_f) + " [deg]";
     app.CasterrearLabel.Text = "Caster rear " + num2str(Caster_r) + " [deg]";
+
    
 end
 
@@ -361,6 +326,50 @@ function Caster = calculateCaster(UPRI_LowPnt, UPRI_UppPnt)
     % angle between plane and line, equals pi/2 - angle between UPRI_LowPnt-UPRI_UppPnt and N
     alpha = abs( pi/2 - acos( dot(UPRI_UppPnt-UPRI_LowPnt, N)/norm(N)/norm(UPRI_UppPnt-UPRI_LowPnt) ) );
     
-    %// you probably want it in degrees: 
+    % conversion rad to degree
     Caster = rad2deg(alpha);
+end
+
+function plotTires(AxesObject, tire_radius, tire_width, rim_diameter, track, xOffset, camber, toe, KPI, steeringAngle)
+
+    % Calculate R and r for given tire and rim diameter
+    r = ( tire_radius*2 - rim_diameter ) / 400;  
+    R = tire_radius*2 / 200 - r; 
+
+    u = linspace(0,2*pi,100);
+    v = linspace(0,2*pi,100);
+    
+    % Mesh the grid for the tires
+    [u,v]=meshgrid(u,v);
+    
+    %% Calculate tire coordinates
+    x = (R+r.*cos(v))*sin(u) + xOffset;
+    y = tire_width / 2.*sin(v) + track/2;
+    z = (R+r.*cos(v))*cos(u) + tire_radius;
+       
+    %% With camber
+    if track > 0 
+        camber = camber * -1;
+    end
+
+    tire = mesh(AxesObject,x,y,z,'FaceColor','#36353a','LineStyle','none','FaceLighting','gouraud');
+    rotate(tire, [1 0 0], camber, [xOffset track/2 tire_radius]);
+
+    %% With Toe
+    if track < 0 
+        toe = toe * -1;
+    end
+
+    if KPI == 0
+        toez = 0;
+    else
+        toez = sin(deg2rad(90-KPI))/sin(deg2rad(KPI));
+    end
+
+    KPIvector = [1 0 toez];
+
+    rotate(tire, KPIvector, toe, [xOffset track/2 tire_radius]);
+
+    %% With steering angle ( !! move Tie Rod and calculate angle from that !!  steering angle for left and right wheel)
+    rotate(tire, KPIvector, steeringAngle, [xOffset track/2 tire_radius]);
 end
