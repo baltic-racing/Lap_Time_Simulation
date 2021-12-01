@@ -139,7 +139,7 @@ function plotCar(app, CallingApp, AxesObject)
         fill3(AxesObject,[UPRI_LowPntRear(1), UPRI_UppPntRear(1), UPRI_TiePntRear(1)],[-UPRI_LowPntRear(2), -UPRI_UppPntRear(2), -UPRI_TiePntRear(2)],[UPRI_LowPntRear(3), UPRI_UppPntRear(3), UPRI_TiePntRear(3)],[0.9290 0.6940 0.1250]);
     end    
 
-    %% Calculate Instant Centers
+    %% Calculate Instant Centers Front view
     [X1_f,Y1_f,Z1_f,X2_f,Y2_f,Z2_f,x_IC_f,y_IC_f,z_IC_f] = calculateIC(CHAS_LowForFront, CHAS_LowAftFront, UPRI_LowPntFront, CHAS_UppForFront, CHAS_UppAftFront, UPRI_UppPntFront);
     [X1_r,Y1_r,Z1_r,X2_r,Y2_r,Z2_r,x_IC_r,y_IC_r,z_IC_r] = calculateIC(CHAS_LowForRear, CHAS_LowAftRear, UPRI_LowPntRear, CHAS_UppForRear, CHAS_UppAftRear, UPRI_UppPntRear);
 
@@ -199,6 +199,9 @@ function plotCar(app, CallingApp, AxesObject)
     [x_RC_Front,y_RC_Front,z_RC_Front] = calculateRC(X_IC1_TireGround_f-x_fa,Y_IC1_TireGround_f,Z_IC1_TireGround_f,X_IC2_TireGround_f-x_fa,Y_IC2_TireGround_f,Z_IC2_TireGround_f);
     [x_RC_Rear,y_RC_Rear,z_RC_Rear] = calculateRC(X_IC1_TireGround_r-x_ra,Y_IC1_TireGround_r,Z_IC1_TireGround_r,X_IC2_TireGround_r-x_fa,Y_IC2_TireGround_r,Z_IC2_TireGround_r);
 
+    %% Calculate Instant Centers side view
+    
+
     if (app.DrawFrontRollCenterCheckBox.Value)
         % Roll Center Front
         %scatter3(AxesObject,x_fa, 0, h_rc_f);
@@ -214,11 +217,29 @@ function plotCar(app, CallingApp, AxesObject)
     %% Roll axis
     if (app.DrawRollAxisCheckBox.Value)
         % Draw Roll axis
-        plot3(AxesObject,[x_fa; x_fa+wheelbase],[0; 0],[z_RC_Front; z_RC_Rear], 'Color', '#0288d1')
+        plot3(AxesObject,[x_fa; x_fa+wheelbase],[0; 0],[z_RC_Front; z_RC_Rear], 'Color', '#0288d1');
     end
 
-    %% Calculate Pitxch Center
+    %% Calculate Pitch Center (1 == x, 2 == y, 3 == z)
+    sideViewIC_f = calculate2DIC(CHAS_LowForFront, CHAS_LowAftFront, CHAS_UppForFront, CHAS_UppAftFront);
+    sideViewIC_r = calculate2DIC(CHAS_LowForRear, CHAS_LowAftRear, CHAS_UppForRear, CHAS_UppAftRear);
+
+    if app.DrawPitchCenterCheckBox.Value %% ( !! Change to front and rear !! )
+        %% Right Side Pitch Center ( !! Adjust Calculations when calculating with roll (left / right independent) !! )
+        scatter3(AxesObject,sideViewIC_f(1),track_f/2,sideViewIC_f(2),'filled','SizeData', 40, 'MarkerFaceColor', '#0288d1');
+        scatter3(AxesObject,sideViewIC_r(1),track_r/2,sideViewIC_r(2),'filled','SizeData', 40, 'MarkerFaceColor', '#0288d1');
     
+        plot3(AxesObject,[x_fa; sideViewIC_f(1)],[track_f/2; track_f/2],[0; sideViewIC_f(2)],'b-.');
+        plot3(AxesObject,[x_ra; sideViewIC_r(1)],[track_r/2; track_r/2],[0; sideViewIC_r(2)],'b-.');
+        
+        %% Left Side Pitch Center
+        scatter3(AxesObject,sideViewIC_f(1),-track_f/2,sideViewIC_f(2),'filled','SizeData', 40, 'MarkerFaceColor', '#0288d1');
+        scatter3(AxesObject,sideViewIC_r(1),-track_r/2,sideViewIC_r(2),'filled','SizeData', 40, 'MarkerFaceColor', '#0288d1');
+    
+        plot3(AxesObject,[x_fa; sideViewIC_f(1)],[-track_f/2; -track_f/2],[0; sideViewIC_f(2)],'b-.');
+        plot3(AxesObject,[x_ra; sideViewIC_r(1)],[-track_r/2; -track_r/2],[0; sideViewIC_r(2)],'b-.');
+    end
+
     %% Calculate KPI (Kingpin Inclination)
     KPI_f = calculateKPI(UPRI_LowPntFront, UPRI_UppPntFront);
     KPI_r = calculateKPI(UPRI_LowPntRear, UPRI_UppPntRear);
@@ -232,7 +253,7 @@ function plotCar(app, CallingApp, AxesObject)
     WheelCenterY_r = trackCamber_r/2;
 
     %% DEBUG
-    steeringAngle_f = 20;
+    steeringAngle_f = 0;
     steeringAngle_r = 0;
 
     %% Plot front tires
@@ -293,7 +314,18 @@ function [x_intersect,y_intersect,z_intersect] = calculateRC(X1,Y1,Z1,X2,Y2,Z2)
 end
 
 function [x_intersect,y_intersect,z_intersect] = calculatePC(X1,Y1,Z1,X2,Y2,Z2)
+    % Calculate the Pitch Center of the car
+    if (Y1(1) > 0)
+        Y1(1) = Y1(1) * -1;
+        Y2(1) = Y2(1) * -1;
+    end
+
+    p1 = polyfit(Y1,Z1,1);
+    p2 = polyfit(Y2,Z2,1);
     
+    y_intersect = fzero(@(x) polyval(p1-p2,x),1);
+    z_intersect = polyval(p1,y_intersect);
+    x_intersect = (X1(1)+X2(1))/2;
 end
 
 function KPI = calculateKPI(UPRI_LowPnt, UPRI_UppPnt)
@@ -312,7 +344,10 @@ function KPI = calculateKPI(UPRI_LowPnt, UPRI_UppPnt)
 end
 
 function trackCamber = calculateStaticCamberOffset(Camber, track, tireRadius)
-    trackCamber = track + (tireRadius * sin(Camber*pi/180)) / sin((90-Camber)*pi/180) * 2;
+    trackCamber = track - (tireRadius * sin(Camber*pi/180)) / sin((90-Camber)*pi/180) * 2;
+    b = abs(trackCamber - track);
+    a = abs((b*sin(deg2rad(90)))/(sin(deg2rad(Camber))));
+    rideHeightCamber = sqrt(a^2-2*a*b*cos(deg2rad(90-Camber))+b^2)/2;
 end
 
 function Caster = calculateCaster(UPRI_LowPnt, UPRI_UppPnt)
@@ -348,7 +383,7 @@ function plotTires(AxesObject, tire_radius, tire_width, rim_diameter, track, xOf
     z = (R+r.*cos(v))*cos(u) + tire_radius;
        
     %% With camber
-    if track > 0 
+    if track > 0  % Adjusts camber for left and right side tire
         camber = camber * -1;
     end
 
@@ -356,7 +391,7 @@ function plotTires(AxesObject, tire_radius, tire_width, rim_diameter, track, xOf
     rotate(tire, [1 0 0], camber, [xOffset track/2 tire_radius]);
 
     %% With Toe
-    if track < 0 
+    if track < 0  % Adjusts toe for left and right side tire
         toe = toe * -1;
     end
 
@@ -366,10 +401,29 @@ function plotTires(AxesObject, tire_radius, tire_width, rim_diameter, track, xOf
         toez = sin(deg2rad(90-KPI))/sin(deg2rad(KPI));
     end
 
-    KPIvector = [1 0 toez];
+    KPIvector = [1 0 toez]; % Vector for Kingpin Inclination
 
     rotate(tire, KPIvector, toe, [xOffset track/2 tire_radius]);
 
     %% With steering angle ( !! move Tie Rod and calculate angle from that !!  steering angle for left and right wheel)
     rotate(tire, KPIvector, steeringAngle, [xOffset track/2 tire_radius]);
+end
+
+function sideViewIC = calculate2DIC(CHAS_LowFor, CHAS_LowAft, CHAS_UppFor, CHAS_UppAft) 
+    x1 = CHAS_LowFor(1);
+    y1 = CHAS_LowFor(3);
+    x2 = CHAS_LowAft(1);
+    y2 = CHAS_LowAft(3);
+    x3 = CHAS_UppFor(1);
+    y3 = CHAS_UppFor(3);
+    x4 = CHAS_UppAft(1);
+    y4 = CHAS_UppAft(3);
+
+    p1 = polyfit([x1 x2],[y1 y2],1);
+    p2 = polyfit([x3 x4],[y3 y4],1);
+    
+    x_intersect = fzero(@(x) polyval(p1-p2,x),1);
+    z_intersect = polyval(p1,x_intersect);
+
+    sideViewIC = [x_intersect, z_intersect];
 end
