@@ -92,6 +92,15 @@ function plotCar(app, CallingApp, AxesObject)
     CHAS_TiePntRear = app.CHAS_TiePntRear + [0, 0, zOffset];
     UPRI_TiePntRear = app.UPRI_TiePntRear + [0, 0, zOffset];
 
+    %% Calculate Heave
+    Heave = 0;
+
+    % Heave Front
+    [CHAS_LowForFront, CHAS_LowAftFront, CHAS_UppForFront, CHAS_UppAftFront, CHAS_TiePntFront] = setHeave(Heave, CHAS_LowForFront, CHAS_LowAftFront, CHAS_UppForFront, CHAS_UppAftFront, CHAS_TiePntFront, UPRI_TiePntFront, UPRI_LowPntFront, UPRI_UppPntFront);
+
+    % Heave Rear
+    [CHAS_LowForRear, CHAS_LowAftRear, CHAS_UppForRear, CHAS_UppAftRear, CHAS_TiePntRear] = setHeave(Heave, CHAS_LowForRear, CHAS_LowAftRear, CHAS_UppForRear, CHAS_UppAftRear, CHAS_TiePntRear, UPRI_TiePntRear, UPRI_LowPntRear, UPRI_UppPntRear);
+
     %% Plot Front Suspension
     if (app.DrawFrontSuspensionCheckBox.Value)
         % Plot fl lower A-arm
@@ -276,7 +285,6 @@ function plotCar(app, CallingApp, AxesObject)
     app.KPIrearLabel.Text = "KPI rear " + num2str(KPI_r) + " [deg]";
     app.CasterfrontLabel.Text = "Caster front " + num2str(Caster_f) + " [deg]";
     app.CasterrearLabel.Text = "Caster rear " + num2str(Caster_r) + " [deg]";
-
    
 end
 
@@ -409,6 +417,46 @@ function plotTires(AxesObject, tire_radius, tire_width, rim_diameter, track, xOf
     rotate(tire, KPIvector, steeringAngle, [xOffset track/2 tire_radius]);
 end
 
+function adjustTieRod(steeringAngle, UPRI_TiePnt, CHAS_TiePnt, UPRI_LowPnt)
+    
+
+    A = [0,0,0];
+    B = [0,1,0];
+    C = [0,0,1];
+
+    % normal vector to plane ABC
+    N = cross(B-A, C-A);
+    
+    % angle between plane and line, equals pi/2 - angle between UPRI_LowPnt-UPRI_UppPnt and N
+    uprightAngle = abs( pi/2 - acos( dot(UPRI_TiePnt-UPRI_LowPnt, N)/norm(N)/norm(UPRI_TiePnt-UPRI_LowPnt) ) );
+
+    uprightAngle = uprightAngle + steeringAngle;
+
+    %steeringArmLength = 
+
+    CHAS_TiePnt = CHAS_TiePnt + [0 10 0];
+    UPRI_TiePnt = UPRI_TiePnt + [];    
+end
+
+function [CHAS_LowFor, CHAS_LowAft, CHAS_UppFor, CHAS_UppAft, CHAS_TiePnt] = setHeave(Heave, CHAS_LowFor, CHAS_LowAft, CHAS_UppFor, CHAS_UppAft, CHAS_TiePnt, UPRI_TiePnt, UPRI_LowPnt, UPRI_UppPnt)
+    
+    %% Chassis points movement
+    CHAS_LowFor = CHAS_LowFor + [0 0 Heave];
+    CHAS_LowAft = CHAS_LowAft + [0 0 Heave];
+    CHAS_UppFor = CHAS_UppFor + [0 0 Heave];
+    CHAS_UppAft = CHAS_UppAft + [0 0 Heave];
+    CHAS_TiePnt = CHAS_TiePnt + [0 0 Heave];
+    
+    %% Upright point movement
+
+%     UPRI_TiePnt = s
+%     UPRI_LowPnt =
+% 
+%     lengthUpperAarm = CHAS_UppFor(2) - UPRI_UppPnt(2);
+%     
+%     UPRI_UppPnt = UPRI_UppPnt *
+end
+
 function sideViewIC = calculate2DIC(CHAS_LowFor, CHAS_LowAft, CHAS_UppFor, CHAS_UppAft) 
     x1 = CHAS_LowFor(1);
     y1 = CHAS_LowFor(3);
@@ -426,4 +474,9 @@ function sideViewIC = calculate2DIC(CHAS_LowFor, CHAS_LowAft, CHAS_UppFor, CHAS_
     z_intersect = polyval(p1,x_intersect);
 
     sideViewIC = [x_intersect, z_intersect];
+end
+
+function calculate3DIC(CHAS_LowFor, CHAS_LowAft, CHAS_UppFor, CHAS_UppAft, UPRI_LowPnt, UPRI_UppPnt)
+    patch(CHAS_LowFor, CHAS_LowAft, UPRI_LowPnt)
+    patch(CHAS_UppFor, CHAS_UppAft, UPRI_UppPnt)
 end
