@@ -1,12 +1,20 @@
+%% updateLiveReplayData.m
+% Update the replay data of the Simulation Replay. 
+%
+% By Eric Dornieden, Baltic Racing
+% Copyright (C) 2021, Baltic Racing, all rights reserved.
+
 function updateLiveReplay(app, runNumber, result, ind)
+
+    if isempty(result)
+        return
+    end
    
     delete(app.pointHandle2)                 % Deletes previous pointHandle
               
     x = result.Track(ind,1);
     y = result.Track(ind,2);
     app.pointHandle2 = plot(app.UIAxes3, x, y, 'Marker', 'o', 'LineWidth',5,'MarkerSize',11,'Color','r');   % Creates pointHandle (marks selected point from UITable in the UIAxes)
-
-    %comet(app.UIAxes3, x, y, 0);
 
     if result(runNumber).ni(ind) >= result(runNumber).n_max
         app.RPMGauge.FontColor = 'r';
@@ -16,12 +24,12 @@ function updateLiveReplay(app, runNumber, result, ind)
         app.RPMLabel_2.FontColor = 'w';
     end
 
-    app.SpeedLabel.Text = "Speed: " + num2str(round(result(runNumber).vV(ind).*3.6,2)) + " km/h";   % Update Current Speed Label
-    app.GearLabel.Text = "Gear: " + num2str(result(runNumber).gearSelection(ind));   % Update Current Speed Label
-    app.RPMLabel.Text = "RPM: " + num2str(round(result(runNumber).ni(ind)));   % Update Current Speed Label
-    app.TimeLabel.Text = "Time: " + num2str(result(runNumber).t(ind)) + " s";   % Update Current Speed Label
-    app.DistanceLabel.Text = "Distance: " + num2str(round(result(runNumber).Track(ind,4),2)) + " m";   % Update Current Speed Label
-    app.RadiusLabel.Text = "Radius: " + num2str(round(result(runNumber).Track(ind,5),2)) + " m";   % Update Current Speed Label
+    app.SpeedLabel.Text = "Speed: " + num2str(round(result(runNumber).vV(ind).*3.6,2)) + " km/h";       % Update Current Speed Label
+    app.GearLabel.Text = "Gear: " + num2str(result(runNumber).gearSelection(ind));                      % Update Current Gear Label
+    app.RPMLabel.Text = "RPM: " + num2str(round(result(runNumber).ni(ind)));                            % Update Current RPM Label
+    app.TimeLabel.Text = "Time: " + num2str(result(runNumber).t(ind)) + " s";                           % Update Current Time Label
+    app.DistanceLabel.Text = "Distance: " + num2str(round(result(runNumber).Track(ind,4),2)) + " m";    % Update Current Distance Label
+    app.RadiusLabel.Text = "Radius: " + num2str(round(result(runNumber).Track(ind,5),2)) + " m";        % Update Current Radius Label
 
     app.RPMGauge.Value = result(runNumber).ni(ind);
 

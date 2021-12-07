@@ -1,11 +1,23 @@
-function updateReplayData(app, runNumber, result)
+%% updateReplayData.m
+% Update the replay data of the Simulation Replay. 
+%
+% By Eric Dornieden, Baltic Racing
+% Copyright (C) 2021, Baltic Racing, all rights reserved.
+
+function updateReplayData(app, runNumber, result, ind)
     
+    if isempty(result)
+        return
+    end
+
     val = app.Slider.Value;                                                 % Value of slider (current time)
     
-    t = result(runNumber).t;                                                % Time variable of result
-
-    ind = interp1(t,1:length(t),val,'nearest');                             % Find index of the time nearest to the time of the slider
+    t = result(runNumber).t;                                                % Time variable of result    
     
+    if nargin == 3
+        ind = interp1(t,1:length(t),val,'nearest');                             % Find index of the time nearest to the time of the slider
+    end
+
     if ind == length(t)
         ind = ind-1;
     end
