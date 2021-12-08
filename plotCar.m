@@ -5,7 +5,7 @@
 % Copyright (C) 2021, Baltic Racing, all rights reserved.
 
 function plotCar(app, CallingApp, AxesObject)
-    
+
     % Define where to plot the car
     if nargin == 2  % If only two input arguments are given use the standard object for plotting.
         AxesObject = app.UIAxes;
@@ -257,6 +257,10 @@ function plotCar(app, CallingApp, AxesObject)
     Caster_f = calculateCaster(UPRI_LowPntFront, UPRI_UppPntFront);
     Caster_r = calculateCaster(UPRI_LowPntRear, UPRI_UppPntRear);
 
+    %% Calculate Mechanical Trail
+    mechanicalTrail_f = calculateMechanicalTrail(tire_radius, Caster_f);
+    mechanicalTrail_r = calculateMechanicalTrail(tire_radius, Caster_r);
+
     %% Calculate Wheel Center Y
     WheelCenterY_f = trackCamber_f/2;
     WheelCenterY_r = trackCamber_r/2;
@@ -285,7 +289,8 @@ function plotCar(app, CallingApp, AxesObject)
     app.KPIrearLabel.Text = "KPI rear " + num2str(KPI_r) + " [deg]";
     app.CasterfrontLabel.Text = "Caster front " + num2str(Caster_f) + " [deg]";
     app.CasterrearLabel.Text = "Caster rear " + num2str(Caster_r) + " [deg]";
-   
+    app.MechanicalTrailfrontLabel.Text = "Mechanical Trail front " + num2str(mechanicalTrail_f) + " [mm]";
+    app.MechanicalTrailrearLabel.Text = "Mechanical Trail rear " + num2str(mechanicalTrail_r) + " [mm]";
 end
 
 function [X1,Y1,Z1,X2,Y2,Z2,x_intersect,y_intersect,z_intersect] = calculateIC(CHAS_LowFor, CHAS_LowAft, UPRI_LowPnt, CHAS_UppFor, CHAS_UppAft, UPRI_UppPnt)
@@ -371,6 +376,12 @@ function Caster = calculateCaster(UPRI_LowPnt, UPRI_UppPnt)
     
     % conversion rad to degree
     Caster = rad2deg(alpha);
+end
+
+function mechanicalTrail = calculateMechanicalTrail(tire_radius, Caster)
+    % Calculate the mechanical trail based on the tire radius and the
+    % caster angle of the wheel
+    mechanicalTrail = tan(deg2rad(Caster))*tire_radius;
 end
 
 function plotTires(AxesObject, tire_radius, tire_width, rim_diameter, track, xOffset, camber, toe, KPI, steeringAngle)
