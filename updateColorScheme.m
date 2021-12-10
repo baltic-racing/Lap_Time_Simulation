@@ -364,6 +364,9 @@ function updateColorScheme(app)
     app.DrawSensitivityPlotButton.FontColor = app.OnPrimaryColor;
     app.CompareRunPlotsButton.BackgroundColor = app.PrimaryVariantColor;
     app.CompareRunPlotsButton.FontColor = app.OnPrimaryColor;
+    
+    app.DataAnalysisGUIButton.BackgroundColor = app.PrimaryVariantColor;
+    app.DataAnalysisGUIButton.FontColor = app.OnPrimaryColor;
 
     app.t_lapLabel.FontColor = app.OnBackgroundColor;
     app.t_lapLabel_2.FontColor = app.OnBackgroundColor;

@@ -16,7 +16,8 @@ function [delta, beta, psi1, alpha_f, alpha_r, alpha_fr, alpha_fl, alpha_rr, alp
     % Convert rad to degree by multypling by pi/180 convert to rad by
     % multypling by 180/pi
 
-    % Lenkwinkel, Schwimmwinkel, Gierrate, Schr�glaufwinkel  
+    % Steering Angle,
+    % Angle, 
     %delta = f*atan((wheelbase/1000)/sqrt(R^2-(lr/1000)^2));     % [rad] steering angle (Lenkwinkel)
     delta = wheelbase/1000/R; %+(alpha_f-alpha_r);              % [rad] steering angle (Formula 5.5.2 p. 110 / Performance Vehicle Dynamics, James Balkwill)
     beta = f*atan((lr/1000)/sqrt(R^2-(lr/1000)^2));             % [rad] Schwimmwinkel
