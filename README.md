@@ -47,3 +47,8 @@ The simulation features many GUIs for different tasks a small selection of the d
 ![Result GUI](images/GUIResultPage.png)
 
 * Result GUI to view the results from a simulation. Allows to plot different graphs for a single run or to directly compare multiple runs. It also features buttons to open the other GUIs which can be furthermore used to analyze the data from the simulation.
+
+## Replay GUI
+![Replay GUI](images/SimulationReplayPage.png)
+
+* Replay GUI to replay simulated data. The GUI features many options to display data as for example a track map with a real time representation of the race car and has options to plot and view the values at every simulation step. Critical data such as brake status is visible at every moment using intuitive GUI elements.
