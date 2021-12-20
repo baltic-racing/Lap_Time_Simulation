@@ -36,7 +36,7 @@ The simulation features many GUIs for different tasks a small selection of the d
 ## Suspension GUI
 ![Suspension GUI](images/SuspensionGUI.png)
 
-* The Suspension GUI allows to edit the suspension setup of the race car including the input of all kinematic points. With that data important parameters for the handling of the car like roll or pitch centers are calculated automically and the complete suspension is drawn as a dynmic 3D Plot.
+* The Suspension GUI allows editing the suspension setup of the race car, including the input of all kinematic points. With that data, important parameters for the handling of the car like roll or pitch centers are calculated atomically, and the complete suspension is drawn as a dynamic 3D plot.
 
 ## Drivatrain GUI
 ![Drivetrain GUI](images/DrivetrainGUI.png)
