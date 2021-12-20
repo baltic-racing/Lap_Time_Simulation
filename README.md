@@ -18,7 +18,6 @@ Lead Developer:
 Team member:
 * Lukas Deeken
 * Danesh Umarani
-* Sarah Jäschke
 
 # Feature Overview
 
@@ -34,12 +33,22 @@ The simulation features many GUIs for different tasks a small selection of the d
 
 * GUI used to start the simulations with options to select the track, the car setup and define simulation parameters.
 
-## Result GUI
-![Result GUI](images/GUIResultPage.png)
+## Suspension GUI
+![Suspension GUI](images/SuspensionGUI.png)
 
-* Result GUI to view the results from a simulation. Allows to plot different graphs for a single run or to directly compare multiple runs. It also features buttons to open the other GUIs which can be furthermore used to analyze the data from the simulation.
+* The Suspension GUI allows editing the suspension setup of the race car, including the input of all kinematic points. With that data, important parameters for the handling of the car like roll or pitch centers are calculated atomically, and the complete suspension is drawn as a dynamic 3D plot.
 
 ## Drivatrain GUI
 ![Drivetrain GUI](images/DrivetrainGUI.png)
 
 * The different setup GUIs which can be opened from the Car Setup tab GUI allow the change of the parameters used by the simulation.
+
+## Result GUI
+![Result GUI](images/GUIResultPage.png)
+
+* Result GUI to view the results from a simulation. Allows to plot different graphs for a single run or to directly compare multiple runs. It also features buttons to open the other GUIs which can be furthermore used to analyze the data from the simulation.
+
+## Replay GUI
+![Replay GUI](images/SimulationReplayPage.png)
+
+* Replay GUI to replay simulated data. The GUI features many options to display data as for example a track map with a real time representation of the race car and has options to plot and view the values at every simulation step. Critical data such as brake status is visible at every moment using intuitive GUI elements.
