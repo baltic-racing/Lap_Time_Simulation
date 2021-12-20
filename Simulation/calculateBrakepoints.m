@@ -1,4 +1,4 @@
-function [BrakeIndexes, NonBrakeApexes, vRev] = calculateBrakepoints(FB_in, Track, ApexIndexes, vAPEXmax, m_tot, downforce_multiplier, c_l, c_d, A_S, rho_L, ConstantDownforce, c_l_DRS, DRS_status, aero_ph, aero_pv, vV, k_R, FG, h_COG, wheelbase, track_f, track_r, lr, lf, GAMMA, TIRparam, FWZ_fl_stat, FWZ_fr_stat, FWZ_rl_stat, FWZ_rr_stat, R, s, brakeBias_setup, brakeFunction)
+function [BrakeIndexes, NonBrakeApexes, vRev] = calculateBrakepoints(FB_in, Track, ApexIndexes, vAPEXmax, m_tot, downforce_multiplier, c_l, c_d, A_S, rho_L, ConstantDownforce, c_l_DRS, DRS_status, aero_ph, aero_pv, vV, k_R, FG, h_COG, wheelbase, track_f, track_r, lr, lf, GAMMA, TIRparam, FWZ_fl_stat, FWZ_fr_stat, FWZ_rl_stat, FWZ_rr_stat, R, s, brakeBias_setup, brakeFunction, h_rc_f, h_rc_r)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -61,7 +61,7 @@ function [BrakeIndexes, NonBrakeApexes, vRev] = calculateBrakepoints(FB_in, Trac
                     alpha_r(j-1) = 180/pi*((lr/1000)/vRev(j)*psi1(j-1)-beta(j-1));           % [°] Schräglaufwinkel hinten
 
                     % Dynamic wheel load displacement in lateral direction (Dynamische Radlastverlagerung in Querrichtung)
-                    [dFWZfl_y(j-1), dFWZfr_y(j-1), dFWZrl_y(j-1), dFWZrr_y(j-1)] = calculateWheelloadLatDisp(h_COG, track_f, track_r, lr, lf, wheelbase, FVY(j-1));
+                    [dFWZfl_y(j-1), dFWZfr_y(j-1), dFWZrl_y(j-1), dFWZrr_y(j-1)] = calculateWheelloadLatDisp(h_COG, track_f, track_r, lr, lf, wheelbase, FVY(j-1), h_rc_f, h_rc_r);
 
                     % Wheel loads (Radlasten)
                     FWZ_fl(j-1) = FWZ_fl_stat + dFWZfl_aero(j-1) + dFWZfl_x(j-1) + dFWZfl_y(j-1); % [N] Front left wheel load (Radlast vorne links)

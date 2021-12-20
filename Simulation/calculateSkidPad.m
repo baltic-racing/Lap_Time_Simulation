@@ -4,7 +4,7 @@
 % By Eric Dornieden, Baltic Racing
 % Copyright (C) 2021, Baltic Racing, all rights reserved.
 
-function [t_skidpad, vV_skidpad] = calculateSkidPad(downforce_multiplier, c_l, A_S, rho_L, ConstantDownforce, c_l_DRS, DRS_status, m_tot, lr, lf, wheelbase, track_f, track_r, aero_ph, aero_pv, h_COG, GAMMA, TIRparam, FWZ_fl_stat, FWZ_fr_stat, FWZ_rl_stat, FWZ_rr_stat)
+function [t_skidpad, vV_skidpad] = calculateSkidPad(downforce_multiplier, c_l, A_S, rho_L, ConstantDownforce, c_l_DRS, DRS_status, m_tot, lr, lf, wheelbase, track_f, track_r, aero_ph, aero_pv, h_COG, GAMMA, TIRparam, FWZ_fl_stat, FWZ_fr_stat, FWZ_rl_stat, FWZ_rr_stat, h_rc_f, h_rc_r)
     FWYf = 0;            % [N] Start/Initial value of front axle lateral force (Startwert Querkraft Vorderachse)
     FWYr = 0;            % [N] Start/Initial value of rear axle lateral force (Startwert Querkraft Hinterachse)
     FWYmax_f = 0.1;      % [N] Start/Initial value of maximum transmissible front axle lateral force (Startwert maximal übertragbare Querkraft Vorderachse)
@@ -35,7 +35,7 @@ function [t_skidpad, vV_skidpad] = calculateSkidPad(downforce_multiplier, c_l, A
         [dFWZfl_x, dFWZfr_x, dFWZrl_x, dFWZrr_x] = calculateWheelloadLongDisp(h_COG, m_tot, aVX, wheelbase); % Loads = 0 assumed
 
         % Dynamic wheel load displacement in lateral direction (Dynamische Radlastverlagerung in Querrichtung)
-        [dFWZfl_y, dFWZfr_y, dFWZrl_y, dFWZrr_y] = calculateWheelloadLatDisp(h_COG, track_f, track_r, lr, lf, wheelbase, FVY);
+        [dFWZfl_y, dFWZfr_y, dFWZrl_y, dFWZrr_y] = calculateWheelloadLatDisp(h_COG, track_f, track_r, lr, lf, wheelbase, FVY, h_rc_f, h_rc_r);
 
         % Wheel loads (Radlasten)
         FWZ_fl = FWZ_fl_stat + dFWZfl_aero + dFWZfl_x + dFWZfl_y; % [N] Front left wheel load (Radlast vorne links)

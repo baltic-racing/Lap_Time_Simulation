@@ -68,7 +68,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
     end     
     
     %% Environmental Conditions (Umgebungsbedingungen)
-    sim.rho_L = setup.p_L/(setup.R_L*(setup.t_L+273.15));    % [kg/m^2] Air density (p_L in bar)
+    sim.rho_L = setup.p_L/(setup.R_L*(setup.t_L+273.15));    % [kg/m^3] Air density (p_L in bar)
 
     %% Motor Data (Motordaten)
     sim.n = setup.engine_param(:,1);
@@ -174,7 +174,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
     sim.FWXmax_r(1) = Inf;
 
     % Calculate Skidpad Time and Speed
-    [sim.t_skidpad, sim.vV_skidpad] = calculateSkidPad(setup.downforce_multiplier, setup.c_l, setup.A, sim.rho_L, setup.ConstantDownforce, setup.c_l_DRS, 0, setup.m_ges, setup.lr, setup.lf, setup.wheelbase, setup.track_f, setup.track_r, setup.aero_ph, setup.aero_pv, setup.h_cog, GAMMA, TIRparam, sim.FWZ_fl_stat, sim.FWZ_fr_stat, sim.FWZ_rl_stat, sim.FWZ_rr_stat);
+    [sim.t_skidpad, sim.vV_skidpad] = calculateSkidPad(setup.downforce_multiplier, setup.c_l, setup.A, sim.rho_L, setup.ConstantDownforce, setup.c_l_DRS, 0, setup.m_ges, setup.lr, setup.lf, setup.wheelbase, setup.track_f, setup.track_r, setup.aero_ph, setup.aero_pv, setup.h_cog, GAMMA, TIRparam, sim.FWZ_fl_stat, sim.FWZ_fr_stat, sim.FWZ_rl_stat, sim.FWZ_rr_stat, setup.h_rc_f, setup.h_rc_r);
     
     %% Calculation of the maximum apex speed for all apexes (numerically) (Berechnen der maximalen Kurvengeschwindigkeiten f�r alle Apexes (numerisch))
     for i = 1:length(sim.ApexIndexes)
@@ -207,7 +207,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
             [sim.dFWZfl_x(i), sim.dFWZfr_x(i), sim.dFWZrl_x(i), sim.dFWZrr_x(i)] = calculateWheelloadLongDisp(setup.h_cog, setup.m_ges, 0, setup.wheelbase); % Loads = 0 assumed
 
             % Dynamic wheel load displacement in lateral direction (Dynamische Radlastverlagerung in Querrichtung)
-            [sim.dFWZfl_y(i), sim.dFWZfr_y(i), sim.dFWZrl_y(i), sim.dFWZrr_y(i)] = calculateWheelloadLatDisp(setup.h_cog, setup.track_f, setup.track_r, setup.lr, setup.lf, setup.wheelbase, sim.FVY(i));
+            [sim.dFWZfl_y(i), sim.dFWZfr_y(i), sim.dFWZrl_y(i), sim.dFWZrr_y(i)] = calculateWheelloadLatDisp(setup.h_cog, setup.track_f, setup.track_r, setup.lr, setup.lf, setup.wheelbase, sim.FVY(i), setup.h_rc_f, setup.h_rc_r);
 
             % Wheel loads (Radlasten)
             sim.FWZ_fl(i) = sim.FWZ_fl_stat + sim.dFWZfl_aero(i) + sim.dFWZfl_x(i) + sim.dFWZfl_y(i); % [N] Front left wheel load (Radlast vorne links)
@@ -329,7 +329,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
         [sim.dFWZfl_x(i), sim.dFWZfr_x(i), sim.dFWZrl_x(i), sim.dFWZrr_x(i)] = calculateWheelloadLongDisp(setup.h_cog, setup.m_ges, sim.aVX(i), setup.wheelbase);
 
         % Dynamic wheel load displacement in lateral direction (Dynamische Radlastverlagerung in Querrichtung)
-        [sim.dFWZfl_y(i), sim.dFWZfr_y(i), sim.dFWZrl_y(i), sim.dFWZrr_y(i)] = calculateWheelloadLatDisp(setup.h_cog, setup.track_f, setup.track_r, setup.lr, setup.lf, setup.wheelbase, sim.FVY(i));
+        [sim.dFWZfl_y(i), sim.dFWZfr_y(i), sim.dFWZrl_y(i), sim.dFWZrr_y(i)] = calculateWheelloadLatDisp(setup.h_cog, setup.track_f, setup.track_r, setup.lr, setup.lf, setup.wheelbase, sim.FVY(i), setup.h_rc_f, setup.h_rc_r);
 
         % Wheel loads (Radlasten)
         sim.FWZ_fl(i) = sim.FWZ_fl_stat + sim.dFWZfl_aero(i) + sim.dFWZfl_x(i) + sim.dFWZfl_y(i); % [N] Front left wheel load (Radlast vorne links)
@@ -385,7 +385,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
     writeToLogfile('Simulated without brakes!', startingParameters.Debug, startingParameters.textAreaHandle);
 
     %% BRAKING POINT CALCULATION (BREMSPUNKTBERECHNUNG)
-    [sim.BrakeIndexes, sim.NonBrakeApexes, sim.vRev] = calculateBrakepoints(setup.FB, Track, sim.ApexIndexes, sim.vAPEXmax, setup.m_ges, setup.downforce_multiplier, setup.c_l, setup.c_w, setup.A, sim.rho_L, setup.ConstantDownforce, setup.c_l_DRS, sim.DRS_status, setup.aero_ph, setup.aero_pv, sim.vV, setup.k_R, sim.FG, setup.h_cog, setup.wheelbase, setup.track_f, setup.track_r, setup.lr, setup.lf, GAMMA, TIRparam, sim.FWZ_fl_stat, sim.FWZ_fr_stat, sim.FWZ_rl_stat, sim.FWZ_rr_stat, R, s, setup.brakeBias_setup, startingParameters.brakeFunction);
+    [sim.BrakeIndexes, sim.NonBrakeApexes, sim.vRev] = calculateBrakepoints(setup.FB, Track, sim.ApexIndexes, sim.vAPEXmax, setup.m_ges, setup.downforce_multiplier, setup.c_l, setup.c_w, setup.A, sim.rho_L, setup.ConstantDownforce, setup.c_l_DRS, sim.DRS_status, setup.aero_ph, setup.aero_pv, sim.vV, setup.k_R, sim.FG, setup.h_cog, setup.wheelbase, setup.track_f, setup.track_r, setup.lr, setup.lf, GAMMA, TIRparam, sim.FWZ_fl_stat, sim.FWZ_fr_stat, sim.FWZ_rl_stat, sim.FWZ_rr_stat, R, s, setup.brakeBias_setup, startingParameters.brakeFunction, setup.h_rc_f, setup.h_rc_r);
 
     %% Start values for simulation WITH BRAKES
     sim.vV(1) = startingParameters.startingSpeed + 0.005;
@@ -591,7 +591,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
         [sim.dFWZfl_x(i), sim.dFWZfr_x(i), sim.dFWZrl_x(i), sim.dFWZrr_x(i)] = calculateWheelloadLongDisp(setup.h_cog, setup.m_ges, sim.aVX(i), setup.wheelbase);
 
         % Dynamic wheel load displacements in lateral direction (Dynamische Radlastverlagerung in Querrichtung)  
-        [sim.dFWZfl_y(i), sim.dFWZfr_y(i), sim.dFWZrl_y(i), sim.dFWZrr_y(i)] = calculateWheelloadLatDisp(setup.h_cog, setup.track_f, setup.track_r, setup.lr, setup.lf, setup.wheelbase, sim.FVY(i));
+        [sim.dFWZfl_y(i), sim.dFWZfr_y(i), sim.dFWZrl_y(i), sim.dFWZrr_y(i)] = calculateWheelloadLatDisp(setup.h_cog, setup.track_f, setup.track_r, setup.lr, setup.lf, setup.wheelbase, sim.FVY(i), setup.h_rc_f, setup.h_rc_r);
 
         % Wheel loads (Radlasten)
         sim.FWZ_fl(i) = sim.FWZ_fl_stat + sim.dFWZfl_aero(i) + sim.dFWZfl_x(i) + sim.dFWZfl_y(i); % [N] Front left wheel load (Radlast vorne links)

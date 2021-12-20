@@ -1,4 +1,4 @@
-%% calculateTractiveForces.m
+%% calculateWheelloadLongDisp.m
 % Function to calculate the dynamic load transfer to front or rear respectively
 %
 % By Eric Dornieden, Baltic Racing
