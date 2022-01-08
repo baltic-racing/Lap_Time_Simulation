@@ -4,7 +4,7 @@
 % By Eric Dornieden, Baltic Racing
 % Copyright (C) 2021, Baltic Racing, all rights reserved.
 
-function plotCar(app, CallingApp, AxesObject)
+function plotCar(app, CallingApp, AxesObject, params)
 
     % Define where to plot the car
     if nargin == 2  % If only two input arguments are given use the standard object for plotting.
@@ -16,6 +16,88 @@ function plotCar(app, CallingApp, AxesObject)
 
     %% Set viewing angle
     view(AxesObject, -37.5, 30);
+
+    if nargin == 4
+        drawCoG = params.drawCoG;
+
+        drawFrontUpright = params.drawFrontUpright;
+        drawRearUpright = params.drawRearUpright;
+
+        drawFrontTires = params.drawFrontTires;
+        drawRearTires = params.drawRearTires;
+
+        drawFrontWheelCenterAxis = params.drawFrontWheelCenterAxis;
+        drawRearWheelCenterAxis = params.drawRearWheelCenterAxis;
+        drawFrontRollCenter = params.drawFrontRollCenter;
+        drawRearRollCenter = params.drawRearRollCenter;
+
+        drawFrontLowerAarm = params.drawFrontLowerAarm;
+        drawFrontUpperAarm = params.drawFrontUpperAarm;
+
+        drawRearLowerAarm = params.drawRearLowerAarm;
+        drawRearUpperAarm = params.drawRearUpperAarm;
+
+        drawFrontTieRod = params.drawFrontTieRod;
+        drawRearTieRod = params.drawRearTieRod;
+
+        drawFrontInstantCenters = params.drawFrontInstantCenters;
+        drawRearInstantCenters = params.drawRearInstantCenters;
+
+        drawPitchCenter = params.drawPitchCenter;
+
+        drawRollAxis = params.drawRollAxis;
+
+        drawFrontRocker = params.drawFrontRocker;
+        drawRearRocker = params.drawRearRocker;
+        drawFrontPushPullRod = params.drawFrontPushPullRod;
+        drawRearPushPullRod = params.drawRearPushPullRod;
+        drawFrontCoilover = params.drawFrontCoilover;
+        drawRearCoilover = params.drawRearCoilover;
+
+        drawFrontARB = params.drawFrontARB;
+        drawRearARB = params.drawRearARB;
+
+        % Set view back to old view point
+        view(AxesObject, params.viewPoint);
+    else
+        drawCoG = app.DrawCoGCheckBox.Value;
+
+        drawFrontUpright = app.DrawFrontUprightCheckBox.Value;
+        drawRearUpright = app.DrawRearUprightCheckBox.Value;
+
+        drawFrontTires = app.DrawFrontTiresCheckBox.Value;
+        drawRearTires = app.DrawRearTiresCheckBox.Value;
+
+        drawFrontWheelCenterAxis = app.DrawWheelaxisCheckBox.Value;
+        drawRearWheelCenterAxis = app.DrawWheelaxisCheckBox.Value;
+        drawFrontRollCenter = app.DrawFrontRollCenterCheckBox.Value;
+        drawRearRollCenter = app.DrawRearRollCenterCheckBox.Value;
+
+        drawFrontLowerAarm = app.DrawFrontSuspensionCheckBox.Value;
+        drawFrontUpperAarm = app.DrawFrontSuspensionCheckBox.Value;
+        drawFrontTieRod = app.DrawFrontSuspensionCheckBox.Value;
+
+        drawRearLowerAarm = app.DrawRearSuspensionCheckBox.Value;
+        drawRearUpperAarm = app.DrawRearSuspensionCheckBox.Value;
+        drawRearTieRod = app.DrawRearSuspensionCheckBox.Value;
+
+        drawFrontInstantCenters = app.DrawInstantCentersFrontCheckBox.Value;
+        drawRearInstantCenters = app.DrawInstantCentersRearCheckBox.Value;
+        
+        drawPitchCenter = app.DrawPitchCenterCheckBox.Value;
+
+        drawRollAxis = app.DrawRollAxisCheckBox.Value;
+
+        drawFrontRocker = app.DrawFrontSuspensionCheckBox.Value;
+        drawRearRocker = app.DrawRearSuspensionCheckBox.Value;
+        drawFrontPushPullRod = app.DrawFrontSuspensionCheckBox.Value;
+        drawRearPushPullRod = app.DrawRearSuspensionCheckBox.Value;
+        drawFrontCoilover = app.DrawFrontSuspensionCheckBox.Value;
+        drawRearCoilover = app.DrawRearSuspensionCheckBox.Value;
+
+        drawFrontARB = app.DrawFrontSuspensionCheckBox.Value;
+        drawRearARB = app.DrawRearSuspensionCheckBox.Value;
+    end
 
     %% initlize variables
     wheelbase = app.WheelbasemmEditField.Value;
@@ -49,7 +131,7 @@ function plotCar(app, CallingApp, AxesObject)
     hold(AxesObject,'on');
     
     %% CoG
-    if (app.DrawCoGCheckBox.Value)       
+    if (drawCoG)       
         % Draw CoG
         %scatter3(AxesObject,x_cog, y_cog, z_cog);
         plot3(AxesObject,[x_cog; x_cog - 100], [0; 0], [z_cog; z_cog], 'Color', 'r');
@@ -59,8 +141,11 @@ function plotCar(app, CallingApp, AxesObject)
     
     
     %% Wheel Center axis
-    if (app.DrawWheelaxisCheckBox.Value)
+    if drawFrontWheelCenterAxis
         plot3(AxesObject,[x_fa; x_fa],[-track_f/2; track_f/2],[tire_radius tire_radius])
+    end
+
+    if drawRearWheelCenterAxis
         plot3(AxesObject,[x_fa+wheelbase; x_fa+wheelbase],[-track_r/2; track_r/2],[tire_radius tire_radius])
     end
     
@@ -80,6 +165,18 @@ function plotCar(app, CallingApp, AxesObject)
     CHAS_TiePntFront = app.CHAS_TiePntFront + [0, 0, zOffset];
     UPRI_TiePntFront = app.UPRI_TiePntFront + [0, 0, zOffset];
 
+    NSMA_PPAttPnt_L_Front = app.NSMA_PPAttPnt_L_Front + [0, 0, zOffset];
+    CHAS_AttPnt_L_Front = app.CHAS_AttPnt_L_Front + [0, 0, zOffset]; % Coilover Chassis Point
+    CHAS_RocAxi_L_Front = app.CHAS_RocAxi_L_Front + [0, 0, zOffset];
+    CHAS_RocPiv_L_Front = app.CHAS_RocPiv_L_Front + [0, 0, zOffset];
+    ROCK_RodPnt_L_Front = app.ROCK_RodPnt_L_Front + [0, 0, zOffset];
+    ROCK_CoiPnt_L_Front = app.ROCK_CoiPnt_L_Front + [0, 0, zOffset];
+
+    % ARB
+    NSMA_UBarAttPnt_L_Front = app.NSMA_UBarAttPnt_L_Front + [0, 0, zOffset];
+    UBAR_AttPnt_L_Front = app.UBAR_AttPnt_L_Front + [0, 0, zOffset];
+    CHAS_PivPnt_L_Front = app.CHAS_PivPnt_L_Front + [0, 0, zOffset];
+
     %% Rear Suspension
     CHAS_LowForRear = app.CHAS_LowForRear + [0, 0, zOffset];
     CHAS_LowAftRear = app.CHAS_LowAftRear + [0, 0, zOffset];
@@ -92,6 +189,18 @@ function plotCar(app, CallingApp, AxesObject)
     CHAS_TiePntRear = app.CHAS_TiePntRear + [0, 0, zOffset];
     UPRI_TiePntRear = app.UPRI_TiePntRear + [0, 0, zOffset];
 
+    NSMA_PPAttPnt_L_Rear = app.NSMA_PPAttPnt_L_Rear + [0, 0, zOffset];
+    CHAS_AttPnt_L_Rear = app.CHAS_AttPnt_L_Rear + [0, 0, zOffset]; % Coilover Chassis Point
+    CHAS_RocAxi_L_Rear = app.CHAS_RocAxi_L_Rear + [0, 0, zOffset];
+    CHAS_RocPiv_L_Rear = app.CHAS_RocPiv_L_Rear + [0, 0, zOffset];
+    ROCK_RodPnt_L_Rear = app.ROCK_RodPnt_L_Rear + [0, 0, zOffset];
+    ROCK_CoiPnt_L_Rear = app.ROCK_CoiPnt_L_Rear + [0, 0, zOffset];
+
+    % ARB
+    NSMA_UBarAttPnt_L_Rear = app.NSMA_UBarAttPnt_L_Rear + [0, 0, zOffset];
+    UBAR_AttPnt_L_Rear = app.UBAR_AttPnt_L_Rear + [0, 0, zOffset];
+    CHAS_PivPnt_L_Rear = app.CHAS_PivPnt_L_Rear + [0, 0, zOffset];
+
     %% Calculate Heave
     Heave = 0;
 
@@ -102,51 +211,125 @@ function plotCar(app, CallingApp, AxesObject)
     [CHAS_LowForRear, CHAS_LowAftRear, CHAS_UppForRear, CHAS_UppAftRear, CHAS_TiePntRear] = setHeave(Heave, CHAS_LowForRear, CHAS_LowAftRear, CHAS_UppForRear, CHAS_UppAftRear, CHAS_TiePntRear, UPRI_TiePntRear, UPRI_LowPntRear, UPRI_UppPntRear);
 
     %% Plot Front Suspension
-    if (app.DrawFrontSuspensionCheckBox.Value)
+    if drawFrontLowerAarm
         % Plot fl lower A-arm
         plot3(AxesObject,[CHAS_LowForFront(1); UPRI_LowPntFront(1); CHAS_LowAftFront(1)],[CHAS_LowForFront(2); UPRI_LowPntFront(2); CHAS_LowAftFront(2)],[CHAS_LowForFront(3); UPRI_LowPntFront(3); CHAS_LowAftFront(3)],'Color',[0.9290 0.6940 0.1250],'LineWidth',A_ArmWidth);
         plot3(AxesObject,[CHAS_LowForFront(1); UPRI_LowPntFront(1); CHAS_LowAftFront(1)],[-CHAS_LowForFront(2); -UPRI_LowPntFront(2); -CHAS_LowAftFront(2)],[CHAS_LowForFront(3); UPRI_LowPntFront(3); CHAS_LowAftFront(3)],'Color',[0.9290 0.6940 0.1250],'LineWidth',A_ArmWidth);
         %scatter3(AxesObject,CHAS_LowFor(1),CHAS_LowFor(2),CHAS_LowFor(3)); % CHAS_LowFor
-    
-        % Plot fl upper A-arm
-        plot3(AxesObject,[CHAS_UppForFront(1); UPRI_UppPntFront(1); CHAS_UppAftFront(1)],[CHAS_UppForFront(2); UPRI_UppPntFront(2); CHAS_UppAftFront(2)],[CHAS_UppForFront(3); UPRI_UppPntFront(3); CHAS_UppAftFront(3)],'Color',[0.9290 0.6940 0.1250],'LineWidth',A_ArmWidth);
-        plot3(AxesObject,[CHAS_UppForFront(1); UPRI_UppPntFront(1); CHAS_UppAftFront(1)],[-CHAS_UppForFront(2); -UPRI_UppPntFront(2); -CHAS_UppAftFront(2)],[CHAS_UppForFront(3); UPRI_UppPntFront(3); CHAS_UppAftFront(3)],'Color',[0.9290 0.6940 0.1250],'LineWidth',A_ArmWidth);
-    
-        % Plot Tie rod
-        plot3(AxesObject,[CHAS_TiePntFront(1); UPRI_TiePntFront(1)],[CHAS_TiePntFront(2); UPRI_TiePntFront(2)],[CHAS_TiePntFront(3); UPRI_TiePntFront(3)],'Color','blue','LineWidth',TieRodWidth);
-        plot3(AxesObject,[CHAS_TiePntFront(1); UPRI_TiePntFront(1)],[-CHAS_TiePntFront(2); -UPRI_TiePntFront(2)],[CHAS_TiePntFront(3); UPRI_TiePntFront(3)],'Color','blue','LineWidth',TieRodWidth);   
-
+            
         %scatter3(AxesObject,CHAS_TiePnt(1),CHAS_TiePnt(2),CHAS_TiePnt(3)); % CHAS_TiePnt
     end
 
-    if (app.DrawFrontUprightCheckBox.Value)
+    if drawFrontUpperAarm
+        % Plot fl upper A-arm
+        plot3(AxesObject,[CHAS_UppForFront(1); UPRI_UppPntFront(1); CHAS_UppAftFront(1)],[CHAS_UppForFront(2); UPRI_UppPntFront(2); CHAS_UppAftFront(2)],[CHAS_UppForFront(3); UPRI_UppPntFront(3); CHAS_UppAftFront(3)],'Color',[0.9290 0.6940 0.1250],'LineWidth',A_ArmWidth);
+        plot3(AxesObject,[CHAS_UppForFront(1); UPRI_UppPntFront(1); CHAS_UppAftFront(1)],[-CHAS_UppForFront(2); -UPRI_UppPntFront(2); -CHAS_UppAftFront(2)],[CHAS_UppForFront(3); UPRI_UppPntFront(3); CHAS_UppAftFront(3)],'Color',[0.9290 0.6940 0.1250],'LineWidth',A_ArmWidth);
+    end
+
+    if drawFrontTieRod
+        % Plot Tie rod
+        plot3(AxesObject,[CHAS_TiePntFront(1); UPRI_TiePntFront(1)],[CHAS_TiePntFront(2); UPRI_TiePntFront(2)],[CHAS_TiePntFront(3); UPRI_TiePntFront(3)],'Color','blue','LineWidth',TieRodWidth);
+        plot3(AxesObject,[CHAS_TiePntFront(1); UPRI_TiePntFront(1)],[-CHAS_TiePntFront(2); -UPRI_TiePntFront(2)],[CHAS_TiePntFront(3); UPRI_TiePntFront(3)],'Color','blue','LineWidth',TieRodWidth);   
+    end
+
+    if drawFrontUpright
         % Plot front uprights
         fill3(AxesObject,[UPRI_LowPntFront(1), UPRI_UppPntFront(1), UPRI_TiePntFront(1)],[UPRI_LowPntFront(2), UPRI_UppPntFront(2), UPRI_TiePntFront(2)],[UPRI_LowPntFront(3), UPRI_UppPntFront(3), UPRI_TiePntFront(3)],[0.9290 0.6940 0.1250]);
         fill3(AxesObject,[UPRI_LowPntFront(1), UPRI_UppPntFront(1), UPRI_TiePntFront(1)],[-UPRI_LowPntFront(2), -UPRI_UppPntFront(2), -UPRI_TiePntFront(2)],[UPRI_LowPntFront(3), UPRI_UppPntFront(3), UPRI_TiePntFront(3)],[0.9290 0.6940 0.1250]);
     end
 
-    if (app.DrawRearSuspensionCheckBox.Value)
-        % Plot fl lower A-arm
+    SpringDiameter = 5;
+    CoiloverColor = [0.17 0.17 0.17];
+
+    if drawFrontPushPullRod
+        % Right Side
+        plot3(AxesObject,[NSMA_PPAttPnt_L_Front(1),ROCK_RodPnt_L_Front(1)],[NSMA_PPAttPnt_L_Front(2),ROCK_RodPnt_L_Front(2)],[NSMA_PPAttPnt_L_Front(3),ROCK_RodPnt_L_Front(3)],'Color',[0.9290 0.6940 0.1250],'LineWidth',A_ArmWidth);
+
+        % Left Side
+        plot3(AxesObject,[NSMA_PPAttPnt_L_Front(1),ROCK_RodPnt_L_Front(1)],[-NSMA_PPAttPnt_L_Front(2),-ROCK_RodPnt_L_Front(2)],[NSMA_PPAttPnt_L_Front(3),ROCK_RodPnt_L_Front(3)],'Color',[0.9290 0.6940 0.1250],'LineWidth',A_ArmWidth);
+    end
+
+    % Plot Rockers
+    if drawFrontRocker
+        % Right Rocker
+        fill3(AxesObject,[CHAS_RocPiv_L_Front(1),ROCK_RodPnt_L_Front(1),ROCK_CoiPnt_L_Front(1)],[CHAS_RocPiv_L_Front(2),ROCK_RodPnt_L_Front(2),ROCK_CoiPnt_L_Front(2)],[CHAS_RocPiv_L_Front(3),ROCK_RodPnt_L_Front(3),ROCK_CoiPnt_L_Front(3)],[0.9290 0.6940 0.1250]);
+
+        % Left Rocker
+        fill3(AxesObject,[CHAS_RocPiv_L_Front(1),ROCK_RodPnt_L_Front(1),ROCK_CoiPnt_L_Front(1)],[-CHAS_RocPiv_L_Front(2),-ROCK_RodPnt_L_Front(2),-ROCK_CoiPnt_L_Front(2)],[CHAS_RocPiv_L_Front(3),ROCK_RodPnt_L_Front(3),ROCK_CoiPnt_L_Front(3)],[0.9290 0.6940 0.1250]);
+    end
+
+    % Plot Coilover
+    if drawFrontCoilover
+        % Right Coilover
+        plot3(AxesObject,[CHAS_AttPnt_L_Front(1),ROCK_CoiPnt_L_Front(1)],[CHAS_AttPnt_L_Front(2),ROCK_CoiPnt_L_Front(2)],[CHAS_AttPnt_L_Front(3),ROCK_CoiPnt_L_Front(3)],'Color',CoiloverColor,'LineWidth',SpringDiameter);
+
+        % Left Coilover
+        plot3(AxesObject,[CHAS_AttPnt_L_Front(1),ROCK_CoiPnt_L_Front(1)],[-CHAS_AttPnt_L_Front(2),-ROCK_CoiPnt_L_Front(2)],[CHAS_AttPnt_L_Front(3),ROCK_CoiPnt_L_Front(3)],'Color',CoiloverColor,'LineWidth',SpringDiameter);
+    end
+
+    % Plot ARB (Antirollbar)
+    if drawFrontARB
+        plot3(AxesObject, [NSMA_UBarAttPnt_L_Front(1), UBAR_AttPnt_L_Front(1), CHAS_PivPnt_L_Front(1), CHAS_PivPnt_L_Front(1), UBAR_AttPnt_L_Front(1), NSMA_UBarAttPnt_L_Front(1)],[NSMA_UBarAttPnt_L_Front(2), UBAR_AttPnt_L_Front(2), CHAS_PivPnt_L_Front(2), -CHAS_PivPnt_L_Front(2), -UBAR_AttPnt_L_Front(2), -NSMA_UBarAttPnt_L_Front(2)],[NSMA_UBarAttPnt_L_Front(3), UBAR_AttPnt_L_Front(3), CHAS_PivPnt_L_Front(3), CHAS_PivPnt_L_Front(3), UBAR_AttPnt_L_Front(3), NSMA_UBarAttPnt_L_Front(3)],'Color',[0.9290 0.6940 0.1250],'LineWidth',A_ArmWidth);
+    end
+
+    if drawRearLowerAarm
+        % Plot rl lower A-arm
         plot3(AxesObject,[CHAS_LowForRear(1); UPRI_LowPntRear(1); CHAS_LowAftRear(1)],[CHAS_LowForRear(2); UPRI_LowPntRear(2); CHAS_LowAftRear(2)],[CHAS_LowForRear(3); UPRI_LowPntRear(3); CHAS_LowAftRear(3)],'Color',[0.9290 0.6940 0.1250],'LineWidth',A_ArmWidth);
         plot3(AxesObject,[CHAS_LowForRear(1); UPRI_LowPntRear(1); CHAS_LowAftRear(1)],[-CHAS_LowForRear(2); -UPRI_LowPntRear(2); -CHAS_LowAftRear(2)],[CHAS_LowForRear(3); UPRI_LowPntRear(3); CHAS_LowAftRear(3)],'Color',[0.9290 0.6940 0.1250],'LineWidth',A_ArmWidth);
         %scatter3(AxesObject,CHAS_LowFor(1),CHAS_LowFor(2),CHAS_LowFor(3)); % CHAS_LowFor
-    
-        % Plot fl upper A-arm
+        %scatter3(AxesObject,CHAS_TiePnt(1),CHAS_TiePnt(2),CHAS_TiePnt(3)); % CHAS_TiePnt
+    end
+
+    if drawRearUpperAarm
+        % Plot rl upper A-arm
         plot3(AxesObject,[CHAS_UppForRear(1); UPRI_UppPntRear(1); CHAS_UppAftRear(1)],[CHAS_UppForRear(2); UPRI_UppPntRear(2); CHAS_UppAftRear(2)],[CHAS_UppForRear(3); UPRI_UppPntRear(3); CHAS_UppAftRear(3)],'Color',[0.9290 0.6940 0.1250],'LineWidth',A_ArmWidth);
-        plot3(AxesObject,[CHAS_UppForRear(1); UPRI_UppPntRear(1); CHAS_UppAftRear(1)],[-CHAS_UppForRear(2); -UPRI_UppPntRear(2); -CHAS_UppAftRear(2)],[CHAS_UppForRear(3); UPRI_UppPntRear(3); CHAS_UppAftRear(3)],'Color',[0.9290 0.6940 0.1250],'LineWidth',A_ArmWidth);
-    
+        plot3(AxesObject,[CHAS_UppForRear(1); UPRI_UppPntRear(1); CHAS_UppAftRear(1)],[-CHAS_UppForRear(2); -UPRI_UppPntRear(2); -CHAS_UppAftRear(2)],[CHAS_UppForRear(3); UPRI_UppPntRear(3); CHAS_UppAftRear(3)],'Color',[0.9290 0.6940 0.1250],'LineWidth',A_ArmWidth);  
+    end
+
+    if drawRearTieRod
         % Plot Tie rod
         plot3(AxesObject,[CHAS_TiePntRear(1); UPRI_TiePntRear(1)],[CHAS_TiePntRear(2); UPRI_TiePntRear(2)],[CHAS_TiePntRear(3); UPRI_TiePntRear(3)],'Color','blue','LineWidth',TieRodWidth);
         plot3(AxesObject,[CHAS_TiePntRear(1); UPRI_TiePntRear(1)],[-CHAS_TiePntRear(2); -UPRI_TiePntRear(2)],[CHAS_TiePntRear(3); UPRI_TiePntRear(3)],'Color','blue','LineWidth',TieRodWidth);
-
-        %scatter3(AxesObject,CHAS_TiePnt(1),CHAS_TiePnt(2),CHAS_TiePnt(3)); % CHAS_TiePnt
     end
     
-    if (app.DrawRearUprightCheckBox.Value)
+    if drawRearUpright
         % Plot Rear uprights
         fill3(AxesObject,[UPRI_LowPntRear(1), UPRI_UppPntRear(1), UPRI_TiePntRear(1)],[UPRI_LowPntRear(2), UPRI_UppPntRear(2), UPRI_TiePntRear(2)],[UPRI_LowPntRear(3), UPRI_UppPntRear(3), UPRI_TiePntRear(3)],[0.9290 0.6940 0.1250]);
         fill3(AxesObject,[UPRI_LowPntRear(1), UPRI_UppPntRear(1), UPRI_TiePntRear(1)],[-UPRI_LowPntRear(2), -UPRI_UppPntRear(2), -UPRI_TiePntRear(2)],[UPRI_LowPntRear(3), UPRI_UppPntRear(3), UPRI_TiePntRear(3)],[0.9290 0.6940 0.1250]);
     end    
+
+    SpringDiameter = 5;
+
+    if drawRearPushPullRod
+        % Right Side
+        plot3(AxesObject,[NSMA_PPAttPnt_L_Rear(1),ROCK_RodPnt_L_Rear(1)],[NSMA_PPAttPnt_L_Rear(2),ROCK_RodPnt_L_Rear(2)],[NSMA_PPAttPnt_L_Rear(3),ROCK_RodPnt_L_Rear(3)],'Color',[0.9290 0.6940 0.1250],'LineWidth',A_ArmWidth);
+
+        % Left Side
+        plot3(AxesObject,[NSMA_PPAttPnt_L_Rear(1),ROCK_RodPnt_L_Rear(1)],[-NSMA_PPAttPnt_L_Rear(2),-ROCK_RodPnt_L_Rear(2)],[NSMA_PPAttPnt_L_Rear(3),ROCK_RodPnt_L_Rear(3)],'Color',[0.9290 0.6940 0.1250],'LineWidth',A_ArmWidth);
+    end
+
+    % Plot Rockers
+    if drawRearRocker
+        % Right Rocker
+        fill3(AxesObject,[CHAS_RocPiv_L_Rear(1),ROCK_RodPnt_L_Rear(1),ROCK_CoiPnt_L_Rear(1)],[CHAS_RocPiv_L_Rear(2),ROCK_RodPnt_L_Rear(2),ROCK_CoiPnt_L_Rear(2)],[CHAS_RocPiv_L_Rear(3),ROCK_RodPnt_L_Rear(3),ROCK_CoiPnt_L_Rear(3)],[0.9290 0.6940 0.1250]);
+
+        % Left Rocker
+        fill3(AxesObject,[CHAS_RocPiv_L_Rear(1),ROCK_RodPnt_L_Rear(1),ROCK_CoiPnt_L_Rear(1)],[-CHAS_RocPiv_L_Rear(2),-ROCK_RodPnt_L_Rear(2),-ROCK_CoiPnt_L_Rear(2)],[CHAS_RocPiv_L_Rear(3),ROCK_RodPnt_L_Rear(3),ROCK_CoiPnt_L_Rear(3)],[0.9290 0.6940 0.1250]);
+    end
+
+    % Plot Coilover
+    if drawRearCoilover
+        % Right Coilover
+        plot3(AxesObject,[CHAS_AttPnt_L_Rear(1),ROCK_CoiPnt_L_Rear(1)],[CHAS_AttPnt_L_Rear(2),ROCK_CoiPnt_L_Rear(2)],[CHAS_AttPnt_L_Rear(3),ROCK_CoiPnt_L_Rear(3)],'Color',CoiloverColor,'LineWidth',SpringDiameter);
+
+        % Left Coilover
+        plot3(AxesObject,[CHAS_AttPnt_L_Rear(1),ROCK_CoiPnt_L_Rear(1)],[-CHAS_AttPnt_L_Rear(2),-ROCK_CoiPnt_L_Rear(2)],[CHAS_AttPnt_L_Rear(3),ROCK_CoiPnt_L_Rear(3)],'Color',CoiloverColor,'LineWidth',SpringDiameter);
+    end
+
+    % Plot ARB (Antirollbar)
+    if drawRearARB
+        plot3(AxesObject, [NSMA_UBarAttPnt_L_Rear(1), UBAR_AttPnt_L_Rear(1), CHAS_PivPnt_L_Rear(1), CHAS_PivPnt_L_Rear(1), UBAR_AttPnt_L_Rear(1), NSMA_UBarAttPnt_L_Rear(1)],[NSMA_UBarAttPnt_L_Rear(2), UBAR_AttPnt_L_Rear(2), CHAS_PivPnt_L_Rear(2), -CHAS_PivPnt_L_Rear(2), -UBAR_AttPnt_L_Rear(2), -NSMA_UBarAttPnt_L_Rear(2)],[NSMA_UBarAttPnt_L_Rear(3), UBAR_AttPnt_L_Rear(3), CHAS_PivPnt_L_Rear(3), CHAS_PivPnt_L_Rear(3), UBAR_AttPnt_L_Rear(3), NSMA_UBarAttPnt_L_Rear(3)],'Color',[0.9290 0.6940 0.1250],'LineWidth',A_ArmWidth);
+    end
 
     %% Calculate Instant Centers Front view
     [X1_f,Y1_f,Z1_f,X2_f,Y2_f,Z2_f,x_IC_f,y_IC_f,z_IC_f] = calculateIC(CHAS_LowForFront, CHAS_LowAftFront, UPRI_LowPntFront, CHAS_UppForFront, CHAS_UppAftFront, UPRI_UppPntFront);
@@ -181,7 +364,7 @@ function plotCar(app, CallingApp, AxesObject)
     Y_IC2_TireGround_r = [y_IC_r -trackCamber_r /2];
     Z_IC2_TireGround_r = [z_IC_r 0];
 
-    if (app.DrawInstantCentersFrontCheckBox.Value)
+    if drawFrontInstantCenters
         % Plot Lines between Instantaneous Center points and Tire-Ground Contact points 
         plot3(AxesObject,X_IC1_TireGround_f,Y_IC1_TireGround_f,Z_IC1_TireGround_f,'b-.')
         plot3(AxesObject,X_IC2_TireGround_f,Y_IC2_TireGround_f,Z_IC2_TireGround_f,'b-.')
@@ -191,7 +374,7 @@ function plotCar(app, CallingApp, AxesObject)
         scatter3(AxesObject,x_fa,-y_IC_f,z_IC_f,'filled','SizeData', 40, 'MarkerFaceColor', 'b');
     end
 
-    if (app.DrawInstantCentersRearCheckBox.Value)
+    if drawRearInstantCenters
         % Plot Lines between Instantaneous Center points and Tire-Ground Contact points 
         plot3(AxesObject,X_IC1_TireGround_r,Y_IC1_TireGround_r,Z_IC1_TireGround_r,'b-.')
         plot3(AxesObject,X_IC2_TireGround_r,Y_IC2_TireGround_r,Z_IC2_TireGround_r,'b-.')
@@ -211,20 +394,20 @@ function plotCar(app, CallingApp, AxesObject)
     %% Calculate Instant Centers side view
     
 
-    if (app.DrawFrontRollCenterCheckBox.Value)
+    if drawFrontRollCenter
         % Roll Center Front
         %scatter3(AxesObject,x_fa, 0, h_rc_f);
         scatter3(AxesObject,x_fa,round(y_RC_Front,5),z_RC_Front,'filled','SizeData', 40, 'MarkerFaceColor', '#0288d1');
     end
 
-    if (app.DrawRearRollCenterCheckBox.Value)
+    if drawRearRollCenter
         % Roll Center Rear
         %scatter3(AxesObject,x_fa+wheelbase, 0, h_rc_r);
         scatter3(AxesObject,x_ra,round(y_RC_Rear,5),z_RC_Rear,'filled','SizeData', 40, 'MarkerFaceColor', '#0288d1');
     end
 
     %% Roll axis
-    if (app.DrawRollAxisCheckBox.Value)
+    if drawRollAxis
         % Draw Roll axis
         plot3(AxesObject,[x_fa; x_fa+wheelbase],[0; 0],[z_RC_Front; z_RC_Rear], 'Color', '#0288d1');
     end
@@ -233,7 +416,7 @@ function plotCar(app, CallingApp, AxesObject)
     sideViewIC_f = calculate2DIC(CHAS_LowForFront, CHAS_LowAftFront, CHAS_UppForFront, CHAS_UppAftFront);
     sideViewIC_r = calculate2DIC(CHAS_LowForRear, CHAS_LowAftRear, CHAS_UppForRear, CHAS_UppAftRear);
 
-    if app.DrawPitchCenterCheckBox.Value %% ( !! Change to front and rear !! )
+    if drawPitchCenter %% ( !! Change to front and rear !! )
         %% Right Side Pitch Center ( !! Adjust Calculations when calculating with roll (left / right independent) !! )
         scatter3(AxesObject,sideViewIC_f(1),track_f/2,sideViewIC_f(2),'filled','SizeData', 40, 'MarkerFaceColor', '#0288d1');
         scatter3(AxesObject,sideViewIC_r(1),track_r/2,sideViewIC_r(2),'filled','SizeData', 40, 'MarkerFaceColor', '#0288d1');
@@ -270,13 +453,13 @@ function plotCar(app, CallingApp, AxesObject)
     steeringAngle_r = 0;
 
     %% Plot front tires
-    if app.DrawFrontTiresCheckBox.Value
+    if drawFrontTires
         plotTires(AxesObject, tire_radius, tire_width, rim_diameter, track_f, x_fa, camber_f, toe_f, KPI_f, steeringAngle_f)
         plotTires(AxesObject, tire_radius, tire_width, rim_diameter, -track_f, x_fa, camber_f, toe_f, KPI_f, steeringAngle_f);
     end
     
     %% Plot rear tires
-    if app.DrawRearTiresCheckBox.Value
+    if drawRearTires
         plotTires(AxesObject, tire_radius, tire_width, rim_diameter, track_r, x_fa+wheelbase, camber_r, toe_r, KPI_r, steeringAngle_r)
         plotTires(AxesObject, tire_radius, tire_width, rim_diameter, -track_r, x_fa+wheelbase, camber_r, toe_r, KPI_r, steeringAngle_r)
     end
