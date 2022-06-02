@@ -18,7 +18,7 @@ function simulationManager(startingParameters)
         sensitivityID2 = 0;
     end
     
-    if numSteps > 1 && sensitivityID ~= "0"                                   % Use parfor for sensitivity analysis
+    if numSteps > 1 && sensitivityID ~= "0"                                 % Use parfor for sensitivity analysis
 
         startingParameters.textAreaHandle = 0;
         startingParameters.processDataButtonHandle = 0;
@@ -30,7 +30,7 @@ function simulationManager(startingParameters)
         
         steps = 1;
         
-        if sensitivityID2 ~= 0 
+        if sensitivityID2 ~= '0' 
             tic
             for steps1 = 1:numSteps                                         % Calculate Values for sensitivity analysis (multiple variables)
   
@@ -49,7 +49,7 @@ function simulationManager(startingParameters)
             end
         end
         
-        if sensitivityID2 ~= 0                                              % Change step size for one or two used variables (-1 when two variables are used)
+        if sensitivityID2 ~= '0'                                            % Change step size for one or two used variables (-1 when two variables are used)
             steps = steps -1;
         end
         

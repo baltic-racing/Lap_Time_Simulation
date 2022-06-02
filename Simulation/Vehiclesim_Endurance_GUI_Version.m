@@ -132,11 +132,11 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
     steps = 0;
 
     % Adjust Variables used for sensitivity Analysis
-    if startingParameters.sensitivityID ~= "0"
+    if startingParameters.sensitivityID ~= '0'
         setup.(startingParameters.sensitivityID) = startingParameters.minValue;
     end
 
-    if startingParameters.sensitivityID ~= "0"
+    if startingParameters.sensitivityID2 ~= '0'
         setup.(startingParameters.sensitivityID2) = startingParameters.minValue2;  
     end
             
@@ -221,8 +221,14 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
             % and front / rear
             [sim.delta(i), sim.beta(i), sim.psi1(i), sim.alpha_f(i), sim.alpha_r(i), sim.alpha_fr(i), sim.alpha_fl(i), sim.alpha_rr(i), sim.alpha_rl(i), sim.delta_fl(i), sim.delta_fr(i), sim.delta_sw(i), sim.ackermann(i), sim.ackermannPercent(i)] = calculateSteeringData(setup.wheelbase, R(sim.ApexIndexes(i)), setup.lr, setup.lf, sim.vV(i), sim.FWZ_fl(i), sim.FWZ_rl(i), sim.FWZ_fr(i), sim.FWZ_rr(i), setup.track_f);         
 
+            %%% DEBUG!!!!
+            sim.alpha_f(i) = 12;
+            sim.alpha_r(i) = 12;
+            %%%
+
             % Maximum transmissible tire forces in lateral direction   
-            [sim.FWYmax_f(i), sim.FWYmax_r(i)] = calculateLatTireforces(sim.FWZ_fl(i), sim.FWZ_fr(i), sim.FWZ_rl(i), sim.FWZ_rr(i), GAMMA, TIRparam, sim.alpha_f(i), sim.alpha_r(i));
+            [sim.FWYmax_fl(i), sim.FWYmax_fr(i), sim.FWYmax_rl(i), sim.FWYmax_rr(i), sim.FWYmax_f(i), sim.FWYmax_r(i)] = calculateLatTireforces(sim.FWZ_fl(i), sim.FWZ_fr(i), sim.FWZ_rl(i), sim.FWZ_rr(i), GAMMA, TIRparam, sim.alpha_f(i), sim.alpha_r(i));
+           %[sim.FWYmax_f(i), sim.FWYmax_r(i)] = calculateLatTireforces(sim.FWZ_fl(i), sim.FWZ_fr(i), sim.FWZ_rl(i), sim.FWZ_rr(i), GAMMA, TIRparam, sim.alpha_f(i), sim.alpha_r(i));
 
         end
 

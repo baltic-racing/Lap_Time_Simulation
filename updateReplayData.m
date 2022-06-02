@@ -31,6 +31,21 @@ function updateReplayData(app, runNumber, result, ind)
         app.RPMGauge.FontColor = 'w';
         app.RPMLabel_2.FontColor = 'w';
     end
+
+    % ToDo: remove duplicate with update using play
+    gearing = 45;
+    value = result(runNumber).beta(ind)*180/pi * gearing;
+    angle = (abs(value)/360-fix(abs(value)/360)) * 360 * abs(value)/value;
+    angle = round(angle/5)*5;
+    if angle > 180 
+        angle = angle - 180;
+    elseif angle < -180
+        angle = angle + 180;
+    elseif isnan(angle)
+        angle = 0;
+    end
+
+    app.Image4.ImageSource = "SteeringWheel" + angle + ".png";
             
     hold(app.UIAxes3,'on')
     x = result.Track(ind,1);

@@ -46,6 +46,20 @@ function updateLiveReplay(app, runNumber, result, ind)
     app.var11Label.Text = num2str(app.DropDown_13.Value(ind));
     app.var12Label.Text = num2str(app.DropDown_14.Value(ind));
 
+    gearing = 45;
+    value = result(runNumber).beta(ind)*180/pi * gearing;
+    angle = (abs(value)/360-fix(abs(value)/360)) * 360 * abs(value)/value;
+    angle = round(angle/5)*5;
+    if angle > 180 
+        angle = angle - 180;
+    elseif angle < -180
+        angle = angle + 180;
+    elseif isnan(angle)
+        angle = 0;
+    end
+
+    app.Image4.ImageSource = "SteeringWheel" + angle + ".png";
+
     if result(runNumber).DRS_status(ind)
         app.DRSStatusLamp.Color = 'green';
     else

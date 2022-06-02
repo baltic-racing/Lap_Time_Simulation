@@ -56,6 +56,7 @@ function [x_Track, y_Track, z_Track, s, R, Track, ApexIndexes, lapLength] = load
     
     if expandData
         trackLength = length(Track);
+        lapLength = lapLength*3;
 
         s(1) = 0;
 
