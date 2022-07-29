@@ -130,6 +130,35 @@ function [runNumber, result] = initalizeSimulationReplay(app)
 
         app.DropDown.Items = saveFileData(:,1);
         app.DropDown.ItemsData = saveFileData(:,2);
+
+        % Define default values for each dropdown
+        useDropdownPresets = 1;
+        if useDropdownPresets
+            % Data scatter
+            app.DropDown_8.Value = saveFile(runID).aVX(:)./9.81;
+
+            % Data left
+            app.DropDown.Value = saveFile(runID).aVX(:)./9.81;
+            app.DropDown_2.Value = saveFile(runID).aVY(:)./9.81;
+            app.DropDown_3.Value = saveFile(runID).beta(1:end-1).*(180/pi);
+            app.DropDown_4.Value = saveFile(runID).vV(1:end-1).*3.6;
+            app.DropDown_5.Value = saveFile(runID).FWYmax_r(1:end-1);
+            app.DropDown_6.Value = saveFile(runID).A_accu_cell(1:end-1);
+
+            % Data right
+            app.DropDown_9.Value = saveFile(runID).motor_eff(1:end-1);
+            app.DropDown_10.Value = saveFile(runID).M_tractive(1:end);
+            app.DropDown_11.Value = saveFile(runID).E_Accu(1:end-1);
+            app.DropDown_12.Value = saveFile(runID).E_Accu_Recu(1:end-1);
+            app.DropDown_13.Value = saveFile(runID).E_heat(1:end-1);
+            app.DropDown_14.Value = saveFile(runID).E_res(1:end-1);
+        end
+
+        % Updaten der Plots
+        updateScatterPlots(app, 1, saveFile)
+        updatePlotData(app, 1, saveFile);
+        plotApexes(app, 1, saveFile);
+
         
         %app.SpeedLabel.Text = "Speed: " + num2str(result(runNumber).vV(ceil(app.Slider.Value)));
     %catch error
@@ -157,10 +186,10 @@ function drawPedalPlots(app)
     pedalPlot.YDataSource = 'pedalInputs';
     
     pedalPlot(1).CData = [1 0 0; 0 1 0];
-    ylim([0 100])
-    ax = gca;
-    disableDefaultInteractivity(ax)
-    axis off
+    ylim(app.UIAxes5, [0 100])
+%     ax = gca;
+%     disableDefaultInteractivity(ax)
+%     axis off
 
     xtips2 = pedalPlot(1).XEndPoints;
     ytips2 = [10 10];

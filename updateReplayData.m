@@ -24,7 +24,7 @@ function updateReplayData(app, runNumber, result, ind)
 
     delete(app.pointHandle2)                 % Deletes previous pointHandle
 
-    if result(runNumber).ni(ind) >= result(runNumber).n_max
+    if result(runNumber).ni(ind) >= result(runNumber).n_max-5
         app.RPMGauge.FontColor = 'r';
         app.RPMLabel_2.FontColor = 'r';
     else
