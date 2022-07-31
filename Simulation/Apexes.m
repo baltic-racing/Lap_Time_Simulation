@@ -26,6 +26,12 @@ minPeakHeight = 0.0001; % 0.001
 MinPeakDistance = 30; % 200
 MinPeakProminence = 0.005; % 0.001
 
+
+% Ottobiano
+minPeakHeight = 0.001; % 0.001
+MinPeakDistance = 10; % 200 (Higher number less sensitive = less apexes, Minimum Distance from one peak (Apex) to another)
+MinPeakProminence = 0.001; % 0.001
+
 [~, ApexIndizes] = findpeaks(abs(1./R),'MinPeakDistance',MinPeakDistance,'MinPeakHeight',minPeakHeight,'MinPeakProminence',MinPeakProminence);
 
 end
