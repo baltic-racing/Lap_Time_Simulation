@@ -53,4 +53,11 @@ function renderSelectedTrack(app)
     app.UIAxes2.Color = app.SurfaceColor;       
 
     app.LengthLabel.Text = "Track Length: " + max(s_preview) + " m";
+
+    drawApexes = 1; % ToDo: add as option in GUI
+    if drawApexes
+        hold(app.UIAxes2,"on");
+        ApexIndizes = Apexes(Track(:,5));
+        scatter(app.UIAxes2,x_Track_preview(ApexIndizes),y_Track_preview(ApexIndizes),20,'r','filled')
+    end
 end            
