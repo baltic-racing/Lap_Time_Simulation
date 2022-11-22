@@ -45,7 +45,7 @@ The result of the simulation can be viewed using the built-in predefined plots, 
 Copyright © 2021 Baltic Racing developed by: 
 
 Lead Developer:
-* [**Eric Dornieden**](https://github.com/builder1one)
+* [**Eric Dornieden**](https://github.com/edornieden)
 
 Team member:
 * Lukas Deeken
