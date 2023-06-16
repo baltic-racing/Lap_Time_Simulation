@@ -479,7 +479,7 @@ function updateColorScheme(app)
     app.Panel_2.BorderType = app.BorderType;
     
     % Variable Dropdowns
-    app.DropDown.BackgroundColor = app.PrimaryColor;
+    app.DropDown_1.BackgroundColor = app.PrimaryColor;
     %app.DropDown.FontColor = app.OnSurfaceColor;
     app.DropDown_2.BackgroundColor = app.PrimaryColor;
     %app.DropDown_2.FontColor = app.OnSurfaceColor;
@@ -586,7 +586,7 @@ function updateColorScheme(app)
     app.var5Label.FontColor = app.PlotColors(5);
     app.var6Label.FontColor = app.PlotColors(6);
 
-    app.DropDown.FontColor = app.PlotColors(1);
+    app.DropDown_1.FontColor = app.PlotColors(1);
     app.DropDown_2.FontColor = app.PlotColors(2);
     app.DropDown_3.FontColor = app.PlotColors(3);
     app.DropDown_4.FontColor = app.PlotColors(4);

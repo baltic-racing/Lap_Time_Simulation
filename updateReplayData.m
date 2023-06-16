@@ -61,7 +61,7 @@ function updateReplayData(app, runNumber, result, ind)
 
     app.RPMGauge.Value = result(runNumber).ni(ind);
 
-    app.var1Label.Text = num2str(app.DropDown.Value(ind));
+    app.var1Label.Text = num2str(app.DropDown_1.Value(ind));
     app.var2Label.Text = num2str(app.DropDown_2.Value(ind));
     app.var3Label.Text = num2str(app.DropDown_3.Value(ind));
     app.var4Label.Text = num2str(app.DropDown_4.Value(ind));

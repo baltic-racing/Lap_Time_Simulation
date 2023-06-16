@@ -1,5 +1,5 @@
 function SimulationTest()
-    %% Test if setup is valide
+    %% Test if setup is valid
     setup1 = 'TY19_LowDownforce.mat';
     path1 = 'E:\Laptime Simulation\Lap_Time_Simulation\Presets';
     result1 = Vehiclesim_Endurance_GUI_Version(setup1, path1, 'TrackAccel.mat', 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1);

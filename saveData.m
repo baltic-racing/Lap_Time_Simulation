@@ -41,6 +41,7 @@ function saveData(app)
         setup.brakeBias_setup = app.brakeBias;
         setup.h_rc_f = app.h_rc_f;
         setup.h_rc_r = app.h_rc_r;
+        setup.tirFile = convertCharsToStrings(app.tirFile);
 
         %% Drivetrain Parameters
         setup.ptype = app.ptype;

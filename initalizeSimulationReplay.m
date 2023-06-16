@@ -2,7 +2,7 @@
 % Initalizes the Simulation Replay GUI / Loads save file and sets inital
 % conditions for the replay.
 %
-% By Eric Dornieden / Sarah Jaeschke, Baltic Racing
+% By Eric Dornieden, Baltic Racing
 % Copyright (C) 2021, Baltic Racing, all rights reserved.
 
 function [runNumber, result] = initalizeSimulationReplay(app)
@@ -128,8 +128,8 @@ function [runNumber, result] = initalizeSimulationReplay(app)
         app.DropDown_2.Items = saveFileData(:,1);
         app.DropDown_2.ItemsData = saveFileData(:,2);
 
-        app.DropDown.Items = saveFileData(:,1);
-        app.DropDown.ItemsData = saveFileData(:,2);
+        app.DropDown_1.Items = saveFileData(:,1);
+        app.DropDown_1.ItemsData = saveFileData(:,2);
 
         % Define default values for each dropdown
         useDropdownPresets = 1;
@@ -138,7 +138,7 @@ function [runNumber, result] = initalizeSimulationReplay(app)
             app.DropDown_8.Value = saveFile(runID).aVX(:)./9.81;
 
             % Data left
-            app.DropDown.Value = saveFile(runID).aVX(:)./9.81;
+            app.DropDown_1.Value = saveFile(runID).aVX(:)./9.81;
             app.DropDown_2.Value = saveFile(runID).aVY(:)./9.81;
             app.DropDown_3.Value = saveFile(runID).beta(1:end-1).*(180/pi);
             app.DropDown_4.Value = saveFile(runID).vV(1:end-1).*3.6;

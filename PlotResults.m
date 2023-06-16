@@ -10,10 +10,21 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
     switch nargin
         case 5            % Compare two result files
             
-            % Loads first and second result file
-            result1 = load(resultFile1, '-mat');
-            result2 = load(resultFile2, '-mat');      
+
+            % Loads first and second result file or uses a .mat file
+            if ischar(resultFile1)
+                result1 = load(resultFile1, '-mat');
+            else
+                result1 = resultFile1;
+            end
+
+            if ischar(resultFile2)
+                result2 = load(resultFile2, '-mat');   
+            else
+                result2 = resultFile2;
+            end
             
+
             try 
                 % Checks if the track file is 4 or 5 columns and read it acordingly          
                 [~, columns] = size(result1(runID).Track);
@@ -262,8 +273,12 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
             
         case 4
                  
-            % Load result file       
-            result1 = load(resultFile1, '-mat');
+            % Loads result file or uses a .mat file
+            if ischar(resultFile1)
+                result1 = load(resultFile1, '-mat');
+            else
+                result1 = resultFile1;
+            end
             
             try 
                 % Checks if the track file is 4 or 5 columns and read it acordingly          
@@ -444,18 +459,27 @@ function PlotResults(resultFile1,plotID,runID,saveID,resultFile2)
                 case 12
                     % Verlauf der übertragbaren Querkräfte (Conti-Plot)   
                     
-                    TIRparam = loadTIR('C19_CONTINENTAL_FORMULASTUDENT_205_470_R13_65kPa.tir');
+                    % Load .tir file
+                    TIRparam = loadTIR(result1(runID).tirFile);
                     
                     figure(saveID*10000 + runID*100 + 12)
                     
                     for f = 2000:-200:0
-                    plot([-12:0.01:12],MF52_Fy_ps([-12:0.01:12],f,result1(runID).GAMMA,0,TIRparam))
-                    hold on
+                        plot([-12:0.01:12],MF52_Fy_ps([-12:0.01:12],f,result1(runID).camber,0,TIRparam))
+                        hold on
                     end
                     
                     legend('2000 N','1800 N','1600 N','1400 N','1200 N','1000 N','800 N','600 N','400 N','200 N','0 N','FontSize',15)
                     grid on
                     box on
+                    
+                    % Remove '.tir' from file name
+                    tirString = result1(runID).tirFile;
+                    tirString = strrep(tirString, '.tir', '');
+
+                    title(tirString, 'interpreter', 'none')                    
+                    xlabel('Slip angle [deg]')
+                    ylabel('Lateral Force [N]')
                     
                 case 13
                     % Tractive Power Rear wheels

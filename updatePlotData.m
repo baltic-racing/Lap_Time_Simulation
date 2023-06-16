@@ -4,7 +4,7 @@ function updatePlotData(app, runNumber, result)
 
     if app.CheckBox.Value
         delete(app.var1plot);
-        var1 = app.DropDown.Value;
+        var1 = app.DropDown_1.Value;
         var1norm = var1/max(var1);
         app.var1plot = plot(app.UIAxes4,var1norm,'color',app.PlotColors(1));       % Plot Track in white.
     else

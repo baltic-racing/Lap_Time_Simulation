@@ -99,8 +99,8 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
     
     load('VerticalStiffness_65kPA_IA0.mat');    % Vertical tire stiffness Lookup-Table
 
-    % Load tir-file in structure (Tir-File in Struktur laden)
-    TIRparam = loadTIR('C19_CONTINENTAL_FORMULASTUDENT_205_470_R13_65kPa.tir');
+    % Load tir-file in structure (Tir-File in Struktur laden) 
+    TIRparam = loadTIR(setup.tirFile);
 
     % Tire Data (Reifendaten)
     R0 = TIRparam.UNLOADED_RADIUS;      % [m] Unloaded Tire radius (no wheel loads)
@@ -216,10 +216,11 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
             sim.FWZ_rr(i) = sim.FWZ_rr_stat + sim.dFWZrr_aero(i) + sim.dFWZrr_x(i) + sim.dFWZrr_y(i); % [N] Rear right wheel load (Radlast hinten rechts) 
             
             % Maximum transmissible tire forces in longitudinal direction = 0 assumed (because longitudinal wheel loads = 0 assumed) 
+
+            % Vertical tire stiffnesses - for dynamic radii (Vertikale Reifensteifigkeiten)  
+            [sim.cZ_fl(i+1), sim.cZ_fr(i+1), sim.cZ_rl(i+1), sim.cZ_rr(i+1)] = calculateVtirestiff(Fz, cZ_tire, sim.FWZ_fl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rl(i+1), sim.FWZ_rr(i+1));
             
-            % Calculate delta, beta, psi1 and alpha for all wheels
-            % and front / rear
-            [sim.delta(i), sim.beta(i), sim.psi1(i), sim.alpha_f(i), sim.alpha_r(i), sim.alpha_fr(i), sim.alpha_fl(i), sim.alpha_rr(i), sim.alpha_rl(i), sim.delta_fl(i), sim.delta_fr(i), sim.delta_sw(i), sim.ackermann(i), sim.ackermannPercent(i)] = calculateSteeringData(setup.wheelbase, R(sim.ApexIndexes(i)), setup.lr, setup.lf, sim.vV(i), sim.FWZ_fl(i), sim.FWZ_rl(i), sim.FWZ_fr(i), sim.FWZ_rr(i), setup.track_f);         
+             
 
             %%% DEBUG!!!!
             sim.alpha_f(i) = 12;
@@ -227,9 +228,11 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
             %%%
 
             % Maximum transmissible tire forces in lateral direction   
-            [sim.FWYmax_fl(i), sim.FWYmax_fr(i), sim.FWYmax_rl(i), sim.FWYmax_rr(i), sim.FWYmax_f(i), sim.FWYmax_r(i)] = calculateLatTireforces(sim.FWZ_fl(i), sim.FWZ_fr(i), sim.FWZ_rl(i), sim.FWZ_rr(i), GAMMA, TIRparam, sim.alpha_f(i), sim.alpha_r(i));
-           %[sim.FWYmax_f(i), sim.FWYmax_r(i)] = calculateLatTireforces(sim.FWZ_fl(i), sim.FWZ_fr(i), sim.FWZ_rl(i), sim.FWZ_rr(i), GAMMA, TIRparam, sim.alpha_f(i), sim.alpha_r(i));
+            [sim.FWYmax_fl(i), sim.FWYmax_fr(i), sim.FWYmax_rl(i), sim.FWYmax_rr(i), sim.FWYmax_f(i), sim.FWYmax_r(i), alpha_f(i+1), alpha_r(i+1)] = calculateLatTireforces(sim.FWZ_fl(i), sim.FWZ_fr(i), sim.FWZ_rl(i), sim.FWZ_rr(i), GAMMA, TIRparam);
 
+            % Calculate delta, beta, psi1 and alpha for all wheels
+            % and front / rear
+            [sim.delta(i), sim.beta(i), sim.psi1(i), sim.alpha_f(i), sim.alpha_r(i), sim.alpha_fr(i), sim.alpha_fl(i), sim.alpha_rr(i), sim.alpha_rl(i), sim.delta_fl(i), sim.delta_fr(i), sim.delta_sw(i), sim.ackermann(i), sim.ackermannPercent(i)] = calculateSteeringData(setup.wheelbase, R(i), setup.lr, setup.lf, sim.vV(i), sim.FWZ_fl(i), sim.FWZ_rl(i), sim.FWZ_fr(i), sim.FWZ_rr(i), setup.track_f, sim.cZ_fl(i), sim.cZ_fr(i), sim.cZ_rl(i), sim.cZ_rr(i), alpha_f(i), alpha_r(i));       
         end
 
         sim.vAPEXmax(i) = sim.vV(i);   % [m/s] Maximum speed for any apex
@@ -358,11 +361,7 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
         end
 
         % Axle loads - for dynamic radii (Achslasten)
-        [sim.FWZr(i+1), sim.FWZf(i+1), sim.FWZtot(i+1)] = calculateAxleloads(sim.FWZ_rl(i+1), sim.FWZ_rr(i+1), sim.FWZ_fl(i+1), sim.FWZ_fr(i+1));
-        
-        % Calculate delta, beta, psi1 and alpha for all wheels
-        % and front / rear
-        [sim.delta(i+1), sim.beta(i+1), sim.psi1(i+1), sim.alpha_f(i+1), sim.alpha_r(i+1), sim.alpha_fr(i+1), sim.alpha_fl(i+1), sim.alpha_rr(i+1), sim.alpha_rl(i+1), sim.delta_fl(i+1), sim.delta_fr(i+1), sim.delta_sw(i+1), sim.ackermann(i+1), sim.ackermannPercent(i+1)] = calculateSteeringData(setup.wheelbase, R(i+1), setup.lr, setup.lf, sim.vV(i+1), sim.FWZ_fl(i+1), sim.FWZ_rl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rr(i+1), setup.track_f);  
+        [sim.FWZr(i+1), sim.FWZf(i+1), sim.FWZtot(i+1)] = calculateAxleloads(sim.FWZ_rl(i+1), sim.FWZ_rr(i+1), sim.FWZ_fl(i+1), sim.FWZ_fr(i+1));     
 
         % Vertical tire stiffnesses - for dynamic radii (Vertikale Reifensteifigkeiten)  
         [sim.cZ_fl(i+1), sim.cZ_fr(i+1), sim.cZ_rl(i+1), sim.cZ_rr(i+1)] = calculateVtirestiff(Fz, cZ_tire, sim.FWZ_fl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rl(i+1), sim.FWZ_rr(i+1));
@@ -371,11 +370,15 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
         [sim.Rdyn_fl(i+1), sim.Rdyn_fr(i+1), sim.Rdyn_rl(i+1), sim.Rdyn_rr(i+1)] = calculateDynRadii(R0, sim.FWZ_fl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rl(i+1), sim.FWZ_rr(i+1), sim.cZ_fl(i+1), sim.cZ_fr(i+1), sim.cZ_rr(i+1), sim.cZ_rl(i+1));
 
         % Maximum transmissible tire forces in longitudinal direction (Maximal �bertragbare Reifenkr�fte in L�ngsrichtung)
-        [sim.FWXmax_fl(i+1), sim.FWXmax_fr(i+1), sim.FWXmax_rl(i+1), sim.FWXmax_rr(i+1), sim.FWXmax_f(i+1), sim.FWXmax_r(i+1)] = calculateLongiTireforces(sim.FWZ_fl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rl(i+1), sim.FWZ_rr(i+1), GAMMA, TIRparam, sim.alpha_f(i+1), sim.alpha_r(i+1));
+        [sim.FWXmax_fl(i+1), sim.FWXmax_fr(i+1), sim.FWXmax_rl(i+1), sim.FWXmax_rr(i+1), sim.FWXmax_f(i+1), sim.FWXmax_r(i+1)] = calculateLongiTireforces(sim.FWZ_fl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rl(i+1), sim.FWZ_rr(i+1), GAMMA, TIRparam);
 
         % Maximum transmissible tire forces in lateral direction (Maximal �bertragbare Reifenkr�fte in Querrichtung)
-        [sim.FWYmax_fl(i+1), sim.FWYmax_fr(i+1), sim.FWYmax_rl(i+1), sim.FWYmax_rr(i+1), sim.FWYmax_f(i+1), sim.FWYmax_r(i+1)] = calculateLatTireforces(sim.FWZ_fl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rl(i+1), sim.FWZ_rr(i+1), GAMMA, TIRparam, sim.alpha_f(i+1), sim.alpha_r(i+1));
+        [sim.FWYmax_fl(i+1), sim.FWYmax_fr(i+1), sim.FWYmax_rl(i+1), sim.FWYmax_rr(i+1), sim.FWYmax_f(i+1), sim.FWYmax_r(i+1), alpha_f(i+1), alpha_r(i+1)] = calculateLatTireforces(sim.FWZ_fl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rl(i+1), sim.FWZ_rr(i+1), GAMMA, TIRparam);
         
+        % Calculate delta, beta, psi1 and alpha for all wheels
+        % and front / rear
+        [sim.delta(i+1), sim.beta(i+1), sim.psi1(i+1), sim.alpha_f(i+1), sim.alpha_r(i+1), sim.alpha_fr(i+1), sim.alpha_fl(i+1), sim.alpha_rr(i+1), sim.alpha_rl(i+1), sim.delta_fl(i+1), sim.delta_fr(i+1), sim.delta_sw(i+1), sim.ackermann(i+1), sim.ackermannPercent(i+1)] = calculateSteeringData(setup.wheelbase, R(i+1), setup.lr, setup.lf, sim.vV(i+1), sim.FWZ_fl(i+1), sim.FWZ_rl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rr(i+1), setup.track_f, sim.cZ_fl(i+1), sim.cZ_fr(i+1), sim.cZ_rl(i+1), sim.cZ_rr(i+1), sim.alpha_f(i+1), sim.alpha_r(i+1));  
+
         % Maximum cornering velocity 
         sim.vVYmax(i+1) = sqrt((abs(sim.FWYmax_f(i+1))+abs(sim.FWYmax_r(i+1)))*abs(R(i+1))/setup.m_ges); % Calculating maximum possible lateral velocity with given Tire forces [m/s] (inaccuaracy because tire force is based on aero force)
         
@@ -626,17 +629,17 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
         [sim.cZ_fl(i+1), sim.cZ_fr(i+1), sim.cZ_rl(i+1), sim.cZ_rr(i+1)] = calculateVtirestiff(Fz, cZ_tire, sim.FWZ_fl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rl(i+1), sim.FWZ_rr(i+1));
 
         % Dynamic tire radii (Dynamische Reifenradien)   
-        [sim.Rdyn_fl(i+1), sim.Rdyn_fr(i+1), sim.Rdyn_rl(i+1), sim.Rdyn_rr(i+1)] = calculateDynRadii(R0, sim.FWZ_fl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rl(i+1), sim.FWZ_rr(i+1), sim.cZ_fl(i+1), sim.cZ_fr(i+1), sim.cZ_rr(i+1), sim.cZ_rl(i+1));
+        [sim.Rdyn_fl(i+1), sim.Rdyn_fr(i+1), sim.Rdyn_rl(i+1), sim.Rdyn_rr(i+1)] = calculateDynRadii(R0, sim.FWZ_fl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rl(i+1), sim.FWZ_rr(i+1), sim.cZ_fl(i+1), sim.cZ_fr(i+1), sim.cZ_rr(i+1), sim.cZ_rl(i+1));  
+        
+        % Maximum transmissible tire forces in longitudinal direction   
+        [sim.FWXmax_fl(i+1), sim.FWXmax_fr(i+1), sim.FWXmax_rl(i+1), sim.FWXmax_rr(i+1), sim.FWXmax_f(i+1), sim.FWXmax_r(i+1)] = calculateLongiTireforces(sim.FWZ_fl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rl(i+1), sim.FWZ_rr(i+1), GAMMA, TIRparam);
+
+        % Maximum transmissible tire forces in lateral direction
+        [sim.FWYmax_fl(i+1), sim.FWYmax_fr(i+1), sim.FWYmax_rl(i+1), sim.FWYmax_rr(i+1), sim.FWYmax_f(i+1), sim.FWYmax_r(i+1), alpha_f(i+1), alpha_r(i+1)] = calculateLatTireforces(sim.FWZ_fl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rl(i+1), sim.FWZ_rr(i+1), GAMMA, TIRparam);
 
         % Calculate delta, beta, psi1 and alpha for all wheels
         % and front / rear
-        [sim.delta(i+1), sim.beta(i+1), sim.psi1(i+1), sim.alpha_f(i+1), sim.alpha_r(i+1), sim.alpha_fr(i+1), sim.alpha_fl(i+1), sim.alpha_rr(i+1), sim.alpha_rl(i+1), sim.delta_fl(i+1), sim.delta_fr(i+1), sim.delta_sw(i+1), sim.ackermann(i+1), sim.ackermannPercent(i+1)] = calculateSteeringData(setup.wheelbase, R(i+1), setup.lr, setup.lf, sim.vV(i+1), sim.FWZ_fl(i+1), sim.FWZ_rl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rr(i+1), setup.track_f);  
-        
-        % Maximum transmissible tire forces in longitudinal direction   
-        [sim.FWXmax_fl(i+1), sim.FWXmax_fr(i+1), sim.FWXmax_rl(i+1), sim.FWXmax_rr(i+1), sim.FWXmax_f(i+1), sim.FWXmax_r(i+1)] = calculateLongiTireforces(sim.FWZ_fl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rl(i+1), sim.FWZ_rr(i+1), GAMMA, TIRparam, sim.alpha_f(i+1), sim.alpha_r(i+1));
-
-        % Maximum transmissible tire forces in lateral direction
-        [sim.FWYmax_fl(i+1), sim.FWYmax_fr(i+1), sim.FWYmax_rl(i+1), sim.FWYmax_rr(i+1), sim.FWYmax_f(i+1), sim.FWYmax_r(i+1)] = calculateLatTireforces(sim.FWZ_fl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rl(i+1), sim.FWZ_rr(i+1), GAMMA, TIRparam, sim.alpha_f(i+1), sim.alpha_r(i+1));
+        [sim.delta(i+1), sim.beta(i+1), sim.psi1(i+1), sim.alpha_f(i+1), sim.alpha_r(i+1), sim.alpha_fr(i+1), sim.alpha_fl(i+1), sim.alpha_rr(i+1), sim.alpha_rl(i+1), sim.delta_fl(i+1), sim.delta_fr(i+1), sim.delta_sw(i+1), sim.ackermann(i+1), sim.ackermannPercent(i+1)] = calculateSteeringData(setup.wheelbase, R(i+1), setup.lr, setup.lf, sim.vV(i+1), sim.FWZ_fl(i+1), sim.FWZ_rl(i+1), sim.FWZ_fr(i+1), sim.FWZ_rr(i+1), setup.track_f, sim.cZ_fl(i+1), sim.cZ_fr(i+1), sim.cZ_rl(i+1), sim.cZ_rr(i+1), alpha_f(i+1), alpha_r(i+1));
         
         % Maximum cornering velocity
         sim.vVYmax(i+1) = sqrt((abs(sim.FWYmax_f(i+1))+abs(sim.FWYmax_r(i+1)))*abs(R(i+1))/setup.m_ges); % Calculating maximum possible lateral velocity with given Tire forces [m/s] (inaccuaracy because tire force is based on aero force)

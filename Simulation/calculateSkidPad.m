@@ -46,7 +46,7 @@ function [t_skidpad, vV_skidpad] = calculateSkidPad(downforce_multiplier, c_l, A
         % Maximum transmissible tire forces in longitudinal direction = 0 assumed (because longitudinal wheel loads = 0 assumed) 
 
         % Maximum transmissible tire forces in lateral direction (Maximal übertragbare Reifenkräfte in Querrichtung)    
-        [FWYmax_f, FWYmax_r] = calculateLatTireforces(FWZ_fl, FWZ_fr,FWZ_rl, FWZ_rr, GAMMA, TIRparam);
+        [FWYmax_f, FWYmax_r] = calculateLatTireforces(FWZ_fl, FWZ_fr, FWZ_rl, FWZ_rr, GAMMA, TIRparam);
 
     end
 
