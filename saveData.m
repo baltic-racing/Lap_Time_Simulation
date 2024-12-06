@@ -43,6 +43,7 @@ function saveData(app)
         setup.h_rc_r = app.h_rc_r;
         setup.tirFile = convertCharsToStrings(app.tirFile);
         setup.KinematicPointsFront = app.KinematicPointsFront;
+        setup.KinematicPointsRear = app.KinematicPointsRear;
         %setup.CHAS_LowForFront = app.CHAS_LowForFront;
 
 

@@ -43,6 +43,8 @@ function loadSetup(app, file)
         app.brakeBias = setup.brakeBias_setup;
         app.h_rc_f = setup.h_rc_f;
         app.h_rc_r = setup.h_rc_r;
+        app.KinematicPointsFront = setup.KinematicPointsFront;
+        app.KinematicPointsRear = setup.KinematicPointsRear;
 
         %% Drivetrain Parameters
         app.ptype = setup.ptype;
