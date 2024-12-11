@@ -91,11 +91,12 @@ function loadSetup(app, file)
         app.DRS_Radius = setup.DRS_Radius;
 
         %% Accumulator Parameters
-        app.V_i = setup.V_i;
+        app.nominalVoltage = setup.nominalVoltage;
         app.Energy_i = setup.Energy_i;
         app.nZellen_Parallel = setup.nZellen_Parallel;
         app.nZellen_Reihe = setup.nZellen_Reihe;
         app.capacity_cell = setup.capacity_cell;  
+        app.V_i = setup.V_i;
 
         %% Environment Parameters
         app.t_L = setup.t_L;

@@ -89,11 +89,12 @@ function saveData(app)
         setup.DRS_Radius = app.DRS_Radius;
 
         %% Accumulator Parameters
-        setup.V_i = app.V_i;
+        setup.nominalVoltage = app.nominalVoltage;
         setup.Energy_i = app.Energy_i;
         setup.nZellen_Parallel = app.nZellen_Parallel;
         setup.nZellen_Reihe = app.nZellen_Reihe;
-        setup.capacity_cell = app.capacity_cell;             
+        setup.capacity_cell = app.capacity_cell;    
+        setup.V_i = app.V_i;
 
         %% Environment Parameters
         setup.t_L = app.t_L;
