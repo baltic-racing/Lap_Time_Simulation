@@ -59,6 +59,7 @@ function loadSetup(app, file)
         app.num_motors = setup.num_motors;
         app.gearbox = setup.gearbox;
         app.i_P = setup.i_P;
+        app.recu_enabled = setup.recu_enabled;
 
         if app.gearbox
             setup.i_param = app.i_param;

@@ -60,6 +60,7 @@ function saveData(app)
         setup.num_motors = app.num_motors;  
         setup.gearbox = app.gearbox;
         setup.i_P = app.i_P;
+        setup.recu_enabled = app.recu_enabled;
 
         if app.gearbox
             setup.i_param = app.i_param;

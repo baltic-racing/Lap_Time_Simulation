@@ -440,8 +440,11 @@ function [result] = Vehiclesim_Endurance_GUI_Version(startingParameters, minValu
             % Braking 
             sim.Mi(i) = 0;                                    % [Nm] Motor torque (Motormoment)
             sim.BPPsignal(i) = 1;                             % [-] Brake signal (Bremssignal)
-            sim.P_Bh(i) = sim.FWZr(i)/sim.FWZtot(i)*sim.FB(i)*sim.vV(i);      % [W] Rear braking power for recuperation (Bremsleistung hinten f�r Rekuperation)
+            if setup.recu_enabled == 1
 
+                sim.P_Bh(i) = sim.FWZr(i)/sim.FWZtot(i)*sim.FB(i)*sim.vV(i);      % [W] Rear braking power for recuperation (Bremsleistung hinten f�r Rekuperation)
+            end
+            
             sim.P_M(i) = 0;
             sim.Mi(i) = 0;
             sim.motor_eff(i) = 0;
